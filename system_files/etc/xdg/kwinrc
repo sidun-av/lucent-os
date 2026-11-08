@@ -1,0 +1,37 @@
+[org.kde.kdecoration2]
+library=org.kde.breeze
+theme=Breeze
+# Windows layout: window menu on the left, minimise / maximise / close on the right.
+ButtonsOnLeft=M
+ButtonsOnRight=IAX
+
+[Windows]
+# Double-click on a title bar maximises/restores, exactly like Windows.
+TitlebarDoubleClickCommand=Maximize
+# Aero Snap: drag to the top edge maximises, to a side edge tiles half-screen.
+ElectricBorderMaximize=true
+ElectricBorderTiling=true
+ElectricBorderCornerRatio=0.25
+# Windows does not raise or focus windows just because the mouse passes over them.
+FocusPolicy=ClickToFocus
+
+[Plugins]
+blurEnabled=true
+contrastEnabled=true
+# The "shake cursor to find it" toy and window wobbling are off for a calm desktop.
+shakecursorEnabled=false
+wobblywindowsEnabled=false
+
+[Effect-blur]
+# Moderate blur for the panels/dock and menus; strong blur costs GPU time on
+# weak laptops and looks muddy at 1x scale.
+BlurStrength=10
+NoiseStrength=0
+
+[TabBox]
+# Alt+Tab shows window thumbnails in a grid, like Windows 10/11.
+LayoutName=thumbnail_grid
+
+[ModifierOnlyShortcuts]
+# Pressing and releasing the Win key alone opens the launcher (Start menu).
+Meta=org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu

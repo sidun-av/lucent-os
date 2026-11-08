@@ -1,0 +1,23 @@
+#!/usr/bin/bash
+# First-boot Flatpak setup (system-wide): make Flathub the single app source
+# and install Lucent's default apps. Idempotent; retried by systemd until it
+# succeeds (e.g. when the first boot happens offline).
+set -euo pipefail
+
+DONE=/var/lib/lucent/flatpaks-v1.done
+LIST=/usr/share/lucent/flatpaks.list
+
+flatpak remote-add --system --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+# Fedora ships Flathub filtered/disabled; Lucent uses the full, upstream-built Flathub.
+flatpak remote-modify --system --enable --no-filter flathub
+# One source of truth: avoid duplicate Okular/Firefox entries from Fedora's
+# own Flatpak remote showing up next to the Flathub ones in Discover.
+if flatpak remotes --system --columns=name | grep -qx fedora; then
+    flatpak remote-modify --system --disable fedora
+fi
+
+mapfile -t APPS < <(grep -Ev '^\s*(#|$)' "$LIST")
+flatpak install --system --noninteractive --or-update flathub "${APPS[@]}"
+
+mkdir -p "$(dirname "$DONE")"
+touch "$DONE"

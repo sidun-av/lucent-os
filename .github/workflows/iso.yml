@@ -1,0 +1,61 @@
+name: iso
+
+# Builds an installable Anaconda ISO from the published image. Manual only:
+# it takes a while and produces a multi-GB artifact.
+on:
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: Architecture
+        type: choice
+        options: [amd64, arm64]
+        default: amd64
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/lucent-os
+
+jobs:
+  iso:
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost || true
+          df -h /
+      - name: Install podman if missing
+        run: command -v podman || (sudo apt-get update -qq && sudo apt-get install -y -qq podman)
+      - name: Pull image
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | sudo podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+          # The multi-arch :latest tag, so the installed system keeps
+          # following :latest for its atomic updates.
+          sudo podman pull "$IMAGE:latest"
+      - name: bootc-image-builder (anaconda-iso)
+        run: |
+          mkdir -p output
+          sudo podman run --rm --privileged --pull=newer \
+            --security-opt label=type:unconfined_t \
+            -v ./iso/config.toml:/config.toml:ro \
+            -v ./output:/output \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            quay.io/centos-bootc/bootc-image-builder:latest \
+            --type anaconda-iso --rootfs btrfs \
+            "$IMAGE:latest"
+          sudo find output -type f -exec ls -la {} +
+          sudo mv output/bootiso/install.iso "lucent-os-${{ inputs.arch }}.iso"
+          sudo chown "$USER" "lucent-os-${{ inputs.arch }}.iso"
+          sha256sum "lucent-os-${{ inputs.arch }}.iso" | tee "lucent-os-${{ inputs.arch }}.iso.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lucent-os-${{ inputs.arch }}-iso
+          path: |
+            lucent-os-${{ inputs.arch }}.iso
+            lucent-os-${{ inputs.arch }}.iso.sha256
+          compression-level: 0
+          retention-days: 14

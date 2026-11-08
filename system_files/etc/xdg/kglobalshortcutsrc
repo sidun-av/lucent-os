@@ -1,0 +1,36 @@
+# Windows-style global shortcuts. Format: Action=Active,Default,Friendly name;
+# several keys for one action are separated by a TAB.
+[kwin]
+Show Desktop=Meta+D,Meta+D,Peek at Desktop
+Window Close=Alt+F4,Alt+F4,Close Window
+Walk Through Windows=Alt+Tab,Alt+Tab,Walk Through Windows
+Walk Through Windows (Reverse)=Alt+Shift+Tab,Alt+Shift+Tab,Walk Through Windows (Reverse)
+Overview=Meta+Tab,Meta+W,Toggle Overview
+Window Maximize=Meta+Up,Meta+PgUp,Maximize Window
+Window Minimize=Meta+Down,Meta+PgDown,Minimize Window
+Window Quick Tile Left=Meta+Left,Meta+Left,Quick Tile Window to the Left
+Window Quick Tile Right=Meta+Right,Meta+Right,Quick Tile Window to the Right
+Window Quick Tile Top=none,Meta+Up,Quick Tile Window to the Top
+Window Quick Tile Bottom=none,Meta+Down,Quick Tile Window to the Bottom
+Window to Next Screen=Meta+Shift+Right,Meta+Shift+Right,Window to Next Screen
+Window to Previous Screen=Meta+Shift+Left,Meta+Shift+Left,Window to Previous Screen
+
+[ksmserver]
+Lock Session=Meta+L\tScreensaver,Meta+L\tScreensaver,Lock Session
+
+[org.kde.dolphin.desktop]
+_launch=Meta+E,Meta+E,Dolphin
+
+[org.kde.plasma-systemmonitor.desktop]
+_launch=Ctrl+Shift+Esc\tCtrl+Esc,Ctrl+Esc,System Monitor
+
+[org.kde.spectacle.desktop]
+_launch=Print,Print,Launch Spectacle
+RectangularRegionScreenShot=Meta+Shift+S\tMeta+Shift+Print,Meta+Shift+Print,Capture Rectangular Region
+
+[org.kde.krunner.desktop]
+_launch=Alt+Space\tAlt+F2\tSearch,Alt+Space\tAlt+F2\tSearch,KRunner
+
+[KDE Keyboard Layout Switcher]
+# Win+Space switches layout (Windows 10/11); Alt+Shift is set in kxkbrc.
+Switch to Next Keyboard Layout=Meta+Space\tMeta+Alt+K,Meta+Alt+K,Switch to Next Keyboard Layout

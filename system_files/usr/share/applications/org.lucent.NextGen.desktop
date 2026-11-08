@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Новое поколение (бета)
+Name[en]=Next generation (beta)
+Comment=Установить экспериментальные приложения ArtCraft (по желанию)
+Comment[en]=Optionally install the experimental ArtCraft apps
+Exec=konsole --hold -e /usr/bin/lucent-nextgen install
+Icon=applications-other
+Categories=System;
+Keywords=artcraft;beta;

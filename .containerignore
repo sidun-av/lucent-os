@@ -1,0 +1,7 @@
+.git
+.github
+docs
+output
+**/__pycache__
+**/.pytest_cache
+migration-wizard/tests

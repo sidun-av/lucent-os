@@ -1,0 +1,8 @@
+{
+    "KPlugin": {
+        "Authors": [{ "Name": "Lucent OS contributors" }],
+        "Id": "Lucent",
+        "License": "Apache-2.0",
+        "Name": "Lucent"
+    }
+}

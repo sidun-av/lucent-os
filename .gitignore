@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+/output/
+*.iso
+*.qcow2
+*.raw
+.DS_Store
+rpms/*.rpm

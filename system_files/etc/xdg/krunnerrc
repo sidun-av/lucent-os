@@ -1,0 +1,6 @@
+[Plugins]
+# No recommendations: the launcher/KRunner must not suggest apps to install
+# from the store or send what you type to web search engines.
+krunner_appstreamEnabled=false
+krunner_webshortcutsEnabled=false
+krunner_bookmarksrunnerEnabled=true

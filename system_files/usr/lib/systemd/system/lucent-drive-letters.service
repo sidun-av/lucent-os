@@ -1,0 +1,14 @@
+[Unit]
+Description=Lucent OS: label Windows partitions as "Диск C:", "Диск D:"
+Documentation=https://github.com/sidun-av/lucent-os
+After=systemd-udev-settle.service local-fs.target
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -P -m lucent_migrate.drive_letters
+Environment=PYTHONPATH=/usr/lib/lucent
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

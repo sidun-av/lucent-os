@@ -1,0 +1,10 @@
+[Layout]
+# English + Russian out of the box; Alt+Shift toggles (classic Windows), Win+Space
+# is bound in kglobalshortcutsrc. Users change layouts in System Settings.
+Use=true
+LayoutList=us,ru
+VariantList=,
+DisplayNames=,
+ResetOldOptions=true
+Options=grp:alt_shift_toggle
+SwitchMode=Global

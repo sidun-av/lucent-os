@@ -1,0 +1,12 @@
+# Flathub apps preinstalled on first boot by lucent-flatpak-setup.service.
+# One app ID per line; all verified to exist on Flathub for x86_64 and aarch64.
+org.onlyoffice.desktopeditors
+org.kde.okular
+com.github.jeromerobert.pdfarranger
+org.gimp.GIMP
+org.kde.krita
+org.inkscape.Inkscape
+org.darktable.Darktable
+org.kde.kdenlive
+net.scribus.Scribus
+org.mozilla.firefox

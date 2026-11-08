@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Link
+Name=Таблица (Excel)
+Name[en]=Spreadsheet (Excel)
+Comment=Имя новой таблицы:
+Comment[en]=Name of the new spreadsheet:
+URL=.source/Новая таблица.xlsx
+Icon=x-office-spreadsheet

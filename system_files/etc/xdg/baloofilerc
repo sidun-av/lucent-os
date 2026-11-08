@@ -1,0 +1,7 @@
+[General]
+# Performance: index file names only, not file contents. Content indexing of a
+# freshly migrated Windows library (tens of GB of documents and photos) pins a
+# CPU core and the disk for hours after the first login. Name search in Dolphin
+# and the launcher keeps working; users can enable content search in Settings.
+only basic indexing=true
+index hidden folders=false

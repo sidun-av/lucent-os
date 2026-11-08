@@ -1,0 +1,16 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [{ "Name": "Lucent OS contributors" }],
+        "Category": "",
+        "Description": "Top bar with launcher, tray and clock; floating bottom dock that works like the Windows taskbar. Dark.",
+        "Description[ru]": "Верхняя панель с меню, треем и часами; плавающая нижняя панель задач как в Windows. Тёмная тема.",
+        "Id": "org.lucent.desktop.dark",
+        "License": "Apache-2.0",
+        "Name": "Lucent Dark",
+        "Name[ru]": "Lucent, тёмная",
+        "Version": "0.1",
+        "Website": "https://github.com/sidun-av/lucent-os"
+    },
+    "X-Plasma-APIVersion": "2"
+}

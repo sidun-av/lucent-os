@@ -1,0 +1,11 @@
+[project]
+name = "lucent-migrate"
+version = "0.1.0"
+description = "Lucent OS: move your files and settings over from Windows"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
+addopts = "-q"

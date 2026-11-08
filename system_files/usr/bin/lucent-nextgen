@@ -1,0 +1,79 @@
+#!/usr/bin/bash
+# Lucent "Next generation (beta)" channel: opt-in installer for the ArtCraft
+# Craft apps launcher (https://getartcraft.com, github.com/storytold).
+#
+# ArtCraft is young alpha software (first public releases autumn 2026). It is
+# NOT preinstalled; this script installs the official, checksum-verified
+# Flatpak bundle for the current user only, and can remove it again.
+#
+# AI note: as audited for Lucent 0.1, the launcher and the apps it offered
+# (e.g. PhotoCraft) contain no AI features; the separate
+# storytold/craft-ai-integrations layer is not linked by them. The launcher
+# does contact GitHub (update checks, screenshots). Re-audit before trusting
+# newer app versions.
+#
+# Usage: lucent-nextgen [install|remove|status]   (default: install)
+set -euo pipefail
+
+REPO=storytold/craft-launcher
+APP_ID=ai.storyteller.artcraft-launcher
+VERSION=${LUCENT_ARTCRAFT_VERSION:-latest}   # e.g. v0.16.1 to pin
+
+say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
+
+confirm() {
+    say "Next generation (beta) / Новое поколение (бета)"
+    cat <<'TXT'
+This installs the ArtCraft launcher (alpha!) for your user account only.
+From it you can install new Rust-based creative apps (photo, vector, video,
+documents). They are early previews: expect missing features and bugs.
+
+Будет установлен лаунчер ArtCraft (альфа-версия) только для вашей учётной
+записи. Это ранние версии программ: возможны ошибки и недоделки.
+TXT
+    read -r -p "Continue? / Продолжить? [y/N] " ans
+    [[ "$ans" =~ ^[YyДд] ]]
+}
+
+install() {
+    confirm || { echo "Cancelled."; return 1; }
+    local arch; arch=$(uname -m)
+    case "$arch" in x86_64|aarch64) ;; *) echo "Unsupported architecture: $arch"; return 1;; esac
+
+    local api="https://api.github.com/repos/$REPO/releases/${VERSION/#v/tags/v}"
+    [ "$VERSION" = latest ] && api="https://api.github.com/repos/$REPO/releases/latest"
+
+    local tmp; tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' RETURN
+    curl -fsSL "$api" -o "$tmp/release.json"
+
+    local urls
+    urls=$(python3 -I - "$tmp/release.json" "$arch" <<'PY'
+import json, sys
+rel = json.load(open(sys.argv[1]))
+arch = sys.argv[2]
+assets = {a["name"]: a["browser_download_url"] for a in rel["assets"]}
+bundle = next(n for n in assets if n.endswith(f"-linux-{arch}.flatpak"))
+print(assets[bundle]); print(assets["SHA256SUMS.txt"]); print(bundle)
+PY
+)
+    local bundle_url sums_url bundle
+    { read -r bundle_url; read -r sums_url; read -r bundle; } <<<"$urls"
+
+    say "Downloading $bundle"
+    curl -fL --progress-bar "$bundle_url" -o "$tmp/$bundle"
+    curl -fsSL "$sums_url" -o "$tmp/SHA256SUMS.txt"
+    (cd "$tmp" && grep -E "  \*?$bundle\$" SHA256SUMS.txt | sha256sum -c -) \
+        || { echo "Checksum verification FAILED, nothing installed."; return 1; }
+
+    flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+    flatpak install --user --noninteractive --bundle "$tmp/$bundle"
+    say "Installed. Find \"ArtCraft\" in the launcher. Remove with: lucent-nextgen remove"
+}
+
+case "${1:-install}" in
+    install) install ;;
+    remove)  flatpak uninstall --user --noninteractive "$APP_ID" ;;
+    status)  flatpak info --user "$APP_ID" 2>/dev/null || echo "Not installed." ;;
+    *) echo "Usage: $0 [install|remove|status]"; exit 2 ;;
+esac

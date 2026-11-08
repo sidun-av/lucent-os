@@ -1,0 +1,10 @@
+[General]
+# Explorer habits: status bar with free space, no surprise restore of old tabs.
+ShowStatusBar=true
+ShowSpaceInfo=true
+RememberOpenedTabs=false
+ShowFullPath=false
+BrowseThroughArchives=true
+
+[MainWindow]
+MenuBar=Disabled

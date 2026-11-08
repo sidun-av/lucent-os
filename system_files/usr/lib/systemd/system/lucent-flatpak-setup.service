@@ -1,0 +1,19 @@
+[Unit]
+Description=Lucent OS: install default Flathub apps
+Documentation=https://github.com/sidun-av/lucent-os
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=!/var/lib/lucent/flatpaks-v1.done
+# keep retrying (offline first boot, flaky Wi-Fi) instead of giving up
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/lucent/flatpak-setup
+Restart=on-failure
+RestartSec=120
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=multi-user.target
