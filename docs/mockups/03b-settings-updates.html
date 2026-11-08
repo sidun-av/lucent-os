@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru" class="light">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS — Настройки: Обновления</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lucent.css">
+<script src="lucent.js"></script>
+<style>
+.hero { margin-top: 30px; display: flex; align-items: center; gap: 26px; padding: 28px 30px; border-radius: 18px; background: var(--accent-soft); border: 1px solid rgba(59,110,245,.25); }
+.hero .ic { width: 64px; height: 64px; border-radius: 18px; background: var(--accent); display: grid; place-items: center; color: #fff; flex: none; }
+.hero .ic svg { width: 34px; height: 34px; }
+.hero h2 { font-size: 21px; font-weight: 650; }
+.hero p { font-size: 15.5px; color: var(--text-2); margin-top: 6px; line-height: 1.5; }
+.hero .acts { margin-left: auto; display: flex; gap: 12px; flex: none; }
+.ver .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.ver .lbl { display: flex; align-items: center; gap: 12px; }
+.how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 18px; }
+.how div { padding: 20px 22px; border-radius: 14px; background: var(--card-2); border: 1px solid var(--line); font-size: 15px; color: var(--text-2); line-height: 1.5; }
+.how b { display: flex; align-items: center; gap: 10px; color: var(--text); font-size: 16px; margin-bottom: 6px; }
+.how b svg { width: 20px; height: 20px; color: var(--accent); }
+</style>
+</head>
+<body>
+<div id="wall"></div>
+<div class="win settings">
+  <div class="titlebar" data-app="settings">Настройки</div>
+  <div class="body">
+    <div class="side">
+      <div class="me"><span class="av">А</span><div><b>Анна Смирнова</b><span>Администратор</span></div></div>
+      <div class="search"><i data-sym="search"></i>Найти настройку</div>
+      <div class="si"><span class="sq c-net"><i data-sym="wifi"></i></span>Wi-Fi и сеть<span style="margin-left:auto;font-size:14px;color:var(--text-2)">Дом_5G</span></div>
+      <div class="si"><span class="sq c-bt"><i data-sym="bluetooth"></i></span>Bluetooth</div>
+      <div class="si"><span class="sq c-disp"><i data-sym="display"></i></span>Экран</div>
+      <div class="si"><span class="sq c-snd"><i data-sym="volume"></i></span>Звук</div>
+      <div class="si"><span class="sq c-look"><i data-sym="palette"></i></span>Оформление</div>
+      <div class="si"><span class="sq c-win"><i data-sym="keyboard"></i></span>Как в Windows</div>
+      <div class="si"><span class="sq c-users"><i data-sym="users"></i></span>Пользователи</div>
+      <div class="si sel"><span class="sq c-upd"><i data-sym="refresh"></i></span>Обновления<span class="count">1</span></div>
+      <div class="si"><span class="sq c-wapp"><i data-sym="winapp"></i></span>Windows-программы</div>
+      <div class="foot"><i data-sym="info"></i>Lucent OS 1.2 · О системе</div>
+    </div>
+    <div class="pane"><div class="inner">
+
+      <h1>Обновления</h1>
+      <div class="lead">Lucent обновляется целиком, как телефон: новая версия собирается рядом с текущей и включается при перезапуске. Если что-то пойдёт не так, можно вернуться назад одним нажатием.</div>
+      <div class="hero">
+        <span class="ic"><i data-sym="download"></i></span>
+        <div><h2>Lucent 1.3 готова к установке</h2><p>Скачано 612 МБ · займёт меньше минуты при перезапуске · ваши файлы и программы не затрагиваются</p></div>
+        <div class="acts"><span class="btn">Ночью, при выключении</span><span class="btn primary">Перезапустить сейчас</span></div>
+      </div>
+      <div class="gh">Версии системы на этом компьютере</div>
+      <div class="group ver">
+        <div class="row"><div><div class="lbl"><span class="dot" style="background:var(--accent)"></span>Lucent 1.3 <span class="pill accent">включится при перезапуске</span></div><div class="sub" style="margin-left:24px">Обновлены Firefox 146, ONLYOFFICE 9.2, драйверы Wi-Fi</div></div></div>
+        <div class="row"><div><div class="lbl"><span class="dot" style="background:var(--ok)"></span>Lucent 1.2 <span class="pill ok">работает сейчас</span></div><div class="sub" style="margin-left:24px">Установлена 14 октября</div></div></div>
+        <div class="row"><div><div class="lbl"><span class="dot" style="background:var(--text-3)"></span>Lucent 1.1</div><div class="sub" style="margin-left:24px">Предыдущая версия · работала с 2 сентября по 14 октября</div></div>
+          <div class="val"><span class="btn"><i data-sym="undo"></i>Откатить к прошлой версии</span></div></div>
+      </div>
+      <div class="gh">Параметры</div>
+      <div class="group">
+        <div class="row"><div><div class="lbl">Скачивать обновления автоматически</div><div class="sub">Только по Wi-Fi без лимита трафика</div></div><div class="val"><span class="switch on"></span></div></div>
+        <div class="row"><div><div class="lbl">Обновлять программы из Магазина вместе с системой</div></div><div class="val"><span class="switch on"></span></div></div>
+        <div class="row"><div><div class="lbl">Последняя проверка</div></div><div class="val">сегодня, 09:14<span class="btn">Проверить</span></div></div>
+      </div>
+
+    </div></div>
+  </div>
+</div>
+<div id="taskbar" data-active="settings" data-run="files,firefox"></div>
+</body>
+</html>

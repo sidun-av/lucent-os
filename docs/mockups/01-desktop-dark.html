@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ru" class="dark">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS — Рабочий стол и Файлы (тёмная тема)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lucent.css">
+<script src="lucent.js"></script>
+<style>
+  .win.files { left: 380px; top: 150px; width: 1800px; height: 800px; }
+  .addr { flex: 1; height: 40px; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 12px; border-radius: 11px; background: var(--field); font-size: 15px; }
+  .addr svg { width: 18px; height: 18px; color: var(--text-2); }
+  .addr .c { padding: 5px 8px; border-radius: 7px; color: var(--text); font-weight: 600; }
+  .addr .chev { width: 14px; height: 14px; color: var(--text-3); }
+  .content { flex: 1; padding: 30px 40px; overflow: hidden; }
+  .sec { font-size: 17px; font-weight: 650; margin: 0 4px 16px; display: flex; align-items: center; gap: 10px; }
+  .sec small { font-size: 14px; font-weight: 500; color: var(--text-2); }
+  .folders { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 40px; }
+  .ft { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: var(--card-2); border: 1px solid var(--line); }
+  .ft .fi { width: 52px; height: 52px; flex: none; }
+  .ft .fi svg { width: 52px; height: 52px; display: block; }
+  .ft b { display: block; font-size: 15.5px; font-weight: 600; }
+  .ft span { font-size: 14px; color: var(--text-2); }
+  .ft.sel { background: var(--sel); border-color: rgba(59,110,245,.35); }
+  .drives { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 40px; }
+  .dc { display: flex; gap: 18px; padding: 20px 22px; border-radius: 16px; background: var(--card-2); border: 1px solid var(--line); }
+  .dc .di2 { width: 64px; height: 64px; flex: none; }
+  .dc .meta { flex: 1; min-width: 0; }
+  .dc .name { display: flex; align-items: center; gap: 10px; font-size: 16.5px; font-weight: 650; margin-bottom: 4px; }
+  .dc .desc { font-size: 14px; color: var(--text-2); margin-bottom: 12px; line-height: 1.4; }
+  .dc .bar { height: 8px; border-radius: 4px; background: var(--field); overflow: hidden; margin-bottom: 8px; }
+  .dc .bar b { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+  .dc .free { font-size: 14px; color: var(--text-2); }
+  .recent { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .rf { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 12px; }
+  .rf .fi { width: 44px; height: 44px; flex: none; }
+  .rf .fi svg { width: 44px; height: 44px; display: block; }
+  .rf b { display: block; font-size: 15px; font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rf span { font-size: 14px; color: var(--text-2); }
+  .preview { left: 1047px; bottom: 88px; }
+  .thumb.doc { padding: 0; display: flex; flex-direction: column; }
+  .thumb.doc .tb { height: 22px; background: var(--win-side); border-bottom: 1px solid var(--line); }
+  .thumb.doc .pg { margin: 12px auto 0; width: 200px; flex: 1; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 4px 10px rgba(0,0,0,.08); padding: 16px 18px; }
+  .thumb.doc .pg i { display: block; height: 5px; border-radius: 3px; background: #d4d9e2; margin-bottom: 7px; }
+</style>
+</head>
+<body>
+<div id="wall"></div>
+
+<div class="win files">
+  <div class="titlebar" data-app="files">Этот компьютер — Файлы</div>
+  <div class="menubar"><span>Файл</span><span>Правка</span><span>Вид</span><span>Переход</span><span>Сервис</span><span>Справка</span></div>
+  <div class="toolbar">
+    <span class="tbtn"><i data-sym="left"></i></span>
+    <span class="tbtn dim"><i data-sym="right"></i></span>
+    <span class="tbtn"><i data-sym="up"></i></span>
+    <div class="addr"><i data-sym="pc"></i><span class="c">Этот компьютер</span><i data-sym="right" ></i></div>
+    <div class="seg"><span class="tbtn on"><i data-sym="grid"></i></span><span class="tbtn"><i data-sym="list"></i></span><span class="tbtn"><i data-sym="columns"></i></span></div>
+    <span class="tbtn"><i data-sym="split"></i></span>
+    <div class="search" style="width:360px"><i data-sym="search"></i>Поиск в «Этот компьютер»</div>
+  </div>
+  <div class="body">
+    <div class="side">
+      <h6>Быстрый доступ</h6>
+      <div class="si"><i data-sym="clock"></i>Недавние</div>
+      <div class="si"><i data-sym="desktop"></i>Рабочий стол</div>
+      <div class="si"><i data-sym="doc"></i>Документы</div>
+      <div class="si"><i data-sym="download"></i>Загрузки</div>
+      <div class="si"><i data-sym="image"></i>Изображения</div>
+      <div class="si"><i data-sym="music"></i>Музыка</div>
+      <div class="si"><i data-sym="video"></i>Видео</div>
+      <h6>Устройства</h6>
+      <div class="si sel"><i data-sym="pc"></i>Этот компьютер</div>
+      <div class="si"><i data-sym="home"></i>Домашняя папка</div>
+      <div class="si"><i data-sym="drive"></i>Диск C: (Windows)<span class="tag"><i data-sym="lock"></i></span></div>
+      <div class="si"><i data-sym="drive"></i>KINGSTON (D:)<i data-sym="eject"></i></div>
+      <h6>Другое</h6>
+      <div class="si"><i data-sym="globe"></i>Сеть</div>
+      <div class="si"><i data-sym="trash"></i>Корзина</div>
+    </div>
+    <div class="main">
+      <div class="content">
+        <div class="sec">Папки</div>
+        <div class="folders">
+          <div class="ft"><span class="fi" data-file="folder-desk"></span><div><b>Рабочий стол</b><span>14 объектов</span></div></div>
+          <div class="ft sel"><span class="fi" data-file="folder-doc"></span><div><b>Документы</b><span>212 объектов</span></div></div>
+          <div class="ft"><span class="fi" data-file="folder-dl"></span><div><b>Загрузки</b><span>38 объектов</span></div></div>
+          <div class="ft"><span class="fi" data-file="folder-img"></span><div><b>Изображения</b><span>4 310 объектов</span></div></div>
+          <div class="ft"><span class="fi" data-file="folder-music"></span><div><b>Музыка</b><span>1 024 объекта</span></div></div>
+          <div class="ft"><span class="fi" data-file="folder-video"></span><div><b>Видео</b><span>57 объектов</span></div></div>
+        </div>
+
+        <div class="sec">Диски и устройства</div>
+        <div class="drives">
+          <div class="dc">
+            <svg class="di2" viewBox="0 0 64 64"><rect x="6" y="16" width="52" height="32" rx="9" fill="#e3e8f1" stroke="#c6cede" stroke-width="1.5"/><rect x="6" y="36" width="52" height="12" rx="0" fill="#d2d9e6"/><rect x="6" y="16" width="52" height="32" rx="9" fill="none" stroke="#c6cede" stroke-width="1.5"/><circle cx="48" cy="42" r="2.4" fill="#3bc46b"/><g transform="translate(16 20) scale(.7)" fill="none" stroke="#3b6ef5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v8a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19z"/></g></svg>
+            <div class="meta">
+              <div class="name">Домашняя папка</div>
+              <div class="desc">Системный диск Lucent · 512 ГБ</div>
+              <div class="bar"><b style="width:20%"></b></div>
+              <div class="free">410 ГБ свободно из 512 ГБ</div>
+            </div>
+          </div>
+          <div class="dc">
+            <svg class="di2" viewBox="0 0 64 64"><rect x="6" y="16" width="52" height="32" rx="9" fill="#e3e8f1"/><rect x="6" y="36" width="52" height="12" fill="#d2d9e6"/><rect x="6" y="16" width="52" height="32" rx="9" fill="none" stroke="#c6cede" stroke-width="1.5"/><circle cx="48" cy="42" r="2.4" fill="#8a93a5"/><text x="22" y="34" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="700" fill="#4c5463">C:</text></svg>
+            <div class="meta">
+              <div class="name">Диск C: (Windows) <span class="pill neutral"><i data-sym="lock"></i>только чтение</span></div>
+              <div class="desc">Ваши файлы из Windows. Здесь ничего не изменится.</div>
+              <div class="bar"><b style="width:75%;background:#8a93a5"></b></div>
+              <div class="free">121 ГБ свободно из 476 ГБ</div>
+            </div>
+          </div>
+          <div class="dc">
+            <svg class="di2" viewBox="0 0 64 64"><rect x="14" y="14" width="36" height="40" rx="7" fill="#e3e8f1" stroke="#c6cede" stroke-width="1.5"/><rect x="22" y="6" width="20" height="10" rx="2" fill="#c6cede"/><rect x="26" y="9" width="4" height="4" fill="#fff"/><rect x="34" y="9" width="4" height="4" fill="#fff"/><circle cx="32" cy="40" r="3" fill="#3bc46b"/></svg>
+            <div class="meta">
+              <div class="name">KINGSTON (D:)</div>
+              <div class="desc">Флешка USB · 32 ГБ</div>
+              <div class="bar"><b style="width:55%"></b></div>
+              <div class="free">14,2 ГБ свободно из 32 ГБ</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">Недавние файлы</div>
+        <div class="recent">
+          <div class="rf"><span class="fi" data-file="docx"></span><div><b>Договор аренды 2026.docx</b><span>Документы · сегодня, 11:04</span></div></div>
+          <div class="rf"><span class="fi" data-file="xlsx"></span><div><b>Семейный бюджет.xlsx</b><span>Документы · вчера</span></div></div>
+          <div class="rf"><span class="fi" data-file="pdf"></span><div><b>Счёт за электричество.pdf</b><span>Загрузки · 6 нояб.</span></div></div>
+          <div class="rf"><span class="fi" data-file="jpg"></span><div><b>Отпуск, Сочи — 014.jpg</b><span>Изображения · 3 нояб.</span></div></div>
+        </div>
+      </div>
+      <div class="statusbar"><span>6 папок, 3 диска</span><span class="spacer"></span><span>Свободно на системном диске: 410 ГБ</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="preview">
+  <div class="ph"><span style="width:20px;height:20px" data-icon="docs"></span>Резюме — Анна Смирнова.docx<span class="x"><i data-sym="x"></i></span></div>
+  <div class="thumb doc"><div class="tb"></div><div class="pg"><i style="width:60%;height:8px;background:#9aa6bb"></i><i></i><i style="width:90%"></i><i style="width:75%"></i><i></i><i style="width:40%"></i><i style="width:85%"></i></div></div>
+</div>
+
+<div id="taskbar" data-active="files" data-run="firefox,docs" data-hover="docs"></div>
+</body>
+</html>

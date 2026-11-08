@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru" class="light">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS — Переезд с Windows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lucent.css">
+<script src="lucent.js"></script>
+<style>
+  .win.wiz { left: 430px; top: 150px; width: 1700px; height: 1050px; }
+  .steps { width: 320px; flex: none; background: var(--win-side); border-right: 1px solid var(--line); padding: 34px 26px; display: flex; flex-direction: column; }
+  .steps .brand { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 700; margin-bottom: 40px; }
+  .step { display: flex; align-items: center; gap: 14px; height: 50px; font-size: 16px; color: var(--text-2); position: relative; }
+  .step .n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 700; border: 2px solid var(--line-strong); color: var(--text-2); background: var(--win-bg); flex: none; }
+  .step.done .n { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .step.done .n svg { width: 16px; height: 16px; }
+  .step.cur { color: var(--text); font-weight: 650; }
+  .step.cur .n { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 0 0 5px var(--accent-soft); }
+  .steps .note { margin-top: auto; font-size: 14.5px; line-height: 1.5; color: var(--text-2); padding: 16px; border-radius: 12px; background: var(--win-bg); border: 1px solid var(--line); }
+  .steps .note b { color: var(--text); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .steps .note svg { width: 18px; height: 18px; color: var(--ok); }
+  .wz { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .wz .scroll { flex: 1; padding: 40px 56px 0; overflow: hidden; }
+  .wz h1 { font-size: 32px; font-weight: 700; letter-spacing: -.01em; }
+  .wz .lead { font-size: 16.5px; color: var(--text-2); margin-top: 8px; line-height: 1.5; }
+  .disk { margin-top: 26px; display: flex; align-items: center; gap: 20px; padding: 20px 24px; border-radius: 16px; background: var(--accent-soft); border: 1px solid rgba(59,110,245,.25); }
+  .disk svg.big { width: 58px; height: 58px; flex: none; }
+  .disk b { font-size: 18px; font-weight: 650; display: block; }
+  .disk span { font-size: 15px; color: var(--text-2); }
+  .disk .pill { margin-left: auto; }
+  .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 28px; margin-top: 28px; }
+  .card { border: 1px solid var(--line); border-radius: 16px; background: var(--card); overflow: hidden; }
+  .card h3 { font-size: 17px; font-weight: 650; padding: 18px 22px 14px; display: flex; align-items: center; gap: 10px; }
+  .card h3 svg { width: 20px; height: 20px; color: var(--accent); }
+  .card h3 small { margin-left: auto; font-size: 14px; font-weight: 500; color: var(--text-2); }
+  .it { display: flex; align-items: center; gap: 16px; padding: 0 22px; height: 58px; border-top: 1px solid var(--line); font-size: 16px; }
+  .it .fi { width: 34px; height: 34px; flex: none; }
+  .it .fi svg { width: 34px; height: 34px; display: block; }
+  .it .sz { margin-left: auto; font-size: 15px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .it .sub { font-size: 14px; color: var(--text-2); }
+  .it.off { color: var(--text-2); }
+  .it .bi { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none; color: #fff; }
+  .it .bi svg { width: 20px; height: 20px; }
+  .warnbox { margin: 4px 22px 20px; padding: 14px 16px; border-radius: 12px; background: var(--warn-soft); color: #6b4300; font-size: 14.5px; line-height: 1.5; display: flex; gap: 12px; }
+  .warnbox svg { width: 20px; height: 20px; flex: none; color: var(--warn); margin-top: 1px; }
+  .wfoot { flex: none; height: 104px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 16px; padding: 0 56px; }
+  .wfoot .sum b { font-size: 17px; font-weight: 650; display: block; }
+  .wfoot .sum span { font-size: 15px; color: var(--text-2); }
+</style>
+</head>
+<body>
+<div id="wall"></div>
+<div class="win wiz">
+  <div class="titlebar" data-app="migrate">Добро пожаловать в Lucent</div>
+  <div class="body">
+    <div class="steps">
+      <div class="brand"><span data-logo="34"></span>Lucent</div>
+      <div class="step done"><span class="n"><i data-sym="check"></i></span>Язык и регион</div>
+      <div class="step done"><span class="n"><i data-sym="check"></i></span>Подключение к сети</div>
+      <div class="step done"><span class="n"><i data-sym="check"></i></span>Ваша учётная запись</div>
+      <div class="step cur"><span class="n">4</span>Переезд с Windows</div>
+      <div class="step"><span class="n">5</span>Оформление</div>
+      <div class="step"><span class="n">6</span>Готово</div>
+      <div class="note"><b><i data-sym="shield"></i>Windows останется как есть</b>Мы только копируем. На диске Windows ничего не удаляется и не меняется.</div>
+    </div>
+    <div class="wz">
+      <div class="scroll">
+        <h1>Переезд с Windows</h1>
+        <div class="lead">Мы нашли ваш диск Windows. Отметьте, что перенести, — остальное сделаем сами.</div>
+        <div class="disk">
+          <svg class="big" viewBox="0 0 64 64"><rect x="6" y="16" width="52" height="32" rx="9" fill="#fff"/><rect x="6" y="36" width="52" height="12" fill="#e4e9f2"/><rect x="6" y="16" width="52" height="32" rx="9" fill="none" stroke="#b9c4d8" stroke-width="1.5"/><circle cx="48" cy="42" r="2.4" fill="#3bc46b"/><text x="22" y="34" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="700" fill="#3b6ef5">C:</text></svg>
+          <div><b>Диск C: · Windows 11 · пользователь «Anna»</b><span>Samsung SSD 970 · 476 ГБ · последний вход в Windows 6 ноября</span></div>
+          <span class="pill ok"><i data-sym="check"></i>Найден</span>
+        </div>
+        <div class="cols">
+          <div class="card">
+            <h3><i data-sym="folder"></i>Папки<small>отмечено 5 из 7</small></h3>
+            <div class="it"><span class="chk on"><i data-sym="check"></i></span><span class="fi" data-file="folder-doc"></span>Документы<span class="sz">3,4 ГБ</span></div>
+            <div class="it"><span class="chk on"><i data-sym="check"></i></span><span class="fi" data-file="folder-desk"></span>Рабочий стол<span class="sz">1,2 ГБ</span></div>
+            <div class="it"><span class="chk on"><i data-sym="check"></i></span><span class="fi" data-file="folder-img"></span>Изображения<span class="sz">18,2 ГБ</span></div>
+            <div class="it"><span class="chk on"><i data-sym="check"></i></span><span class="fi" data-file="folder-music"></span>Музыка<span class="sz">9,8 ГБ</span></div>
+            <div class="it off"><span class="chk"></span><span class="fi" data-file="folder-dl"></span>Загрузки<span class="sz">6,1 ГБ</span></div>
+            <div class="it off"><span class="chk"></span><span class="fi" data-file="folder-video"></span>Видео<span class="sz">42,7 ГБ</span></div>
+            <div class="it"><span class="chk on"><i data-sym="check"></i></span><span class="fi" data-file="folder"></span>Шрифты, установленные вами<span class="sz">38 МБ</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:28px">
+            <div class="card">
+              <h3><i data-sym="bookmark"></i>Закладки браузеров<small>перенесём в Firefox</small></h3>
+              <div class="it"><span class="chk on"><i data-sym="check"></i></span><span class="bi" style="background:#0f8fbf"><i data-sym="globe"></i></span><div>Microsoft Edge<div class="sub">184 закладки · история за 90 дней</div></div></div>
+              <div class="it"><span class="chk on"><i data-sym="check"></i></span><span class="bi" style="background:#e0a400"><i data-sym="globe"></i></span><div>Google Chrome<div class="sub">62 закладки</div></div></div>
+            </div>
+            <div class="card">
+              <h3><i data-sym="wifi"></i>Сети Wi-Fi<small>3 сети</small></h3>
+              <div class="it"><span class="chk on"><i data-sym="check"></i></span>Дом_5G<span class="sz">подключено сейчас</span></div>
+              <div class="it"><span class="chk on"><i data-sym="check"></i></span>Дача</div>
+              <div class="it"><span class="chk on"><i data-sym="check"></i></span>Офис-Гость</div>
+              <div class="warnbox"><i data-sym="info"></i><span>Windows не отдаёт пароли от Wi-Fi. Названия сетей сохраним, а пароль спросим один раз, когда вы будете рядом с сетью.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wfoot">
+        <div class="sum"><b>Будет скопировано 32,6 ГБ</b><span>Свободно 410 ГБ · примерно 6 минут · можно пользоваться компьютером</span></div>
+        <span class="spacer"></span>
+        <span class="btn big ghost">Пропустить</span>
+        <span class="btn big primary" style="padding:0 44px"><i data-sym="copy"></i>Перенести</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="taskbar" data-active="migrate" data-extra="migrate"></div>
+</body>
+</html>

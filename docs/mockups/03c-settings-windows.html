@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ru" class="light">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS — Настройки: Как в Windows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lucent.css">
+<script src="lucent.js"></script>
+<style>
+.wbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 30px; }
+.wbo { border-radius: 16px; padding: 18px 20px; border: 2px solid var(--line); background: var(--card); }
+.wbo.on { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.wbo .bar { height: 46px; border-radius: 10px; background: var(--win-side); border: 1px solid var(--line); display: flex; align-items: center; padding: 0 6px; font-size: 14.5px; font-weight: 600; color: var(--text-2); }
+.wbo .bar .b { display: flex; }
+.wbo .bar .b i { width: 42px; height: 34px; display: grid; place-items: center; color: var(--text-2); }
+.wbo .bar .b i svg { width: 14px; height: 14px; }
+.wbo .bar .dots { display: flex; gap: 8px; padding: 0 8px; }
+.wbo .bar .dots i { width: 13px; height: 13px; border-radius: 50%; background: var(--line-strong); display: block; }
+.wbo .cap { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 16px; font-weight: 600; }
+.wbo .cap span { font-weight: 450; color: var(--text-2); font-size: 14.5px; }
+.radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-strong); flex: none; }
+.radio.on { border: 7px solid var(--accent); }
+.keys { display: grid; grid-template-columns: 1fr 1fr; }
+.keys .row { border-top: 1px solid var(--line); }
+.keys .row:nth-child(-n+2) { border-top: none; }
+.keys .row:nth-child(odd) { border-right: 1px solid var(--line); }
+.keys .row .val { margin-left: auto; }
+</style>
+</head>
+<body>
+<div id="wall"></div>
+<div class="win settings">
+  <div class="titlebar" data-app="settings">Настройки</div>
+  <div class="body">
+    <div class="side">
+      <div class="me"><span class="av">А</span><div><b>Анна Смирнова</b><span>Администратор</span></div></div>
+      <div class="search"><i data-sym="search"></i>Найти настройку</div>
+      <div class="si"><span class="sq c-net"><i data-sym="wifi"></i></span>Wi-Fi и сеть<span style="margin-left:auto;font-size:14px;color:var(--text-2)">Дом_5G</span></div>
+      <div class="si"><span class="sq c-bt"><i data-sym="bluetooth"></i></span>Bluetooth</div>
+      <div class="si"><span class="sq c-disp"><i data-sym="display"></i></span>Экран</div>
+      <div class="si"><span class="sq c-snd"><i data-sym="volume"></i></span>Звук</div>
+      <div class="si"><span class="sq c-look"><i data-sym="palette"></i></span>Оформление</div>
+      <div class="si sel"><span class="sq c-win"><i data-sym="keyboard"></i></span>Как в Windows</div>
+      <div class="si"><span class="sq c-users"><i data-sym="users"></i></span>Пользователи</div>
+      <div class="si"><span class="sq c-upd"><i data-sym="refresh"></i></span>Обновления<span class="count">1</span></div>
+      <div class="si"><span class="sq c-wapp"><i data-sym="winapp"></i></span>Windows-программы</div>
+      <div class="foot"><i data-sym="info"></i>Lucent OS 1.2 · О системе</div>
+    </div>
+    <div class="pane"><div class="inner">
+
+      <h1>Как в Windows</h1>
+      <div class="lead">Привычные кнопки и сочетания клавиш уже включены. Здесь можно их проверить или поменять.</div>
+      <div class="wbtns">
+        <div class="wbo on"><div class="bar"><span style="padding-left:10px">Документ — Файлы</span><span class="spacer"></span><span class="b"><i><i data-sym="min"></i></i><i><i data-sym="max"></i></i><i><i data-sym="x"></i></i></span></div>
+          <div class="cap"><span class="radio on"></span>Кнопки окна справа <span>— как в Windows</span></div></div>
+        <div class="wbo"><div class="bar"><span class="dots"><i></i><i></i><i></i></span><span style="padding-left:8px">Документ — Файлы</span></div>
+          <div class="cap"><span class="radio"></span>Кнопки окна слева</div></div>
+      </div>
+      <div class="gh">Сочетания клавиш</div>
+      <div class="group keys">
+        <div class="row"><div class="lbl">Меню программ</div><span class="val"><span class="keycap">⊞ Win</span></span></div>
+        <div class="row"><div class="lbl">Переключение окон</div><span class="val"><span class="keycap">Alt</span><span class="plus">+</span><span class="keycap">Tab</span></span></div>
+        <div class="row"><div class="lbl">Открыть «Файлы»</div><span class="val"><span class="keycap">⊞ Win</span><span class="plus">+</span><span class="keycap">E</span></span></div>
+        <div class="row"><div class="lbl">Показать рабочий стол</div><span class="val"><span class="keycap">⊞ Win</span><span class="plus">+</span><span class="keycap">D</span></span></div>
+        <div class="row"><div class="lbl">Прикрепить окно к краю</div><span class="val"><span class="keycap">⊞ Win</span><span class="plus">+</span><span class="keycap">← →</span></span></div>
+        <div class="row"><div class="lbl">Заблокировать компьютер</div><span class="val"><span class="keycap">⊞ Win</span><span class="plus">+</span><span class="keycap">L</span></span></div>
+        <div class="row"><div class="lbl">Диспетчер задач</div><span class="val"><span class="keycap">Ctrl</span><span class="plus">+</span><span class="keycap">Shift</span><span class="plus">+</span><span class="keycap">Esc</span></span></div>
+        <div class="row"><div class="lbl">Снимок экрана</div><span class="val"><span class="keycap">PrtSc</span></span></div>
+      </div>
+      <div class="gh">Клавиатура и мышь</div>
+      <div class="group">
+        <div class="row"><div><div class="lbl">Переключение раскладки RU / EN</div><div class="sub">Текущая раскладка видна на панели задач</div></div>
+          <div class="val"><div class="seg"><span class="tbtn on" style="padding:0 14px;color:var(--text)">Alt + Shift</span><span class="tbtn" style="padding:0 14px">Ctrl + Shift</span><span class="tbtn" style="padding:0 14px">Win + Пробел</span></div></div></div>
+        <div class="row"><div><div class="lbl">Открывать файлы двойным щелчком</div><div class="sub">Одиночный щелчок только выделяет</div></div><div class="val"><span class="switch on"></span></div></div>
+        <div class="row"><div><div class="lbl">Показывать расширения файлов</div><div class="sub">Например, «Отчёт.docx» вместо «Отчёт»</div></div><div class="val"><span class="switch on"></span></div></div>
+      </div>
+
+    </div></div>
+  </div>
+</div>
+<div id="taskbar" data-active="settings" data-run="files,firefox"></div>
+</body>
+</html>

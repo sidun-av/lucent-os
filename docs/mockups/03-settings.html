@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru" class="light">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS — Настройки: Оформление</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lucent.css">
+<script src="lucent.js"></script>
+<style>
+.themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 30px; }
+.th { border-radius: 16px; padding: 10px; border: 2px solid var(--line); background: var(--card); }
+.th.on { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.th .pv { height: 200px; border-radius: 10px; position: relative; overflow: hidden; }
+.th .pv .w { position: absolute; left: 24px; top: 22px; right: 60px; bottom: 44px; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,.18); }
+.th .pv .w::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 30%; border-radius: 8px 0 0 8px; }
+.th .pv .w i { position: absolute; left: 36%; height: 8px; border-radius: 4px; }
+.th .pv .tb { position: absolute; left: 10px; right: 10px; bottom: 8px; height: 22px; border-radius: 8px; }
+.pv.light { background: linear-gradient(135deg,#bcd0ff,#ffd3e4 60%,#cfeaff); }
+.pv.light .w { background: #fff; } .pv.light .w::before { background: #f1f3f7; } .pv.light .w i { background: #dfe3ea; } .pv.light .tb { background: rgba(255,255,255,.7); }
+.pv.dark { background: linear-gradient(135deg,#1b2350,#3b1d5e 60%,#0d2a40); }
+.pv.dark .w { background: #23262e; } .pv.dark .w::before { background: #1a1c22; } .pv.dark .w i { background: #3a3f4a; } .pv.dark .tb { background: rgba(40,44,54,.75); }
+.pv.auto .half { position: absolute; inset: 0; }
+.pv.auto .half.d { clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.th .cap { display: flex; align-items: center; gap: 12px; padding: 14px 6px 4px; }
+.th .cap svg { width: 20px; height: 20px; color: var(--text-2); }
+.th .cap b { font-size: 16px; font-weight: 600; }
+.th .cap span { font-size: 14px; color: var(--text-2); margin-left: auto; }
+.radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-strong); flex: none; }
+.radio.on { border: 7px solid var(--accent); }
+.accents { display: flex; gap: 14px; align-items: center; }
+.accents i { width: 34px; height: 34px; border-radius: 50%; display: block; }
+.accents i.on { box-shadow: 0 0 0 3px var(--win-bg), 0 0 0 5.5px currentColor; }
+.slider { width: 280px; height: 6px; border-radius: 3px; background: var(--field); position: relative; }
+.slider b { position: absolute; left: 0; top: 0; bottom: 0; width: 40%; background: var(--accent); border-radius: 3px; }
+.slider u { position: absolute; left: 40%; top: 50%; width: 22px; height: 22px; margin: -11px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+.wp { width: 120px; height: 68px; border-radius: 8px; background: linear-gradient(135deg,#a7bfff,#ffc1d8 55%,#bfe6ff); box-shadow: 0 0 0 1px var(--line); }
+</style>
+</head>
+<body>
+<div id="wall"></div>
+<div class="win settings">
+  <div class="titlebar" data-app="settings">Настройки</div>
+  <div class="body">
+    <div class="side">
+      <div class="me"><span class="av">А</span><div><b>Анна Смирнова</b><span>Администратор</span></div></div>
+      <div class="search"><i data-sym="search"></i>Найти настройку</div>
+      <div class="si"><span class="sq c-net"><i data-sym="wifi"></i></span>Wi-Fi и сеть<span style="margin-left:auto;font-size:14px;color:var(--text-2)">Дом_5G</span></div>
+      <div class="si"><span class="sq c-bt"><i data-sym="bluetooth"></i></span>Bluetooth</div>
+      <div class="si"><span class="sq c-disp"><i data-sym="display"></i></span>Экран</div>
+      <div class="si"><span class="sq c-snd"><i data-sym="volume"></i></span>Звук</div>
+      <div class="si sel"><span class="sq c-look"><i data-sym="palette"></i></span>Оформление</div>
+      <div class="si"><span class="sq c-win"><i data-sym="keyboard"></i></span>Как в Windows</div>
+      <div class="si"><span class="sq c-users"><i data-sym="users"></i></span>Пользователи</div>
+      <div class="si"><span class="sq c-upd"><i data-sym="refresh"></i></span>Обновления<span class="count">1</span></div>
+      <div class="si"><span class="sq c-wapp"><i data-sym="winapp"></i></span>Windows-программы</div>
+      <div class="foot"><i data-sym="info"></i>Lucent OS 1.2 · О системе</div>
+    </div>
+    <div class="pane"><div class="inner">
+
+      <h1>Оформление</h1>
+      <div class="lead">Светлая или тёмная тема, цвет акцента и обои. Изменения применяются сразу, без перезапуска.</div>
+      <div class="themes">
+        <div class="th"><div class="pv light"><div class="w"><i style="top:18px;width:40%"></i><i style="top:36px;width:50%"></i><i style="top:54px;width:30%"></i></div><div class="tb"></div></div><div class="cap"><span class="radio" style="margin-left:0"></span><b>Светлая</b><i data-sym="sun"></i></div></div>
+        <div class="th"><div class="pv dark"><div class="w"><i style="top:18px;width:40%"></i><i style="top:36px;width:50%"></i><i style="top:54px;width:30%"></i></div><div class="tb"></div></div><div class="cap"><span class="radio" style="margin-left:0"></span><b>Тёмная</b><i data-sym="moon"></i></div></div>
+        <div class="th on"><div class="pv auto"><div class="half pv light" style="position:absolute;inset:0">
+<div class="w"><i style="top:18px;width:40%"></i><i style="top:36px;width:50%"></i><i style="top:54px;width:30%"></i></div><div class="tb"></div></div>
+<div class="half d pv dark" style="position:absolute;inset:0"><div class="w"><i style="top:18px;width:40%"></i><i style="top:36px;width:50%"></i><i style="top:54px;width:30%"></i></div><div class="tb"></div></div></div><div class="cap"><span class="radio on" style="margin-left:0"></span><b>Авто</b><span>светлая днём, тёмная после 19:40</span></div></div>
+      </div>
+      <div class="gh">Цвет и стиль</div>
+      <div class="group">
+        <div class="row"><div><div class="lbl">Цвет акцента</div><div class="sub">Кнопки, выделение, переключатели</div></div>
+          <div class="val accents">
+            <i class="on" style="background:#3b6ef5;color:#3b6ef5"></i><i style="background:#7c4dff"></i><i style="background:#e5487d"></i><i style="background:#ef6a2e"></i>
+            <i style="background:#e0a400"></i><i style="background:#1f9d55"></i><i style="background:#0f9fb0"></i><i style="background:#64748b"></i>
+          </div></div>
+        <div class="row"><div><div class="lbl">Обои</div><div class="sub">«Поток» — входит в Lucent</div></div><div class="val"><span class="wp"></span><span class="btn">Выбрать…</span></div></div>
+        <div class="row"><div><div class="lbl">Прозрачность и размытие</div><div class="sub">Панель задач, меню и всплывающие окна</div></div><div class="val"><span class="switch on"></span></div></div>
+      </div>
+      <div class="gh">Текст и движение</div>
+      <div class="group">
+        <div class="row"><div><div class="lbl">Размер текста</div><div class="sub">Сейчас: 100% · для экрана 2560 × 1440</div></div><div class="val"><span style="font-size:13px">А</span><span class="slider"><b></b><u></u></span><span style="font-size:20px">А</span></div></div>
+        <div class="row"><div><div class="lbl">Анимации</div><div class="sub">Окна открываются и сворачиваются</div></div>
+          <div class="val"><div class="seg"><span class="tbtn" style="padding:0 14px">Выкл.</span><span class="tbtn on" style="padding:0 14px;color:var(--text)">Быстрые</span><span class="tbtn" style="padding:0 14px">Обычные</span></div></div></div>
+      </div>
+
+    </div></div>
+  </div>
+</div>
+<div id="taskbar" data-active="settings" data-run="files,firefox"></div>
+</body>
+</html>

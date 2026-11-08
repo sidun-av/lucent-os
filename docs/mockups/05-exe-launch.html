@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ru" class="light">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS — Запуск Windows-программы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lucent.css">
+<script src="lucent.js"></script>
+<style>
+  .win.files { left: 380px; top: 150px; width: 1800px; height: 860px; }
+  .addr { flex: 1; height: 40px; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 12px; border-radius: 11px; background: var(--field); font-size: 15px; }
+  .addr svg { width: 18px; height: 18px; color: var(--text-2); }
+  .addr .c { padding: 5px 8px; border-radius: 7px; color: var(--text-2); }
+  .addr .c.cur { color: var(--text); font-weight: 600; }
+  .tbl { padding: 10px 22px; }
+  .tr { display: grid; grid-template-columns: 1fr 240px 240px 140px; align-items: center; height: 52px; padding: 0 14px; border-radius: 10px; font-size: 15px; }
+  .tr.h { height: 42px; font-size: 14px; font-weight: 600; color: var(--text-2); border-bottom: 1px solid var(--line); border-radius: 0; margin-bottom: 6px; }
+  .tr .n { display: flex; align-items: center; gap: 14px; font-weight: 500; }
+  .tr .n .fi { width: 34px; height: 34px; }
+  .tr .n .fi svg { width: 34px; height: 34px; display: block; }
+  .tr span { color: var(--text-2); }
+  .tr .n { color: var(--text); }
+  .tr.sel { background: var(--sel); }
+  .tr .r { text-align: right; font-variant-numeric: tabular-nums; }
+  .scrim { left: 380px; top: 150px; width: 1800px; height: 860px; right: auto; bottom: auto; border-radius: 14px; z-index: 20; background: rgba(15,20,35,.22); }
+  .sheet {
+    position: absolute; z-index: 35; left: 50%; top: 330px; width: 640px; margin-left: -320px; /* centred over the parent window */
+    border-radius: 22px; background: var(--win-bg); box-shadow: 0 0 0 1px rgba(15,20,35,.10), 0 30px 80px rgba(15,20,35,.30);
+    padding: 40px 44px 30px; display: flex; flex-direction: column; align-items: center; text-align: center;
+  }
+  .sheet .ic { position: relative; width: 96px; height: 96px; margin-bottom: 22px; }
+  .sheet .ic > [data-icon] { display: block; width: 96px; height: 96px; }
+  .sheet .badge { position: absolute; right: -6px; bottom: -6px; width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: #2a303c; color: #fff; box-shadow: 0 0 0 3px var(--win-bg); }
+  .sheet .badge svg { width: 19px; height: 19px; }
+  .sheet h2 { font-size: 23px; font-weight: 700; letter-spacing: -.01em; }
+  .sheet .nm { font-size: 17px; font-weight: 600; margin-top: 14px; }
+  .sheet .fn { font-size: 15px; color: var(--text-2); margin-top: 4px; }
+  .sheet .arch { margin-top: 16px; height: 32px; padding: 0 14px; border-radius: 16px; background: var(--field); color: var(--text-2); font-size: 14.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+  .sheet .arch svg { width: 16px; height: 16px; }
+  .sheet .prog { width: 100%; margin-top: 30px; }
+  .sheet .prog .progress { height: 10px; border-radius: 5px; }
+  .sheet .prog .progress b { border-radius: 5px; }
+  .sheet .pl { display: flex; justify-content: space-between; font-size: 15px; color: var(--text-2); margin-top: 12px; }
+  .sheet .pl b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .sheet .acts { width: 100%; display: flex; justify-content: flex-end; margin-top: 30px; }
+</style>
+</head>
+<body>
+<div id="wall"></div>
+<div class="win files">
+  <div class="titlebar" data-app="files">Загрузки — Файлы</div>
+  <div class="menubar"><span>Файл</span><span>Правка</span><span>Вид</span><span>Переход</span><span>Сервис</span><span>Справка</span></div>
+  <div class="toolbar">
+    <span class="tbtn"><i data-sym="left"></i></span>
+    <span class="tbtn dim"><i data-sym="right"></i></span>
+    <span class="tbtn"><i data-sym="up"></i></span>
+    <div class="addr"><i data-sym="home"></i><span class="c">Анна</span><i data-sym="right"></i><span class="c cur">Загрузки</span></div>
+    <div class="seg"><span class="tbtn"><i data-sym="grid"></i></span><span class="tbtn on"><i data-sym="list"></i></span><span class="tbtn"><i data-sym="columns"></i></span></div>
+    <div class="search" style="width:340px"><i data-sym="search"></i>Поиск в «Загрузки»</div>
+  </div>
+  <div class="body">
+    <div class="side">
+      <h6>Быстрый доступ</h6>
+      <div class="si"><i data-sym="clock"></i>Недавние</div>
+      <div class="si"><i data-sym="desktop"></i>Рабочий стол</div>
+      <div class="si"><i data-sym="doc"></i>Документы</div>
+      <div class="si sel"><i data-sym="download"></i>Загрузки</div>
+      <div class="si"><i data-sym="image"></i>Изображения</div>
+      <div class="si"><i data-sym="music"></i>Музыка</div>
+      <div class="si"><i data-sym="video"></i>Видео</div>
+      <h6>Устройства</h6>
+      <div class="si"><i data-sym="pc"></i>Этот компьютер</div>
+      <div class="si"><i data-sym="home"></i>Домашняя папка</div>
+      <div class="si"><i data-sym="drive"></i>Диск C: (Windows)<span class="tag"><i data-sym="lock"></i></span></div>
+      <h6>Другое</h6>
+      <div class="si"><i data-sym="trash"></i>Корзина</div>
+    </div>
+    <div class="main">
+      <div class="tbl">
+        <div class="tr h"><span>Имя</span><span>Изменён</span><span>Тип</span><span class="r">Размер</span></div>
+        <div class="tr sel"><div class="n"><span class="fi" data-file="exe"></span>npp.8.7.Installer.x64.exe</div><span>сегодня, 14:31</span><span>Windows-программа</span><span class="r">4,6 МБ</span></div>
+        <div class="tr"><div class="n"><span class="fi" data-file="pdf"></span>Счёт за электричество.pdf</div><span>6 нояб., 19:02</span><span>Документ PDF</span><span class="r">212 КБ</span></div>
+        <div class="tr"><div class="n"><span class="fi" data-file="docx"></span>Анкета на визу.docx</div><span>5 нояб., 10:47</span><span>Документ Word</span><span class="r">88 КБ</span></div>
+        <div class="tr"><div class="n"><span class="fi" data-file="xlsx"></span>Расписание секций.xlsx</div><span>2 нояб., 21:15</span><span>Таблица Excel</span><span class="r">31 КБ</span></div>
+        <div class="tr"><div class="n"><span class="fi" data-file="zip"></span>Фото с выпускного.zip</div><span>28 окт., 16:20</span><span>Архив ZIP</span><span class="r">1,4 ГБ</span></div>
+        <div class="tr"><div class="n"><span class="fi" data-file="jpg"></span>Скан паспорта.jpg</div><span>21 окт., 09:03</span><span>Изображение JPEG</span><span class="r">2,8 МБ</span></div>
+        <div class="tr"><div class="n"><span class="fi" data-file="pptx"></span>Отчёт за квартал.pptx</div><span>14 окт., 12:40</span><span>Презентация PowerPoint</span><span class="r">6,2 МБ</span></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="statusbar"><span>Выбран 1 объект · 4,6 МБ</span><span class="spacer"></span><span>7 объектов</span></div>
+    </div>
+  </div>
+</div>
+<div class="scrim"></div>
+<div class="sheet">
+  <div class="ic"><span data-icon="notepadpp"></span><span class="badge"><i data-sym="winapp"></i></span></div>
+  <h2>Подготовка Windows-программы</h2>
+  <div class="nm">Установщик Notepad++</div>
+  <div class="fn">npp.8.7.Installer.x64.exe · 4,6 МБ</div>
+  <div class="arch"><i data-sym="chip"></i>x86-64 · прямое исполнение</div>
+  <div class="prog"><div class="progress"><b style="width:62%"></b></div>
+    <div class="pl"><span>Готовим всё для запуска — это нужно только в первый раз</span><b>62 %</b></div></div>
+  <div class="acts"><span class="btn">Отмена</span></div>
+</div>
+<div id="taskbar" data-active="files" data-run="firefox"></div>
+</body>
+</html>

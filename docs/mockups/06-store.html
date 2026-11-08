@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru" class="light">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS — Магазин</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lucent.css">
+<script src="lucent.js"></script>
+<style>
+  .win.store { left: 250px; top: 120px; width: 2060px; height: 1110px; }
+  .store .side { width: 290px; }
+  .store .si { height: 44px; font-size: 15.5px; }
+  .pane { flex: 1; padding: 34px 56px; overflow: hidden; }
+  .top { display: flex; align-items: center; gap: 20px; }
+  .top h1 { font-size: 30px; font-weight: 700; letter-spacing: -.01em; }
+  .top .search { margin-left: auto; width: 460px; height: 44px; border-radius: 12px; }
+  .sh { display: flex; align-items: baseline; gap: 14px; margin: 34px 2px 6px; }
+  .sh h2 { font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+  .sh p { font-size: 15.5px; color: var(--text-2); }
+  .sh .pill { align-self: center; }
+  .shp { font-size: 15.5px; color: var(--text-2); margin: 0 2px 18px; }
+  .rep { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .rc { border-radius: 18px; background: var(--card); border: 1px solid var(--line); padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 2px rgba(15,20,35,.04); }
+  .rc .was { display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: var(--text-2); }
+  .rc .was b { color: var(--text); font-weight: 600; padding: 3px 10px; border-radius: 8px; background: var(--field); }
+  .rc .was svg { width: 16px; height: 16px; color: var(--text-3); }
+  .rc .now { display: flex; align-items: center; gap: 16px; }
+  .rc .icons { display: flex; gap: 8px; flex: none; }
+  .rc .icons > span { width: 64px; height: 64px; display: block; }
+  .rc .nm { font-size: 17px; font-weight: 650; }
+  .rc .ds { font-size: 14.5px; color: var(--text-2); margin-top: 3px; line-height: 1.4; }
+  .rc .act { margin-left: auto; flex: none; }
+  .btn.done { background: transparent; color: var(--ok); border-color: transparent; padding: 0 6px; }
+  .btn.sm { height: 36px; padding: 0 16px; font-size: 14.5px; }
+  .beta { margin-top: 10px; border-radius: 20px; padding: 24px; background: linear-gradient(135deg, rgba(255,181,71,.12), rgba(236,63,134,.08) 60%, rgba(124,92,255,.10)); border: 1px solid rgba(240,122,30,.25); }
+  .beta .warn { display: flex; align-items: center; gap: 12px; font-size: 15px; color: #6b4300; background: rgba(255,255,255,.65); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; }
+  .beta .warn svg { width: 20px; height: 20px; color: var(--warn); flex: none; }
+  .crafts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .cc { display: flex; align-items: center; gap: 16px; padding: 16px 18px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); }
+  .cc > [data-icon] { width: 60px; height: 60px; flex: none; }
+  .cc .nm { font-size: 16.5px; font-weight: 650; display: flex; align-items: center; gap: 10px; }
+  .cc .ds { font-size: 14.5px; color: var(--text-2); margin-top: 3px; }
+  .cc .act { margin-left: auto; flex: none; }
+  .alpha { height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; background: #fff1d6; color: #9a5800; border: 1px solid #f3cf8e; display: inline-flex; align-items: center; }
+</style>
+</head>
+<body>
+<div id="wall"></div>
+<div class="win store">
+  <div class="titlebar" data-app="store">Магазин</div>
+  <div class="body">
+    <div class="side">
+      <h6>Каталог</h6>
+      <div class="si sel"><i data-sym="star"></i>Главная</div>
+      <div class="si"><i data-sym="office"></i>Офис</div>
+      <div class="si"><i data-sym="brush"></i>Графика и фото</div>
+      <div class="si"><i data-sym="film"></i>Видео и звук</div>
+      <div class="si"><i data-sym="game"></i>Игры</div>
+      <div class="si"><i data-sym="code"></i>Разработка</div>
+      <div class="si"><i data-sym="winapp"></i>Windows-программы</div>
+      <h6>Мои программы</h6>
+      <div class="si"><i data-sym="check"></i>Установленные</div>
+      <div class="si"><i data-sym="refresh"></i>Обновления<span class="count">2</span></div>
+    </div>
+    <div class="pane">
+      <div class="top"><h1>Магазин</h1><div class="search"><i data-sym="search"></i>Поиск программ</div></div>
+
+      <div class="sh"><h2>Замены для Windows-программ</h2></div>
+      <div class="shp">Привыкли к программе из Windows? Вот что делает то же самое здесь — бесплатно и без подписки.</div>
+      <div class="rep">
+        <div class="rc"><div class="was">Вместо <b>Microsoft Word</b><i data-sym="arrowr"></i></div>
+          <div class="now"><div class="icons"><span data-icon="docs"></span></div><div><div class="nm">ONLYOFFICE Документы</div><div class="ds">Открывает и сохраняет .docx без потерь</div></div><span class="act btn done"><i data-sym="check"></i>Установлено</span></div></div>
+        <div class="rc"><div class="was">Вместо <b>Adobe Photoshop</b><i data-sym="arrowr"></i></div>
+          <div class="now"><div class="icons"><span data-icon="gimp"></span></div><div><div class="nm">GIMP</div><div class="ds">Ретушь, слои, маски, открывает .psd</div></div><span class="act btn done"><i data-sym="check"></i>Установлено</span></div></div>
+        <div class="rc"><div class="was">Вместо <b>Adobe Acrobat</b><i data-sym="arrowr"></i></div>
+          <div class="now"><div class="icons"><span data-icon="okular"></span><span data-icon="pdfarranger"></span></div><div><div class="nm">Okular + PDF Arranger</div><div class="ds">Чтение, подписи, склейка и порядок страниц</div></div><span class="act btn done"><i data-sym="check"></i>Установлено</span></div></div>
+        <div class="rc"><div class="was">Вместо <b>Adobe Illustrator</b><i data-sym="arrowr"></i></div>
+          <div class="now"><div class="icons"><span data-icon="inkscape"></span></div><div><div class="nm">Inkscape</div><div class="ds">Векторная графика, логотипы, SVG и PDF</div></div><span class="act btn primary sm">Установить</span></div></div>
+        <div class="rc"><div class="was">Вместо <b>Adobe Lightroom</b><i data-sym="arrowr"></i></div>
+          <div class="now"><div class="icons"><span data-icon="darktable"></span></div><div><div class="nm">darktable</div><div class="ds">Каталог снимков и проявка RAW</div></div><span class="act btn primary sm">Установить</span></div></div>
+        <div class="rc"><div class="was">Вместо <b>Adobe Premiere</b><i data-sym="arrowr"></i></div>
+          <div class="now"><div class="icons"><span data-icon="kdenlive"></span></div><div><div class="nm">Kdenlive</div><div class="ds">Монтаж видео, титры, переходы</div></div><span class="act btn primary sm">Установить</span></div></div>
+      </div>
+
+      <div class="sh" style="margin-top:44px"><h2>Новое поколение · бета</h2><span class="pill warn"><i data-sym="flask"></i>ранний доступ</span></div>
+      <div class="shp">Семейство ArtCraft: открытые программы на Rust от независимой команды, быстрые и с единым интерфейсом.</div>
+      <div class="beta">
+        <div class="warn"><i data-sym="info"></i>Это альфа-версии: они работают, но возможны ошибки и потеря несохранённых данных. Для важной работы держите копии файлов.</div>
+        <div class="crafts">
+          <div class="cc"><span data-icon="photocraft"></span><div><div class="nm">PhotoCraft <span class="alpha">альфа</span></div><div class="ds">Фоторедактор со слоями</div></div><span class="act btn sm">Попробовать</span></div>
+          <div class="cc"><span data-icon="vectorcraft"></span><div><div class="nm">VectorCraft <span class="alpha">альфа</span></div><div class="ds">Векторная графика</div></div><span class="act btn sm">Попробовать</span></div>
+          <div class="cc"><span data-icon="pdfcraft"></span><div><div class="nm">PdfCraft <span class="alpha">альфа</span></div><div class="ds">Правка и подпись PDF</div></div><span class="act btn sm">Попробовать</span></div>
+          <div class="cc"><span data-icon="wordcraft"></span><div><div class="nm">WordCraft <span class="alpha">альфа</span></div><div class="ds">Текстовый редактор</div></div><span class="act btn sm">Попробовать</span></div>
+          <div class="cc"><span data-icon="gridcraft"></span><div><div class="nm">GridCraft <span class="alpha">альфа</span></div><div class="ds">Таблицы и расчёты</div></div><span class="act btn sm">Попробовать</span></div>
+          <div class="cc"><span data-icon="deckcraft"></span><div><div class="nm">DeckCraft <span class="alpha">альфа</span></div><div class="ds">Презентации</div></div><span class="act btn sm">Попробовать</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="taskbar" data-active="store" data-run="files"></div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru" class="light">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS — Все программы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lucent.css">
+<script src="lucent.js"></script>
+<style>
+  #wall { filter: blur(50px) saturate(1.3); transform: scale(1.1); }
+  .veil { position: absolute; inset: 0; background: rgba(246, 248, 252, .52); }
+  .dash { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; }
+  .q {
+    margin-top: 150px; width: 760px; height: 64px; border-radius: 20px; display: flex; align-items: center; gap: 14px; padding: 0 22px;
+    background: rgba(255,255,255,.88); font-size: 19px; color: var(--text-3);
+    box-shadow: 0 0 0 3px rgba(59,110,245,.35), 0 0 0 1px var(--accent), 0 10px 30px rgba(20,30,60,.12);
+  }
+  .q svg { width: 24px; height: 24px; color: var(--accent); }
+  .q .caret { width: 2px; height: 26px; background: var(--accent); margin-right: -10px; border-radius: 1px; }
+  .chips { display: flex; gap: 10px; margin-top: 30px; }
+  .chip { height: 40px; padding: 0 18px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-size: 15.5px; font-weight: 550; color: var(--text); background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.7); }
+  .chip svg { width: 18px; height: 18px; color: var(--text-2); }
+  .chip.on { background: var(--text); color: #fff; border-color: transparent; }
+  .chip.on svg { color: #fff; }
+  .grid { margin-top: 110px; display: grid; grid-template-columns: repeat(6, 220px); column-gap: 40px; row-gap: 64px; }
+  .app { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .app .ic { position: relative; width: 108px; height: 108px; filter: drop-shadow(0 8px 16px rgba(20,30,60,.16)); }
+  .app .ic > [data-icon] { display: block; width: 108px; height: 108px; }
+  .app .nm { font-size: 16.5px; font-weight: 550; text-align: center; line-height: 1.3; color: var(--text); }
+  .app.focus .ic::after { content: ""; position: absolute; inset: -10px; border-radius: 30px; background: rgba(255,255,255,.55); z-index: -1; box-shadow: 0 0 0 1px rgba(255,255,255,.9); }
+  .badge {
+    position: absolute; right: -6px; bottom: -6px; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center;
+    background: #2a303c; color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.95);
+  }
+  .badge svg { width: 20px; height: 20px; }
+  .hint { position: absolute; bottom: 64px; left: 0; right: 0; display: flex; justify-content: center; gap: 34px; font-size: 15.5px; color: var(--text-2); }
+  .hint span { display: flex; align-items: center; gap: 10px; }
+  kbd { font-family: var(--font); font-size: 14px; font-weight: 650; color: var(--text); background: rgba(255,255,255,.8); border: 1px solid var(--line-strong); border-bottom-width: 2.5px; border-radius: 7px; padding: 3px 9px; }
+  .user { position: absolute; top: 40px; right: 48px; display: flex; align-items: center; gap: 14px; font-size: 16px; font-weight: 600; }
+  .user .av { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#ffb37a,#f2668b); color: #fff; display: grid; place-items: center; font-weight: 700; }
+  .user .pw { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.8); }
+  .user .pw svg { width: 20px; height: 20px; }
+</style>
+</head>
+<body>
+<div id="wall"></div>
+<div class="veil"></div>
+<div class="dash">
+  <div class="user"><span class="av">А</span>Анна<span class="pw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3.5v8"/><path d="M7 6.5a7.5 7.5 0 1 0 10 0"/></svg></span></div>
+  <div class="q"><i data-sym="search"></i><span class="caret"></span>Поиск программ, файлов и настроек</div>
+  <div class="chips">
+    <span class="chip on"><i data-sym="apps"></i>Все программы</span>
+    <span class="chip"><i data-sym="office"></i>Офис</span>
+    <span class="chip"><i data-sym="brush"></i>Графика и фото</span>
+    <span class="chip"><i data-sym="film"></i>Видео</span>
+    <span class="chip"><i data-sym="sliders"></i>Система</span>
+    <span class="chip"><i data-sym="winapp"></i>Windows-программы</span>
+  </div>
+  <div class="grid">
+    <div class="app"><div class="ic"><span data-icon="files"></span></div><div class="nm">Файлы</div></div>
+    <div class="app"><div class="ic"><span data-icon="firefox"></span></div><div class="nm">Firefox</div></div>
+    <div class="app"><div class="ic"><span data-icon="docs"></span></div><div class="nm">ONLYOFFICE<br>Документы</div></div>
+    <div class="app"><div class="ic"><span data-icon="sheets"></span></div><div class="nm">ONLYOFFICE<br>Таблицы</div></div>
+    <div class="app"><div class="ic"><span data-icon="slides"></span></div><div class="nm">ONLYOFFICE<br>Презентации</div></div>
+    <div class="app"><div class="ic"><span data-icon="okular"></span></div><div class="nm">Okular</div></div>
+    <div class="app"><div class="ic"><span data-icon="pdfarranger"></span></div><div class="nm">PDF Arranger</div></div>
+    <div class="app"><div class="ic"><span data-icon="gimp"></span></div><div class="nm">GIMP</div></div>
+    <div class="app"><div class="ic"><span data-icon="krita"></span></div><div class="nm">Krita</div></div>
+    <div class="app"><div class="ic"><span data-icon="inkscape"></span></div><div class="nm">Inkscape</div></div>
+    <div class="app"><div class="ic"><span data-icon="darktable"></span></div><div class="nm">darktable</div></div>
+    <div class="app"><div class="ic"><span data-icon="kdenlive"></span></div><div class="nm">Kdenlive</div></div>
+    <div class="app"><div class="ic"><span data-icon="notepadpp"></span><span class="badge" title="Windows-программа"><i data-sym="winapp"></i></span></div><div class="nm">Notepad++</div></div>
+    <div class="app"><div class="ic"><span data-icon="terminal"></span></div><div class="nm">Терминал</div></div>
+    <div class="app"><div class="ic"><span data-icon="migrate"></span></div><div class="nm">Переезд<br>с Windows</div></div>
+    <div class="app"><div class="ic"><span data-icon="store"></span></div><div class="nm">Магазин</div></div>
+    <div class="app"><div class="ic"><span data-icon="settings"></span></div><div class="nm">Настройки</div></div>
+  </div>
+  <div class="hint">
+    <span><kbd>⊞ Win</kbd>открыть или закрыть это меню</span>
+    <span>Просто начните печатать — поиск уже ждёт</span>
+    <span><kbd>Esc</kbd>закрыть</span>
+  </div>
+</div>
+</body>
+</html>
