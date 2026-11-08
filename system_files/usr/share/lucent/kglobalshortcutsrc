@@ -1,5 +1,9 @@
-# Windows-style global shortcuts. Format: Action=Active,Default,Friendly name;
-# several keys for one action are separated by a TAB.
+# Windows-style global shortcuts, merged into each user's
+# ~/.config/kglobalshortcutsrc once, at first login, by
+# /usr/libexec/lucent/user-defaults (kglobalacceld opens its config as
+# KConfig::SimpleConfig, so a plain /etc/xdg default would be ignored).
+# Format: Action=Active,Default,Friendly name; several keys for one action
+# are separated by \t.
 [kwin]
 Show Desktop=Meta+D,Meta+D,Peek at Desktop
 Window Close=Alt+F4,Alt+F4,Close Window

@@ -47,17 +47,40 @@ INSTALL=(
     ntfsprogs                               # ntfsls: find the Windows (C:) volume without mounting
     udisks2 ntfs-3g                         # read-only Windows disk access (normally present)
 )
+# Wine is installed piecewise, NOT via the `wine` metapackage: that pulls
+# wine-desktop -> wine-systemd, which registers its own binfmt handler for
+# Windows (MZ) executables and would compete with the binfmt.d entry that
+# lucent-bridge ships.
+WINE_PKGS=(wine-core wine-common wine-winefonts wine-cms wine-ldap wine-smartcard
+           wine-twain wine-mono)
+OPTIONAL=()
 case "$ARCH" in
     x86_64)
-        # Windows apps: plain Wine. lucent-bridge (below) adds the friendly layer.
-        INSTALL+=(wine) ;;
+        INSTALL+=("${WINE_PKGS[@]}" wine-pulseaudio mingw64-wine-gecko)
+        OPTIONAL+=(wine-opencl wine-dxvk mingw32-wine-gecko) ;;
     aarch64)
-        # Windows (x86) apps on ARM: FEX-Emu x86 emulator, packaged by Fedora.
+        # Windows x86/x64 apps on ARM: lucent-bridge's primary path is an
+        # ARM64EC-enabled Wine + FEX's ARM64EC/WoW64 DLLs. Fedora proper
+        # doesn't ship those yet; COPR lacamar/wine-arm64ec does (it has a
+        # fedora-45-aarch64 chroot). Its release tags ("-ec2") sort *below*
+        # Fedora's ("-1.fc45"), so the repo gets a higher priority instead.
+        # TODO: drop the COPR once Fedora builds Wine with ARM64EC.
+        FEDORA=$(rpm -E %fedora)
+        curl -fsSL "https://copr.fedorainfracloud.org/coprs/lacamar/wine-arm64ec/repo/fedora-$FEDORA/lacamar-wine-arm64ec-fedora-$FEDORA.repo" \
+            -o /etc/yum.repos.d/lacamar-wine-arm64ec.repo
+        echo "priority=10" >> /etc/yum.repos.d/lacamar-wine-arm64ec.repo
+        INSTALL+=("${WINE_PKGS[@]}" fex-emu fex-emu-wine)
+        OPTIONAL+=(wine-dxvk)
         # The x86 rootfs (fex-emu-rootfs-fedora, ~1 GB) is fetched by
         # lucent-bridge on demand instead of bloating every ARM image.
-        INSTALL+=(fex-emu) ;;
+        ;;
 esac
 "$DNF" "${DNF_OPTS[@]}" install "${INSTALL[@]}"
+"$DNF" "${DNF_OPTS[@]}" install --skip-unavailable "${OPTIONAL[@]}"
+if rpm -q wine-systemd; then echo "wine-systemd must not be installed (binfmt clash with lucent-bridge)"; exit 1; fi
+if [ "$ARCH" = aarch64 ]; then
+    rpm -q --qf '%{NAME}-%{VERSION}-%{RELEASE} from %{VENDOR}\n' wine-core fex-emu-wine
+fi
 
 # ---------------------------------------------------------------------------
 # 3. ===== LUCENT-BRIDGE HOOK =====
@@ -102,5 +125,7 @@ grep -q '^VARIANT_ID=' /usr/lib/os-release || echo 'VARIANT_ID=lucent' >> /usr/l
 # ---------------------------------------------------------------------------
 # 5. Clean up (bootc wants an empty /var and /tmp in the image)
 # ---------------------------------------------------------------------------
+# Keep the shipped repo set clean (updates come from rebuilt images anyway).
+[ -f /etc/yum.repos.d/lacamar-wine-arm64ec.repo ] && sed -i 's/^enabled=1/enabled=0/' /etc/yum.repos.d/lacamar-wine-arm64ec.repo
 "$DNF" clean all
 rm -rf /var/cache/* /var/log/* /var/lib/dnf /tmp/* /var/tmp/*

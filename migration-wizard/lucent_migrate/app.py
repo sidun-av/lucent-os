@@ -115,17 +115,18 @@ class SourcePage(QWizardPage):
     def initializePage(self):
         self.list.clear()
         errors = []
-        vols = volumes.migratable(self.wiz.all_volumes)
-        letters = drive_letters.assign(vols, lambda v: False)
-        for vol in vols:
+        roots: dict[str, Path] = {}
+        for vol in volumes.migratable(self.wiz.all_volumes):
             try:
-                root = Path(volumes.mount_readonly(vol))
+                roots[vol.path] = Path(volumes.mount_readonly(vol))
             except OSError as exc:
                 errors.append(f"{vol.path}: {exc}")
-                continue
-            if windows.is_windows_system(root):
-                letters = {**letters, vol.uuid: "C"} if vol.uuid else letters
-            disk = drive_letters.display_name(letters.get(vol.uuid or "", "?"), vol.label)
+        vols = [v for v in self.wiz.all_volumes if v.path in roots]
+        letters = drive_letters.assign(vols, lambda v: windows.is_windows_system(roots[v.path]))
+        for vol in vols:
+            root = roots[vol.path]
+            letter = letters.get(vol.uuid or "")
+            disk = drive_letters.display_name(letter, vol.label) if letter else (vol.label or vol.path)
             for user in windows.find_users(root):
                 item = QListWidgetItem(f"{user.name}  —  {disk}")
                 item.setData(Qt.ItemDataRole.UserRole, Source(vol, root, user))
