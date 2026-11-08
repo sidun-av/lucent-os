@@ -2,7 +2,7 @@ name: vm
 
 # TEST-ONLY VM disk images (qcow2) of the published image, for booting
 # Lucent OS locally with tools/vm/. They differ from a release install:
-# a `lucent` user with a known password and SSH key, sshd on, SDDM
+# a `lucent` user with a known password and SSH key, sshd on, plasmalogin
 # autologin (see tools/vm/image/). Release images and the
 # ISO never get any of this; the derived image is built here and not pushed.
 on:

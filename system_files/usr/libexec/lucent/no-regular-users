@@ -1,0 +1,11 @@
+#!/usr/bin/bash
+# Exit 0 if no regular (login) user exists yet, 1 otherwise.
+# Used as ExecCondition= for plasma-setup.service.
+uid_min=$(awk '$1=="UID_MIN"{print $2}' /etc/login.defs 2>/dev/null); uid_min=${uid_min:-1000}
+uid_max=$(awk '$1=="UID_MAX"{print $2}' /etc/login.defs 2>/dev/null); uid_max=${uid_max:-60000}
+if getent passwd | awk -F: -v lo="$uid_min" -v hi="$uid_max" \
+        '$3>=lo && $3<=hi && $7 !~ /(nologin|false)$/ {found=1} END {exit !found}'; then
+    echo "a regular user already exists: skipping plasma-setup"
+    exit 1
+fi
+exit 0

@@ -4,9 +4,9 @@
 throw-away derivative of the published image (`tools/vm/image/`) and turns it
 into a qcow2 with bootc-image-builder. It adds things a release must never
 have: user `lucent` / password `lucent` with the SSH key
-`image/lucent_vm_ed25519.pub`, sshd enabled, SDDM autologin. Locale and
+`image/lucent_vm_ed25519.pub`, sshd enabled, autologin (Plasma Login Manager). Locale and
 keyboard are the release defaults (English, `us`).
-It also ships `windows-disk.qcow2`, a 1 GB fake Windows disk (NTFS,
+It also ships `windows-disk.qcow2`, a 4 GB (sparse) fake Windows disk (NTFS,
 `Windows\System32`, profile `Users\Anna`) so the migration wizard has
 something to find. The workflow runs after every successful `build` on main
 (arm64) or manually (`gh workflow run vm -f arch=both`).

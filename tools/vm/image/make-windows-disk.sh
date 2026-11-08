@@ -10,7 +10,8 @@ raw=$(mktemp --suffix=.raw)
 mnt=$(mktemp -d)
 trap 'umount "$mnt" 2>/dev/null || true; [ -n "${loop:-}" ] && losetup -d "$loop"; rm -f "$raw"; rmdir "$mnt"' EXIT
 
-truncate -s 1G "$raw"
+# > 1 GiB: lucent-drive-letters ignores smaller (OEM tool) partitions.
+truncate -s 4G "$raw"
 # Microsoft basic data partition
 echo 'type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7, name="Basic data partition"' | sfdisk -q -X gpt "$raw"
 loop=$(losetup -fP --show "$raw")

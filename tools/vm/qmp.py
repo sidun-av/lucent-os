@@ -48,8 +48,19 @@ def main():
     sock, what, *rest = sys.argv[1:]
     q = QMP(sock)
     if what == "keys":
+        # Press the chord's keys one after another (modifiers first), hold,
+        # release in reverse: KWin's Alt+Tab ignores a simultaneous press,
+        # which is what QMP send-key does.
         for spec in rest:
-            q.cmd("send-key", keys=combo(spec), **{"hold-time": 120})
+            spec, _, hold = spec.partition(":")  # e.g. alt-tab:2500 holds the chord 2.5 s
+            keys = combo(spec)
+            for k in keys:
+                q.cmd("input-send-event", events=[{"type": "key", "data": {"down": True, "key": k}}])
+                time.sleep(0.08)
+            time.sleep(int(hold or 120) / 1000)
+            for k in reversed(keys):
+                q.cmd("input-send-event", events=[{"type": "key", "data": {"down": False, "key": k}}])
+                time.sleep(0.03)
             time.sleep(0.4)
     elif what == "type":
         for ch in " ".join(rest):
@@ -59,8 +70,13 @@ def main():
                 keys = ["shift", SHIFTED[ch]]
             else:
                 keys = [PLAIN.get(ch, ch)]
-            q.cmd("send-key", keys=[{"type": "qcode", "data": k} for k in keys], **{"hold-time": 40})
+            for k in keys:
+                q.cmd("input-send-event", events=[{"type": "key", "data": {"down": True, "key": {"type": "qcode", "data": k}}}])
+                time.sleep(0.03)
             time.sleep(0.05)
+            for k in reversed(keys):
+                q.cmd("input-send-event", events=[{"type": "key", "data": {"down": False, "key": {"type": "qcode", "data": k}}}])
+            time.sleep(0.08)
     else:
         args = json.loads(rest[0]) if rest else {}
         print(json.dumps(q.cmd(what, **args), indent=1))

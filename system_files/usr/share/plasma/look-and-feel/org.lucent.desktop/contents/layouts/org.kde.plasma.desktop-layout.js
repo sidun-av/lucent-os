@@ -28,7 +28,9 @@ top.hiding = "none";
 var launcher = top.addWidget("org.kde.plasma.kickoff");
 launcher.currentConfigGroup = ["General"];
 launcher.writeConfig("icon", "lucent-start");
-launcher.writeConfig("favoritesPortedToKAstats", true);
+// No "favoritesPortedToKAstats" here: setting it skips seeding the initial
+// favorites, leaving the launcher's Favorites page empty (seen in a VM).
+// The list comes from /etc/xdg/kicker-extra-favoritesrc.
 launcher.currentConfigGroup = ["Shortcuts"];
 launcher.writeConfig("global", "Alt+F1");
 

@@ -8,7 +8,10 @@ ConditionPathExists=!/var/lib/lucent/flatpaks-v1.done
 StartLimitIntervalSec=0
 
 [Service]
-Type=oneshot
+# Not oneshot: a oneshot unit stays "activating" until every app is
+# downloaded, which holds multi-user.target/graphical.target for minutes on
+# first boot (measured: 2 min in a VM). The install runs in the background.
+Type=exec
 ExecStart=/usr/libexec/lucent/flatpak-setup
 Restart=on-failure
 RestartSec=120
