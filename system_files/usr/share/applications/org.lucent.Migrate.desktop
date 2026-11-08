@@ -1,11 +1,13 @@
 [Desktop Entry]
 Type=Application
-Name=Переезд с Windows
-Name[en]=Move from Windows
-GenericName=Перенос файлов
-Comment=Перенести документы, фото, закладки и сети Wi-Fi с диска Windows
-Comment[en]=Copy documents, photos, bookmarks and Wi-Fi networks from a Windows disk
+Name=Move from Windows
+Name[ru]=Переезд с Windows
+GenericName=File transfer
+GenericName[ru]=Перенос файлов
+Comment=Copy documents, photos, bookmarks and Wi-Fi networks from a Windows disk
+Comment[ru]=Перенести документы, фото, закладки и сети Wi-Fi с диска Windows
 Exec=/usr/bin/lucent-migrate
 Icon=lucent-migrate
 Categories=System;Utility;
-Keywords=windows;migrate;import;перенос;виндовс;
+Keywords=windows;migrate;import;transfer;
+Keywords[ru]=windows;migrate;import;перенос;виндовс;

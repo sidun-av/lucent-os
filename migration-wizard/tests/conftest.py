@@ -14,6 +14,16 @@ from pathlib import Path
 
 import pytest
 
+from lucent_migrate import i18n
+
+
+@pytest.fixture(autouse=True)
+def english_ui():
+    """Tests see the source (English) strings unless they load a catalog."""
+    i18n.setup(["en"])
+    yield
+    i18n.setup(["en"])
+
 
 def write(path: Path, data: bytes | str = b"x", mtime: float | None = None) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -31,7 +41,7 @@ CHROME_BOOKMARKS = {
     "roots": {
         "bookmark_bar": {
             "type": "folder",
-            "name": "Панель закладок",
+            "name": "Bookmarks bar",
             "date_added": "13300000000000000",
             "children": [
                 {
@@ -55,10 +65,10 @@ CHROME_BOOKMARKS = {
                 },
             ],
         },
-        "other": {"type": "folder", "name": "Другие закладки", "children": []},
+        "other": {"type": "folder", "name": "Other bookmarks", "children": []},
         "synced": {
             "type": "folder",
-            "name": "Мобильные закладки",
+            "name": "Mobile bookmarks",
             "children": [
                 {"type": "url", "name": "Wiki", "url": "https://ru.wikipedia.org/"}
             ],

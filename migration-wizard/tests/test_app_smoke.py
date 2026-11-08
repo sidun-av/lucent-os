@@ -39,9 +39,9 @@ def test_wizard_walkthrough(windows_root, tmp_path, monkeypatch):
     wiz.show()
     wiz.next()  # -> source
     assert wiz.currentPage().list.count() == 2
-    assert "Диск C: (OS)" in wiz.currentPage().list.item(0).text()
+    assert "OS (C:)" in wiz.currentPage().list.item(0).text()
     wiz.next()  # -> folders
-    wait_until(lambda: "файлов" in wiz.currentPage().tree.topLevelItem(0).text(1))
+    wait_until(lambda: " file" in wiz.currentPage().tree.topLevelItem(0).text(1))
     wiz.next()  # -> extras
     assert wiz.currentPage().browsers.count() == 4
     assert wiz.currentPage().wifi.count() == 3
@@ -49,7 +49,7 @@ def test_wizard_walkthrough(windows_root, tmp_path, monkeypatch):
     wait_until(lambda: isinstance(wiz.currentPage(), app.DonePage))
     assert wiz.result.copied == 6 and not wiz.result.errors
     assert (home / "Documents" / "Проекты" / "план.xlsx").exists()
-    exported = list((home / "Documents" / "Закладки из Windows").iterdir())
+    exported = list((home / "Documents" / "Bookmarks from Windows").iterdir())
     assert len(exported) == 4
     assert len(wiz.networks) == 2
     assert (home / ".config" / "lucent" / "migration-done").exists()

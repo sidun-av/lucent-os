@@ -24,7 +24,7 @@ def test_find_profiles_none(windows_root):
 
 def test_chromium_bookmarks():
     tree = browsers.parse_chromium(json.dumps(CHROME_BOOKMARKS))
-    assert [c.title for c in tree.children] == ["Панель закладок", "Мобильные закладки"]  # empty "other" dropped
+    assert [c.title for c in tree.children] == ["Bookmarks bar", "Mobile bookmarks"]  # empty "other" dropped
     bar = tree.children[0]
     assert bar.toolbar
     assert bar.children[0] == Link("Госуслуги", "https://www.gosuslugi.ru/", 1655526400)
@@ -36,7 +36,7 @@ def test_firefox_bookmarks(windows_root):
               / "Profiles" / "abcd1234.default-release" / "places.sqlite")
     tree = browsers.parse_firefox(places)
     titles = [c.title for c in tree.children]
-    assert titles == ["Меню закладок", "Панель закладок"]
+    assert titles == ["Bookmarks Menu", "Bookmarks Toolbar"]
     menu, toolbar = tree.children
     assert toolbar.toolbar and toolbar.children == [Link("Mozilla", "https://mozilla.org/", 1700000000)]
     # place: queries and separators are dropped
@@ -67,7 +67,7 @@ def test_netscape_html_escapes_and_nests():
     tree = browsers.parse_chromium(CHROME_BOOKMARKS)
     html = browsers.to_netscape_html(tree)
     assert html.startswith("<!DOCTYPE NETSCAPE-Bookmark-file-1>")
-    assert '<H3 PERSONAL_TOOLBAR_FOLDER="true">Панель закладок</H3>' in html
+    assert '<H3 PERSONAL_TOOLBAR_FOLDER="true">Bookmarks bar</H3>' in html
     assert '<A HREF="https://mail.example.com/?a=1&amp;b=2">Почта &lt;&amp;&gt;</A>' in html
     assert 'ADD_DATE="1655526400"' in html
     assert html.count("<DL><p>") == html.count("</DL><p>")
@@ -79,4 +79,4 @@ def test_count_links():
 
 def test_export_file_name():
     p = browsers.Profile("Google Chrome", "Profile 1", None)
-    assert browsers.export_name(p) == "Закладки — Google Chrome (Profile 1).html"
+    assert browsers.export_name(p) == "Bookmarks — Google Chrome (Profile 1).html"

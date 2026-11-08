@@ -1,9 +1,9 @@
-"""Give Windows partitions familiar names ("Диск C:", "Диск D: (Data)").
+"""Give Windows partitions familiar names ("Local Disk (C:)", "Data (D:)").
 
 At boot, `lucent-drive-letters.service` runs `main()` as root: it lists NTFS
 volumes, probes which one holds Windows (without mounting, via ntfsprogs'
 `ntfsls`), assigns letters the way Windows usually does, and writes a
-runtime udev rule setting UDISKS_NAME. udisks exposes that as the volume's
+runtime udev rule setting UDISKS_NAME (in the system language). udisks exposes that as the volume's
 HintName, which Dolphin and the Plasma device notifier display.
 """
 
@@ -15,6 +15,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
+from .i18n import _
 from .volumes import Volume, run_lsblk
 
 MIN_SIZE = 1024**3  # smaller NTFS partitions are OEM/recovery tools
@@ -38,8 +39,10 @@ def assign(vols: list[Volume], is_system: Callable[[Volume], bool]) -> dict[str,
 
 
 def display_name(letter: str, label: str | None) -> str:
-    name = f"Диск {letter}:"
-    return f"{name} ({label})" if label else name
+    """As Windows Explorer shows it: "Local Disk (C:)", or "Data (D:)" with a label."""
+    if label:
+        return _("{label} ({letter}:)").format(label=label, letter=letter)
+    return _("Local Disk ({letter}:)").format(letter=letter)
 
 
 def udev_rules(letters: dict[str, str], vols: list[Volume]) -> str:

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=Новое поколение (бета)
-Name[en]=Next generation (beta)
-Comment=Установить экспериментальные приложения ArtCraft (по желанию)
-Comment[en]=Optionally install the experimental ArtCraft apps
+Name=Next generation (beta)
+Name[ru]=Новое поколение (бета)
+Comment=Optionally install the experimental ArtCraft apps
+Comment[ru]=Установить экспериментальные приложения ArtCraft (по желанию)
 Exec=konsole --hold -e /usr/bin/lucent-nextgen install
 Icon=applications-other
 Categories=System;

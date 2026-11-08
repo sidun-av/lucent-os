@@ -20,25 +20,27 @@ APP_ID=ai.storyteller.artcraft-launcher
 VERSION=${LUCENT_ARTCRAFT_VERSION:-latest}   # e.g. v0.16.1 to pin
 
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
+# English is the default; Russian when the session language is Russian.
+LANG_UI=${LANGUAGE:-${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}}
+t() { if [[ $LANG_UI == ru* ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
 
 confirm() {
-    say "Next generation (beta) / Новое поколение (бета)"
-    cat <<'TXT'
-This installs the ArtCraft launcher (alpha!) for your user account only.
+    say "$(t "Next generation (beta)" "Новое поколение (бета)")"
+    t "This installs the ArtCraft launcher (alpha!) for your user account only.
 From it you can install new Rust-based creative apps (photo, vector, video,
 documents). They are early previews: expect missing features and bugs.
-
-Будет установлен лаунчер ArtCraft (альфа-версия) только для вашей учётной
-записи. Это ранние версии программ: возможны ошибки и недоделки.
-TXT
-    read -r -p "Continue? / Продолжить? [y/N] " ans
+" "Будет установлен лаунчер ArtCraft (альфа-версия) только для вашей учётной
+записи. Из него можно установить новые программы на Rust (фото, векторная
+графика, видео, документы). Это ранние версии: возможны ошибки и недоделки.
+"
+    read -r -p "$(t "Continue? [y/N] " "Продолжить? [д/Н] ")" ans
     [[ "$ans" =~ ^[YyДд] ]]
 }
 
 install() {
-    confirm || { echo "Cancelled."; return 1; }
+    confirm || { t "Cancelled." "Отменено."; echo; return 1; }
     local arch; arch=$(uname -m)
-    case "$arch" in x86_64|aarch64) ;; *) echo "Unsupported architecture: $arch"; return 1;; esac
+    case "$arch" in x86_64|aarch64) ;; *) echo "$(t "Unsupported architecture" "Неподдерживаемая архитектура"): $arch"; return 1;; esac
 
     local api="https://api.github.com/repos/$REPO/releases/${VERSION/#v/tags/v}"
     [ "$VERSION" = latest ] && api="https://api.github.com/repos/$REPO/releases/latest"
@@ -60,20 +62,20 @@ PY
     local bundle_url sums_url bundle
     { read -r bundle_url; read -r sums_url; read -r bundle; } <<<"$urls"
 
-    say "Downloading $bundle"
+    say "$(t "Downloading" "Загрузка") $bundle"
     curl -fL --progress-bar "$bundle_url" -o "$tmp/$bundle"
     curl -fsSL "$sums_url" -o "$tmp/SHA256SUMS.txt"
     (cd "$tmp" && grep -E "  \*?$bundle\$" SHA256SUMS.txt | sha256sum -c -) \
-        || { echo "Checksum verification FAILED, nothing installed."; return 1; }
+        || { t "Checksum verification FAILED, nothing installed." "Контрольная сумма НЕ совпала, ничего не установлено."; echo; return 1; }
 
     flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpak install --user --noninteractive --bundle "$tmp/$bundle"
-    say "Installed. Find \"ArtCraft\" in the launcher. Remove with: lucent-nextgen remove"
+    say "$(t "Installed. Find \"ArtCraft\" in the launcher. Remove with:" "Установлено. Ищите «ArtCraft» в меню. Удалить:") lucent-nextgen remove"
 }
 
 case "${1:-install}" in
     install) install ;;
     remove)  flatpak uninstall --user --noninteractive "$APP_ID" ;;
-    status)  flatpak info --user "$APP_ID" 2>/dev/null || echo "Not installed." ;;
+    status)  flatpak info --user "$APP_ID" 2>/dev/null || { t "Not installed." "Не установлено."; echo; } ;;
     *) echo "Usage: $0 [install|remove|status]"; exit 2 ;;
 esac

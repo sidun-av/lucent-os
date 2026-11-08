@@ -97,8 +97,8 @@ def test_udisksctl_mount_command_is_read_only():
 
 
 def test_human_size():
-    assert volumes.human_size(0) == "0 Б"
-    assert volumes.human_size(1023) == "1023 Б"
-    assert volumes.human_size(1536) == "1,5 КБ"
-    assert volumes.human_size(300 * GIB) == "300 ГБ"
-    assert volumes.human_size(int(2.25 * 1024**4)) == "2,2 ТБ"
+    assert volumes.human_size(0) == "0 B"
+    assert volumes.human_size(1023) == "1023 B"
+    assert volumes.human_size(1536) == "1.5 KB"
+    assert volumes.human_size(300 * GIB) == "300 GB"
+    assert volumes.human_size(int(2.25 * 1024**4)) == "2.2 TB"

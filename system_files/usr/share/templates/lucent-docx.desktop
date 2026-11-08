@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Link
-Name=Документ (Word)
-Name[en]=Document (Word)
-Comment=Имя нового документа:
-Comment[en]=Name of the new document:
-URL=.source/Новый документ.docx
+Name=Document (Word)
+Name[ru]=Документ (Word)
+Comment=Name of the new document:
+Comment[ru]=Имя нового документа:
+URL=.source/New Document.docx
 Icon=x-office-document

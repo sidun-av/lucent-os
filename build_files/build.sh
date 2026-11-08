@@ -102,6 +102,9 @@ shopt -u nullglob
 # 4. Lucent components and services
 # ---------------------------------------------------------------------------
 python3 -m compileall -q /usr/lib/lucent   # /usr is read-only at runtime
+# Lucent's own UI is written in English; translations (po/*.po) are compiled
+# to /usr/share/locale/<lang>/LC_MESSAGES/lucent.mo and picked by locale.
+PYTHONPATH=/usr/lib/lucent python3 -P -m lucent_migrate.i18n /ctx/migration-wizard/po /usr/share/locale
 python3 /ctx/build_files/make_wallpaper.py /usr/share/wallpapers/Lucent/contents
 gtk-update-icon-cache -f /usr/share/icons/hicolor 2>/dev/null || true
 

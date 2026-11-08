@@ -16,6 +16,7 @@ import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .i18n import N_, _
 from .windows import child_ci
 
 CHROMIUM = [
@@ -116,8 +117,8 @@ def parse_chromium(data: str | dict) -> Folder:
 
 # --- Firefox --------------------------------------------------------------------
 
-FIREFOX_ROOTS = {"menu________": ("Меню закладок", False), "toolbar_____": ("Панель закладок", True),
-                 "unfiled_____": ("Другие закладки", False), "mobile______": ("Мобильные закладки", False)}
+FIREFOX_ROOTS = {"menu________": (N_("Bookmarks Menu"), False), "toolbar_____": (N_("Bookmarks Toolbar"), True),
+                 "unfiled_____": (N_("Other Bookmarks"), False), "mobile______": (N_("Mobile Bookmarks"), False)}
 
 
 def parse_firefox(places: Path) -> Folder:
@@ -162,7 +163,7 @@ def parse_firefox(places: Path) -> Folder:
             continue
         kids = build(node[0])
         if kids:
-            root.children.append(Folder(title, kids, toolbar))
+            root.children.append(Folder(_(title), kids, toolbar))
     return root
 
 
@@ -208,4 +209,4 @@ def to_netscape_html(root: Folder) -> str:
 
 
 def export_name(profile: Profile) -> str:
-    return f"Закладки — {profile.browser} ({profile.name}).html"
+    return _("Bookmarks — {browser} ({profile}).html").format(browser=profile.browser, profile=profile.name)

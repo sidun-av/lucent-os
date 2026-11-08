@@ -12,6 +12,8 @@ import subprocess
 from dataclasses import dataclass, field
 from typing import Any
 
+from .i18n import N_, _, pgettext
+
 LSBLK_COLUMNS = "NAME,PATH,TYPE,FSTYPE,SIZE,LABEL,UUID,PARTTYPE,RM,HOTPLUG,MOUNTPOINTS"
 
 # GPT type of the Windows Recovery Environment partition.
@@ -124,17 +126,17 @@ def mount_readonly(vol: Volume) -> str:
     return where
 
 
-_UNITS = ["Б", "КБ", "МБ", "ГБ", "ТБ"]
+_UNITS = [N_("B"), N_("KB"), N_("MB"), N_("GB"), N_("TB")]
 
 
 def human_size(n: int) -> str:
     size = float(n)
     for unit in _UNITS:
         if size < 1024 or unit == _UNITS[-1]:
-            if unit == "Б" or size >= 100 or size == int(size):
-                text = f"{int(size)}" if unit == "Б" or size == int(size) else f"{size:.0f}"
+            if unit == "B" or size >= 100 or size == int(size):
+                text = f"{int(size)}" if unit == "B" or size == int(size) else f"{size:.0f}"
             else:
-                text = f"{int(size * 10) / 10:.1f}".replace(".", ",")
-            return f"{text} {unit}"
+                text = f"{int(size * 10) / 10:.1f}".replace(".", pgettext("decimal separator", "."))
+            return f"{text} {_(unit)}"
         size /= 1024
     raise AssertionError("unreachable")

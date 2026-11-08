@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Link
-Name=Презентация (PowerPoint)
-Name[en]=Presentation (PowerPoint)
-Comment=Имя новой презентации:
-Comment[en]=Name of the new presentation:
-URL=.source/Новая презентация.pptx
+Name=Presentation (PowerPoint)
+Name[ru]=Презентация (PowerPoint)
+Comment=Name of the new presentation:
+Comment[ru]=Имя новой презентации:
+URL=.source/New Presentation.pptx
 Icon=x-office-presentation

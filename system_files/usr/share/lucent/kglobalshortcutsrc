@@ -36,5 +36,6 @@ RectangularRegionScreenShot=Meta+Shift+S\tMeta+Shift+Print,Meta+Shift+Print,Capt
 _launch=Alt+Space\tAlt+F2\tSearch,Alt+Space\tAlt+F2\tSearch,KRunner
 
 [KDE Keyboard Layout Switcher]
-# Win+Space switches layout (Windows 10/11); Alt+Shift is set in kxkbrc.
+# Win+Space switches layout (Windows 10/11) when there are 2+ layouts;
+# Alt+Shift is set in /etc/xdg/kxkbrc.
 Switch to Next Keyboard Layout=Meta+Space\tMeta+Alt+K,Meta+Alt+K,Switch to Next Keyboard Layout

@@ -1,4 +1,4 @@
 #!/usr/bin/bash
-# «Переезд с Windows» migration wizard
+# "Move from Windows" migration wizard
 export PYTHONPATH=/usr/lib/lucent${PYTHONPATH:+:$PYTHONPATH}
 exec /usr/bin/python3 -P -m lucent_migrate "$@"

@@ -1,4 +1,4 @@
-"""«Переезд с Windows» — thin PySide6 front-end over the tested core modules."""
+""""Move from Windows" — thin PySide6 front-end over the tested core modules."""
 
 from __future__ import annotations
 
@@ -15,10 +15,11 @@ from PySide6.QtWidgets import (
 )
 
 from . import browsers, copying, drive_letters, firstrun, volumes, wifi, windows, xdg
+from .i18n import N_, _, ngettext
 
 FOLDER_TITLES = {
-    "DESKTOP": "Рабочий стол", "DOCUMENTS": "Документы", "DOWNLOAD": "Загрузки",
-    "MUSIC": "Музыка", "PICTURES": "Изображения", "VIDEOS": "Видео",
+    "DESKTOP": N_("Desktop"), "DOCUMENTS": N_("Documents"), "DOWNLOAD": N_("Downloads"),
+    "MUSIC": N_("Music"), "PICTURES": N_("Pictures"), "VIDEOS": N_("Videos"),
 }
 
 
@@ -69,29 +70,29 @@ class IntroPage(QWizardPage):
     def __init__(self, wiz: "MigrationWizard"):
         super().__init__()
         self.wiz = wiz
-        self.setTitle("Переезд с Windows")
+        self.setTitle(_("Move from Windows"))
         lay = QVBoxLayout(self)
-        lay.addWidget(_wrap(
-            "Этот помощник перенесёт ваши документы, фотографии, музыку и закладки "
-            "браузера с диска Windows. Диск Windows открывается <b>только для чтения</b> — "
-            "на нём ничего не изменится."))
+        lay.addWidget(_wrap(_(
+            "This assistant copies your documents, photos, music and browser bookmarks "
+            "from a Windows disk. The Windows disk is opened <b>read-only</b>: nothing "
+            "on it will change.")))
         self.status = _wrap("")
         lay.addWidget(self.status)
-        self.never = QCheckBox("Больше не показывать при входе")
+        self.never = QCheckBox(_("Don't show this again at login"))
         lay.addWidget(self.never)
         lay.addStretch()
 
     def initializePage(self):
         found = self.wiz.all_volumes
         locked = [v for v in found if v.bitlocker]
-        lines = [f"Найдено дисков Windows: <b>{len(volumes.migratable(found))}</b>."]
+        lines = [_("Windows disks found: <b>{n}</b>.").format(n=len(volumes.migratable(found)))]
         if locked:
-            lines.append(
-                "Некоторые диски зашифрованы <b>BitLocker</b>. Откройте их в «Файлах» (Dolphin) "
-                "и введите ключ восстановления BitLocker (его можно найти на "
-                "account.microsoft.com/devices/recoverykey), затем запустите помощник снова.")
+            lines.append(_(
+                "Some disks are encrypted with <b>BitLocker</b>. Open them in Files (Dolphin) "
+                "and enter the BitLocker recovery key (you can find it at "
+                "account.microsoft.com/devices/recoverykey), then run this assistant again."))
         if not volumes.migratable(found):
-            lines.append("Читаемых дисков Windows не найдено. Подключите диск и запустите помощник ещё раз.")
+            lines.append(_("No readable Windows disks found. Connect the disk and run this assistant again."))
         self.status.setText("<br><br>".join(lines))
 
     def validatePage(self):
@@ -104,7 +105,7 @@ class SourcePage(QWizardPage):
     def __init__(self, wiz: "MigrationWizard"):
         super().__init__()
         self.wiz = wiz
-        self.setTitle("Чьи файлы перенести?")
+        self.setTitle(_("Whose files should be copied?"))
         lay = QVBoxLayout(self)
         self.list = QListWidget()
         self.list.itemSelectionChanged.connect(self.completeChanged)
@@ -133,9 +134,9 @@ class SourcePage(QWizardPage):
                 self.list.addItem(item)
         if self.list.count():
             self.list.setCurrentRow(0)
-        msg = "" if self.list.count() else "На дисках Windows не найдено папок пользователей."
+        msg = "" if self.list.count() else _("No user folders were found on the Windows disks.")
         if errors:
-            msg += "<br>Не удалось открыть: " + "; ".join(errors)
+            msg += "<br>" + _("Could not open: {errors}").format(errors="; ".join(errors))
         self.note.setText(msg)
 
     def isComplete(self):
@@ -150,17 +151,17 @@ class FoldersPage(QWizardPage):
     def __init__(self, wiz: "MigrationWizard"):
         super().__init__()
         self.wiz = wiz
-        self.setTitle("Что перенести")
+        self.setTitle(_("What to copy"))
         lay = QVBoxLayout(self)
         self.tree = QTreeWidget()
-        self.tree.setHeaderLabels(["Папка", "Размер", "Куда"])
+        self.tree.setHeaderLabels([_("Folder"), _("Size"), _("Copy to")])
         lay.addWidget(self.tree)
-        lay.addWidget(QLabel("Если файл с таким именем уже есть:"))
+        lay.addWidget(QLabel(_("If a file with the same name already exists:")))
         self.policy = QButtonGroup(self)
         for i, (pol, text) in enumerate([
-            (copying.Policy.RENAME, "Сохранить оба (файл (2).docx)"),
-            (copying.Policy.NEWER, "Заменить, если файл из Windows новее"),
-            (copying.Policy.SKIP, "Пропустить"),
+            (copying.Policy.RENAME, _("Keep both (file (2).docx)")),
+            (copying.Policy.NEWER, _("Replace if the Windows file is newer")),
+            (copying.Policy.SKIP, _("Skip")),
         ]):
             btn = QRadioButton(text)
             btn.setChecked(i == 0)
@@ -174,20 +175,21 @@ class FoldersPage(QWizardPage):
         self.items: list[tuple[QTreeWidgetItem, Path, Path]] = []
         for key, sources in self.wiz.source.user.folders.items():
             for src in sources:
-                item = QTreeWidgetItem([f"{FOLDER_TITLES[key]}  ({src.name})", "…", str(targets[key])])
+                item = QTreeWidgetItem([f"{_(FOLDER_TITLES[key])}  ({src.name})", "…", str(targets[key])])
                 item.setCheckState(0, Qt.CheckState.Checked)
                 self.tree.addTopLevelItem(item)
                 self.items.append((item, src, targets[key]))
         for i in range(3):
             self.tree.resizeColumnToContents(i)
-        jobs = [(i, src) for i, (_, src, _) in enumerate(self.items)]
+        jobs = [(i, src) for i, (_item, src, _dst) in enumerate(self.items)]
 
         def measure(worker):
             return [(i, copying.scan(src)) for i, src in jobs]
 
         def done(results):
             for i, stats in results:
-                self.items[i][0].setText(1, f"{volumes.human_size(stats.bytes)} · {stats.files} файлов")
+                self.items[i][0].setText(1, volumes.human_size(stats.bytes) + " · " + ngettext(
+                    "{n} file", "{n} files", stats.files).format(n=stats.files))
 
         run_in_thread(self, measure, done)
 
@@ -202,16 +204,16 @@ class ExtrasPage(QWizardPage):
     def __init__(self, wiz: "MigrationWizard"):
         super().__init__()
         self.wiz = wiz
-        self.setTitle("Браузеры и Wi-Fi")
+        self.setTitle(_("Browsers and Wi-Fi"))
         lay = QVBoxLayout(self)
-        lay.addWidget(QLabel("<b>Закладки браузеров</b>"))
+        lay.addWidget(QLabel("<b>" + _("Browser bookmarks") + "</b>"))
         self.browsers = QListWidget()
         lay.addWidget(self.browsers)
-        lay.addWidget(QLabel("<b>Сети Wi-Fi</b>"))
-        lay.addWidget(_wrap(
-            "Windows хранит пароли Wi-Fi в зашифрованном виде (DPAPI), привязанном к самой "
-            "Windows, — расшифровать их отсюда невозможно. Поэтому переносятся только "
-            "<b>названия сетей</b>; пароль спросят один раз при первом подключении."))
+        lay.addWidget(QLabel("<b>" + _("Wi-Fi networks") + "</b>"))
+        lay.addWidget(_wrap(_(
+            "Windows keeps Wi-Fi passwords encrypted (DPAPI) and tied to that Windows "
+            "installation, so they cannot be decrypted from here. Only the <b>network "
+            "names</b> are copied; you will be asked for each password once, on first connect.")))
         self.wifi = QListWidget()
         lay.addWidget(self.wifi)
 
@@ -222,17 +224,19 @@ class ExtrasPage(QWizardPage):
             try:
                 tree = browsers.read_profile(prof)
             except Exception as exc:  # corrupt profile: show, don't crash
-                item = QListWidgetItem(f"{prof.browser} ({prof.name}) — ошибка чтения: {exc}")
+                item = QListWidgetItem(_("{browser} ({profile}): could not read: {error}").format(
+                    browser=prof.browser, profile=prof.name, error=exc))
                 item.setFlags(Qt.ItemFlag.NoItemFlags)
                 self.browsers.addItem(item)
                 continue
-            item = QListWidgetItem(f"{prof.browser} ({prof.name}) — закладок: {browsers.count_links(tree)}")
+            item = QListWidgetItem(_("{browser} ({profile}): {n} bookmarks").format(
+                browser=prof.browser, profile=prof.name, n=browsers.count_links(tree)))
             item.setCheckState(Qt.CheckState.Checked)
             item.setData(Qt.ItemDataRole.UserRole, (prof, tree))
             self.browsers.addItem(item)
         for prof in wifi.find_profiles(self.wiz.source.root):
             args = wifi.nmcli_add_args(prof)
-            suffix = "" if args else " — корпоративная сеть, настройте вручную"
+            suffix = "" if args else " — " + _("enterprise network, set it up manually")
             item = QListWidgetItem(prof.ssid + suffix)
             item.setCheckState(Qt.CheckState.Checked if args else Qt.CheckState.Unchecked)
             if not args:
@@ -254,7 +258,7 @@ class CopyPage(QWizardPage):
     def __init__(self, wiz: "MigrationWizard"):
         super().__init__()
         self.wiz = wiz
-        self.setTitle("Переносим…")
+        self.setTitle(_("Copying…"))
         lay = QVBoxLayout(self)
         self.bar = QProgressBar()
         self.label = _wrap("")
@@ -277,19 +281,19 @@ class CopyPage(QWizardPage):
             )
             notes = []
             if wiz.bookmarks:
-                out = xdg.target_dirs()["DOCUMENTS"] / "Закладки из Windows"
+                out = xdg.target_dirs()["DOCUMENTS"] / _("Bookmarks from Windows")
                 out.mkdir(parents=True, exist_ok=True)
                 for prof, tree in wiz.bookmarks:
                     (out / browsers.export_name(prof)).write_text(browsers.to_netscape_html(tree), encoding="utf-8")
-                notes.append(
-                    f"Закладки сохранены в «{out}». В Firefox: Закладки → Управление закладками → "
-                    "Импорт и резервные копии → Импорт закладок из HTML-файла.")
+                notes.append(_(
+                    "Bookmarks were saved to “{folder}”. In Firefox: Bookmarks → Manage Bookmarks → "
+                    "Import and Backup → Import Bookmarks from HTML.").format(folder=out))
             added = 0
             for args in wiz.networks:
                 if subprocess.run(args, capture_output=True).returncode == 0:
                     added += 1
             if wiz.networks:
-                notes.append(f"Добавлено сетей Wi-Fi: {added} из {len(wiz.networks)}.")
+                notes.append(_("Wi-Fi networks added: {added} of {total}.").format(added=added, total=len(wiz.networks)))
             return result, notes
 
         self.worker = run_in_thread(self, work, self._finished, self._progress)
@@ -313,7 +317,7 @@ class DonePage(QWizardPage):
     def __init__(self, wiz: "MigrationWizard"):
         super().__init__()
         self.wiz = wiz
-        self.setTitle("Готово")
+        self.setTitle(_("Done"))
         self.text = _wrap("")
         lay = QVBoxLayout(self)
         lay.addWidget(self.text)
@@ -322,11 +326,11 @@ class DonePage(QWizardPage):
 
     def initializePage(self):
         r = self.wiz.result
-        lines = [f"Скопировано файлов: <b>{r.copied}</b>, пропущено: {r.skipped}."]
+        lines = [_("Files copied: <b>{copied}</b>, skipped: {skipped}.").format(copied=r.copied, skipped=r.skipped)]
         if r.cancelled:
-            lines.append("Перенос остановлен. Уже скопированные файлы остались на месте.")
+            lines.append(_("Copying was stopped. Files that were already copied stay where they are."))
         if r.errors:
-            lines.append(f"Не удалось скопировать: {len(r.errors)} (список ниже).")
+            lines.append(_("Could not copy: {n} (see the list below).").format(n=len(r.errors)))
         lines += self.wiz.notes
         self.text.setText("<br><br>".join(lines))
         self.errors.clear()
@@ -346,15 +350,15 @@ class MigrationWizard(QWizard):
         self.bookmarks: list = []
         self.networks: list = []
         self.notes: list[str] = []
-        self.setWindowTitle("Переезд с Windows")
+        self.setWindowTitle(_("Move from Windows"))
         self.setWizardStyle(QWizard.WizardStyle.ModernStyle)
         self.resize(760, 560)
         for page in (IntroPage, SourcePage, FoldersPage, ExtrasPage, CopyPage, DonePage):
             self.addPage(page(self))
-        self.setButtonText(QWizard.WizardButton.NextButton, "Далее")
-        self.setButtonText(QWizard.WizardButton.BackButton, "Назад")
-        self.setButtonText(QWizard.WizardButton.CancelButton, "Отмена")
-        self.setButtonText(QWizard.WizardButton.FinishButton, "Готово")
+        self.setButtonText(QWizard.WizardButton.NextButton, _("Next"))
+        self.setButtonText(QWizard.WizardButton.BackButton, _("Back"))
+        self.setButtonText(QWizard.WizardButton.CancelButton, _("Cancel"))
+        self.setButtonText(QWizard.WizardButton.FinishButton, _("Finish"))
 
     def reject(self):
         page = self.currentPage()

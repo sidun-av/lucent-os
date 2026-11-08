@@ -1,8 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=Переезд с Windows
-Name[en]=Move from Windows
-Comment=Перенести файлы, закладки и сети Wi-Fi с диска Windows
+Name=Move from Windows
+Name[ru]=Переезд с Windows
+Comment=Copy files, bookmarks and Wi-Fi networks from a Windows disk
+Comment[ru]=Перенести файлы, закладки и сети Wi-Fi с диска Windows
 Exec=/usr/bin/lucent-migrate --first-run
 Icon=lucent-migrate
 OnlyShowIn=KDE;

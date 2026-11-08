@@ -1,5 +1,5 @@
 [Unit]
-Description=Lucent OS: label Windows partitions as "Диск C:", "Диск D:"
+Description=Lucent OS: name Windows partitions "Local Disk (C:)", "Data (D:)"
 Documentation=https://github.com/sidun-av/lucent-os
 After=systemd-udev-settle.service local-fs.target
 Before=display-manager.service

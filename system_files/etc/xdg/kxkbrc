@@ -1,10 +1,9 @@
 [Layout]
-# English + Russian out of the box; Alt+Shift toggles (classic Windows), Win+Space
-# is bound in kglobalshortcutsrc. Users change layouts in System Settings.
-Use=true
-LayoutList=us,ru
-VariantList=,
-DisplayNames=,
-ResetOldOptions=true
+# Layouts follow the installer: on first login /usr/libexec/lucent/user-defaults
+# copies the system keyboard (localed / Anaconda) into the user's kxkbrc; with no
+# system layout Plasma uses plain `us`. This file only sets the switch key that
+# applies once there are 2+ layouts: Alt+Shift (classic Windows). Win+Space is
+# bound in /usr/share/lucent/kglobalshortcutsrc. Users change all of it in
+# System Settings.
 Options=grp:alt_shift_toggle
-SwitchMode=Global
+ResetOldOptions=true
