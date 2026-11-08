@@ -25,10 +25,6 @@ permissions:
 env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/lucent-os
 
-concurrency:
-  group: vm-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   arches:
     if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event != 'pull_request')
@@ -53,6 +49,11 @@ jobs:
         arch: ${{ fromJSON(needs.arches.outputs.matrix) }}
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     timeout-minutes: 120
+    # Job-level, so a skipped workflow_run (cancelled/failed build) can't
+    # cancel a running image build; a newer request just waits its turn.
+    concurrency:
+      group: vm-qcow2-${{ matrix.arch }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
