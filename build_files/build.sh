@@ -125,6 +125,13 @@ grep -q '^VARIANT_ID=' /usr/lib/os-release || echo 'VARIANT_ID=lucent' >> /usr/l
 # ---------------------------------------------------------------------------
 # 5. Clean up (bootc wants an empty /var and /tmp in the image)
 # ---------------------------------------------------------------------------
+# Fedora 45 ships its repo definitions only in /usr/share/dnf5/repos.d, but
+# bootc-image-builder (anaconda-iso) depsolves the installer from
+# /etc/yum.repos.d and fails with "no enabled repositories". Same-named
+# files in /etc simply override /usr for dnf5, so this adds no duplicates.
+for repo in /usr/share/dnf5/repos.d/*.repo; do
+    [ -e "/etc/yum.repos.d/${repo##*/}" ] || cp -a "$repo" /etc/yum.repos.d/
+done
 # Keep the shipped repo set clean (updates come from rebuilt images anyway).
 [ -f /etc/yum.repos.d/lacamar-wine-arm64ec.repo ] && sed -i 's/^enabled=1/enabled=0/' /etc/yum.repos.d/lacamar-wine-arm64ec.repo
 "$DNF" clean all
