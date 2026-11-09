@@ -11,7 +11,7 @@ monitor.
 | --- | --- | --- |
 | `01-wallpapers.jpg` | Drift (default), Tide and Aurora, day (`images/`) and night (`images_dark/`), scaled down from the shipped 2560x1440 files; under each, the sizes in the package | `design/preview-wallpapers.py` |
 | `02-folder-icons.png` | Lucent's own folders, 16 to 128 px, light (`Lucent`) and dark (`Lucent-Dark`) on each mode's window surface, drawn by QtSvg (Plasma's SVG renderer) | `design/preview-icons.py` |
-| `03-papirus-folders-indigo.png` | Papirus folders before and after `build_files/papirus-indigo.sh`: upstream blue, upstream indigo, indigo recoloured to the Drift folder tokens (what the image ships), next to Lucent's own. Rendered from upstream Papirus SVGs fetched from GitHub with the script run on them; the image build runs it on Fedora's Papirus and checks the result | one-off script; the build check is in `build_files/design.sh` |
+| `03-papirus-folders-indigo.png` | Papirus folders before and after `build_files/papirus-indigo.sh`: upstream blue, upstream indigo, indigo recoloured to the Drift folder tokens (what the image ships), next to Lucent's own. Rendered from upstream Papirus SVGs fetched from GitHub with the script run on them (it has also been run on Fedora 45's `papirus-icon-theme-20250501-3.fc45` RPMs, which differ at 16 px: monochrome glyphs there); the image build runs it on Fedora's Papirus and checks the result | one-off script; the build check is in `build_files/design.sh` |
 | `04-app-tiles.png` | every app tile of the Lucent icon theme at 96 px (launcher) and 38 px (taskbar) on the light and dark window surface: the palette check. None clashes, so none was redrawn: the Pebble Drift mockups use these same tiles, and Lucent's own (Move from Windows, the start mark) are already blue-indigo | `design/preview-icons.py` |
 | `05-boot-splash-simulated.jpg` | **simulated** Plymouth frame at 2560x1440: `background.png` scaled to the screen, the Lucent mark and one throbber frame placed at the theme's alignments, as two-step does. Not a boot capture | `design/preview-bootsplash.py` (throbber: plymouth's upstream `themes/spinner/throbber-0001.png`) |
 | `06-wizard-*-{light,dark}.png`, `06-wizard-3/4-*-light-ru.png` | "Move from Windows", every page, light and dark, plus two pages in Russian: a real Qt window (macOS, `cocoa`), captured from the screen, 1180x780, against a fake Windows disk (copying and the summary are staged, nothing is copied) | `design/preview-wizard.py OUT [--dark] [--lang ru]` |
@@ -47,9 +47,14 @@ They were taken on a Mac, not on Plasma, so:
    below it, and the handover to SDDM shows no colour jump. On a machine
    without Secure Boot, Plymouth may add its "Secure Boot disabled" emblem
    (copied from Fedora's spinner theme, as before).
-4. **Folders** in Dolphin, icons view and details view, light and dark:
-   Lucent's own folders at 32 px and up, Papirus's recoloured indigo below
-   32 px and for Templates/Public; the build log shows
+4. **Folders**, light and dark. In Dolphin (icons and details view, places
+   panel) every folder, Templates and Public included, should be Lucent's
+   own Drift folder at every size: KIconLoader tries a name and its shorter
+   fallbacks in the Lucent theme before Papirus (`folder-templates` ->
+   Lucent's `folder`). This is from reading KIconThemes' source, not seen
+   yet. Papirus's recoloured indigo folders should show only in GTK apps
+   (e.g. GIMP's file chooser: Templates, Public) from 22 px up; at 16 px
+   Fedora's Papirus draws monochrome glyphs. The build log shows
    `papirus-indigo: N names pointed at indigo, M indigo icons recoloured`
    and `Papirus 16x16/places/folder -> folder-indigo.svg`.
 5. **Move from Windows** (autostarts with the fake Windows disk): every

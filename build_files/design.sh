@@ -17,9 +17,9 @@ FEDORA=$(rpm -E %fedora)
 # toolbars get dark glyphs).
 "$DNF" "${DNF_OPTS[@]}" install papirus-icon-theme papirus-icon-theme-light papirus-icon-theme-dark
 
-# Papirus's folders (the ones Lucent doesn't draw, and every folder below
-# 32 px) in Pebble Drift's indigo: build_files/papirus-indigo.sh, tested
-# first on a fake tree. Then prove it took on the real one.
+# Papirus's folders (what GTK apps show for folders Lucent doesn't draw) in
+# Pebble Drift's indigo: build_files/papirus-indigo.sh, tested first on a
+# fake tree. Then prove it took on the real one.
 /ctx/build_files/papirus-indigo-test.sh /ctx/build_files/papirus-indigo.sh
 /ctx/build_files/papirus-indigo.sh /usr/share/icons
 for icon in 16x16/places/folder 22x22/places/folder 64x64/places/folder 64x64/places/folder-templates; do

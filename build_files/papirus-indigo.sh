@@ -2,11 +2,15 @@
 # Papirus folders in Pebble Drift's indigo (called by design.sh; argument: the
 # icons root, /usr/share/icons by default).
 #
-# Lucent draws its own main folders (Documents, Downloads, ... at 32 px and
-# up, in /usr/share/icons/Lucent*). Everything else that looks like a folder
-# comes from Papirus: Templates, Public, Git, network folders, and every
-# folder below 32 px (Dolphin's details view, file dialogs). Papirus ships
-# each folder in many colours and points the generic names at blue:
+# Lucent draws its own folders (folder, Documents, Downloads, ..., Home, in
+# /usr/share/icons/Lucent*, scalable). KDE apps never get past them for a
+# folder: KIconLoader tries a name and its shorter fallbacks in Lucent before
+# it looks at Papirus (folder-templates -> Lucent's folder), at every size.
+# Papirus's folders show where a lookup reaches Papirus by the full name:
+# GTK apps (GIMP, Inkscape) for names Lucent doesn't draw (Templates, Public,
+# Git, network folders). Fedora 45's Papirus draws its 16 px places as
+# monochrome text-colour glyphs; from 22 px up they come in colours, and the
+# generic names point at blue:
 #   folder-templates.svg -> folder-blue-templates.svg
 # 1. Point those generic names at the indigo variant instead (what upstream's
 #    papirus-folders tool does). Colour-named aliases and links into other
