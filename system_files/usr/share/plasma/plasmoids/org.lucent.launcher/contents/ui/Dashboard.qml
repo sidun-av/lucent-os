@@ -387,8 +387,8 @@ Kicker.DashboardWindow {
                     width: visible ? chipRow.implicitWidth + 36 : 0
                     height: 40
                     hoverEnabled: true
-                    // Single-app categories (Help...) aren't worth a chip.
-                    visible: label.length > 0 && (index === 0 || (root.rootModel.modelForRow(index)?.count ?? 0) > 1)
+                    // Categories with one or two apps (Help...) aren't worth a chip.
+                    visible: label.length > 0 && (index === 0 || (root.rootModel.modelForRow(index)?.count ?? 0) > 2)
                     onClicked: { root.category = index; search.forceActiveFocus() }
 
                     Rectangle {
