@@ -63,6 +63,10 @@ ActiveOutlineAlpha=26
 InactiveOutlineAlpha=20
 SecondOutlineThickness=0
 InactiveSecondOutlineThickness=0
+# lucent-bridge's launch sheet (app id lucent-bridge) draws its own rounded
+# card and long shadow inside a transparent window: corners and a ring here
+# would outline that transparent margin.
+Exclusions=lucent-bridge
 
 [Wayland]
 # No on-screen keyboard: Fedora's kde-settings profile starts plasma-keyboard

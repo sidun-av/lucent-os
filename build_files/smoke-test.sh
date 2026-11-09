@@ -25,6 +25,20 @@ echo "test program: $exe"
 useradd -m anna
 as_anna() { runuser -u anna -- env HOME=/home/anna USER=anna LANG=C.UTF-8 "$@"; }
 
+step "lucent-bridge 0.2 pieces: filtered-token helper, bundled DXVK, launch sheet"
+test -f /usr/share/lucent-bridge/windows/lucent-start.exe
+command -v lucent-bridge-sheet
+if [ "$(uname -m)" = x86_64 ]; then
+    test -f /usr/share/lucent-bridge/dxvk/x64/d3d11.dll
+    test -f /usr/share/lucent-bridge/dxvk/x32/d3d11.dll
+fi
+# A GUI program (Wine's own notepad) starts through lucent-start.exe, like
+# Windows starts programs for an administrator with UAC: not elevated.
+gui=$(find /usr/lib64 /usr/lib -path '*x86_64-windows/notepad.exe' 2>/dev/null | head -n1)
+if [ -n "$gui" ]; then
+    as_anna lucent-bridge plan --json "$gui" | grep -q 'lucent-start\.exe'
+fi
+
 step "launch before the template exists (wineboot fallback)"
 as_anna lucent-bridge plan "$exe"
 t0=$(date +%s%N)
