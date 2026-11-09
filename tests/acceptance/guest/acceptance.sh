@@ -185,6 +185,17 @@ boot_numbers() {
     metric "${pre}ram_used_idle_mib" $(((mem_total - mem_avail) / 1024))
     free -m > "$LOGS/free.txt"
     cat /proc/meminfo > "$LOGS/meminfo.txt"
+    # "Unevictable" without "Mlocked" is ramfs: is the unpacked initramfs
+    # still in memory after the switch to the real root? (It shrank exactly
+    # as much as the initramfs did.) The mount table shows overmounted
+    # mounts too; processes rooted elsewhere would keep an old root alive.
+    metric "${pre}unevictable_mib" "$(awk '/^Unevictable:/ {u = $2} /^Mlocked:/ {m = $2}
+        END { printf "%d (mlocked %d)", u / 1024, m / 1024 }' /proc/meminfo)"
+    { cat /proc/1/mountinfo; echo "== roots other than /"
+      for p in /proc/[0-9]*; do
+          [ "$(stat -L -c %d:%i "$p/root" 2>/dev/null)" = "$(stat -L -c %d:%i / 2>/dev/null)" ] ||
+              echo "${p#/proc/} $(cat "$p/comm" 2>/dev/null) $(readlink "$p/root" 2>/dev/null)"
+      done; } > "$LOGS/mounts-and-roots.txt" 2>&1
     ps -eo rss,user,comm --sort=-rss | head -n 30 > "$LOGS/top-rss.txt"
     # PSS splits shared pages between the processes that map them, so the
     # column adds up to what each one really costs.
