@@ -57,6 +57,7 @@ Kicker.DashboardWindow {
     onVisibleChanged: {
         search.text = ""
         category = 0
+        modelGeneration++
         grid.currentIndex = -1
         powerMenu.visible = false
         if (visible) {
@@ -66,8 +67,14 @@ Kicker.DashboardWindow {
 
     // ---- data: kicker models -> a plain array the grid shows --------------
     onSourceModelChanged: rebuild.restart()
-    readonly property var sourceModel: searching ? (runnerModel.count > 0 ? runnerModel.modelForRow(0) : null)
-                                                 : rootModel.modelForRow(category)
+    // modelForRow() is a plain call: re-evaluate when the app list is rebuilt
+    // (e.g. apps installed after login) and every time the launcher opens.
+    property int modelGeneration: 0
+    readonly property var sourceModel: {
+        modelGeneration
+        return searching ? (runnerModel.count > 0 ? runnerModel.modelForRow(0) : null)
+                         : rootModel.modelForRow(category)
+    }
     property var entries: []
 
     // Apps whose icons come from the Lucent icon theme: drawn on an 80 % grid.
@@ -135,6 +142,11 @@ Kicker.DashboardWindow {
             }
         }
 
+        Connections {
+            target: root.rootModel
+            function onRefreshed() { root.modelGeneration++ }
+            function onCountChanged() { root.modelGeneration++ }
+        }
         KCoreAddons.KUser { id: kuser }
 
         onClicked: mouse => {
