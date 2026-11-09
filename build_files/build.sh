@@ -100,7 +100,10 @@ if ((${#d3d11_links[@]})); then
     # alternative has no DXVK candidate and stays on wined3d. 64-bit must
     # be DXVK.
     for link in "${d3d11_links[@]}"; do echo "${link##*/} -> $(readlink -f "$link")"; done
-    d3d11=$(readlink -f '/etc/alternatives/wine-d3d11(x86-64)' || true)
+    # The 64-bit alternative is named after the native PE arch:
+    # wine-d3d11(x86-64) on x86_64, wine-d3d11(aarch-64) on aarch64.
+    case "$ARCH" in aarch64) d3d11_64='wine-d3d11(aarch-64)' ;; *) d3d11_64='wine-d3d11(x86-64)' ;; esac
+    d3d11=$(readlink -f "/etc/alternatives/$d3d11_64" || true)
     case "$d3d11" in
         *dxvk*) ;;
         *) echo "DXVK is not the 64-bit Direct3D 11 implementation (got: ${d3d11:-nothing})"; exit 1 ;;
