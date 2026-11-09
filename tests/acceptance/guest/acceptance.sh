@@ -440,6 +440,20 @@ else
     record launch.from-entry FAIL "no entry"
 fi
 ls -la "$APPDIR" > "$LOGS/applications.txt" 2>&1
+# The app's Wine prefix must carry the labels files in a home get, not the
+# template's (/var/lib/lucent-bridge: var_lib_t).
+prefix=$(ls -d "$HOMEDIR"/.local/share/lucent-bridge/prefixes/notepadplusplus-* 2>/dev/null | head -n1)
+if [ -n "$prefix" ]; then
+    restorecon -R -n -v "$prefix" > "$LOGS/prefix-relabel.txt" 2>&1
+    find "$prefix" -maxdepth 3 -printf '%Z\n' 2>/dev/null | cut -d: -f3 | sort | uniq -c > "$LOGS/prefix-labels.txt"
+    n=$(grep -c . "$LOGS/prefix-relabel.txt")
+    if ((n == 0)); then
+        record prefix.selinux-labels PASS "$prefix: labels as policy expects ($(oneline < "$LOGS/prefix-labels.txt"))"
+    else
+        record prefix.selinux-labels FAIL "$n files in $prefix carry other labels than policy expects: $(oneline < "$LOGS/prefix-labels.txt"); e.g. $(head -n1 "$LOGS/prefix-relabel.txt")"
+    fi
+    metric prefix_size "$(du -sh "$prefix" | cut -f1) (apparent; btrfs reflinks share data with the template)"
+fi
 as_user lucent-bridge list 2>&1 | cat > "$LOGS/bridge-list.txt"
 
 # ---------------------------------------------------------------------------
