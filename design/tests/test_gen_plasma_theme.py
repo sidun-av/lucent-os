@@ -25,6 +25,10 @@ def test_accent_parts_are_vector_and_recolourable(dark):
     assert 'id="current-color-scheme"' in tasks
     for doc in (g.viewitem(t), g.lineedit(t), g.tabbar(t)):
         assert "ColorScheme-Highlight" in svg_text(doc)
+    # the tray's overflow arrow: a line chevron in the text colour
+    arrows = svg_text(g.arrows(t))
+    assert all(f'id="{d}-arrow"' in arrows for d in ("up", "down", "left", "right"))
+    assert 'class="ColorScheme-Text"' in arrows
 
 
 def test_pieces_are_sized_by_their_image():

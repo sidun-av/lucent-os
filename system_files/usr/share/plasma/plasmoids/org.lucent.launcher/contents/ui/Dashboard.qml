@@ -369,16 +369,27 @@ Kicker.DashboardWindow {
                     shadowVerticalOffset: 10
                 }
             }
-            Kirigami.Icon {
+            Canvas {        // lucent.js "search" glyph at 24 px (icon themes ship it at 16)
                 id: searchIcon
                 anchors.left: parent.left
                 anchors.leftMargin: 24
                 anchors.verticalCenter: parent.verticalCenter
                 width: 24
                 height: 24
-                source: "search-symbolic"
-                isMask: true
-                color: root.accentText
+                readonly property color ink: root.accentText
+                onInkChanged: requestPaint()
+                onPaint: {
+                    const c = getContext("2d")
+                    c.reset()
+                    c.strokeStyle = ink
+                    c.lineWidth = 2.2
+                    c.lineCap = "round"
+                    c.beginPath()
+                    c.arc(10.5, 10.5, 6.5, 0, 2 * Math.PI)
+                    c.moveTo(15.5, 15.5)
+                    c.lineTo(20, 20)
+                    c.stroke()
+                }
             }
             TextInput {
                 id: search

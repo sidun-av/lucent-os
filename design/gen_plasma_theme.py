@@ -337,6 +337,24 @@ def lineedit(t):
     return doc
 
 
+def arrows(t):
+    """widgets/arrows (the tray's overflow arrow, spin and combo arrows): the
+    mockups' line chevrons (lucent.js, 1.8 stroke, round) in the text
+    colour, instead of Breeze's filled triangles."""
+    doc, cur = SvgDoc(0, 0), Cursor()
+    S = 22
+    pts = {"up": "6.5,13.5 11,9 15.5,13.5", "down": "6.5,8.5 11,13 15.5,8.5",
+           "left": "13.5,6.5 9,11 13.5,15.5", "right": "8.5,6.5 13,11 8.5,15.5"}
+    for d, p in pts.items():
+        x, y = cur.place(S, S)
+        doc.raw(f'<g id="{d}-arrow" transform="translate({x},{y})">'
+                f'<rect width="{S}" height="{S}" style="fill:#000;fill-opacity:0;stroke:none"/>'
+                f'<polyline class="ColorScheme-Text" points="{p}" style="fill:none;stroke:currentColor;'
+                f'stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"/></g>')
+    doc.w, doc.h = cur.max_w, cur.height + 4
+    return doc
+
+
 def viewitem(t):
     """Popup list highlights: hover --state-hover, selection --accent-soft."""
     doc, cur = SvgDoc(0, 0), Cursor()
@@ -394,6 +412,7 @@ def main():
         write(base / "widgets/viewitem.svgz", viewitem(t))
         write(base / "widgets/tabbar.svgz", tabbar(t))
         write(base / "widgets/lineedit.svgz", lineedit(t))
+        write(base / "widgets/arrows.svgz", arrows(t))
         meta = {
             "KPlugin": {
                 "Authors": [{"Name": "Lucent OS contributors"}],
