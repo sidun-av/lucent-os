@@ -26,10 +26,11 @@ namespace ThisPc
 
 enum class Section { Folders, Drives, Recent };
 
-// Dolphin groups the page by the items' "Type" (UDS_DISPLAY_TYPE) and always
-// orders groups by that text, ascending. Leading hair spaces (U+200A, about
-// 1 px wide) make the page order (Folders, Drives, Recent) win in every
-// language; the label itself is translated.
+// Dolphin groups the page by the items' "Type" (UDS_DISPLAY_TYPE): folders
+// (user folders and drives) before files, then groups by their text,
+// ascending, with ICU collation that ignores spaces and punctuation, so no
+// invisible prefix can change the order. In English and Russian that gives
+// Drives and devices, Folders, Recent files (tests/core_test.cpp).
 QString sectionKey(Section section);
 
 // ------------------------------------------------------------ space

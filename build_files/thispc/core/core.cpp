@@ -18,7 +18,6 @@ namespace ThisPc
 namespace
 {
 constexpr quint64 MinInternalSize = 1024ull * 1024 * 1024; // smaller: OEM/recovery tools
-constexpr QChar HairSpace(0x200A);
 
 // Mount points that are the operating system itself.
 bool isSystemMountPoint(const QString &mp)
@@ -115,8 +114,7 @@ bool isHiddenPath(const QString &path, const QString &home)
 
 QString sectionKey(Section section)
 {
-    const int pad = section == Section::Folders ? 2 : section == Section::Drives ? 1 : 0;
-    return QString(pad, HairSpace) + Text::section(section);
+    return Text::section(section);
 }
 
 // ------------------------------------------------------------------- space

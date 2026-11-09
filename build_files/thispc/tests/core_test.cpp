@@ -113,32 +113,29 @@ private Q_SLOTS:
 
     // ---- sections: Dolphin sorts groups by the text, ascending
 
-    void sectionsSortInPageOrder()
+    void sectionsSortAsThePageShowsThem()
     {
+        // Dolphin: folders (user folders, drives) before files (recent),
+        // then groups by their text with ICU collation. Invisible prefixes
+        // can't reorder them (ICU ignores spaces; a hair-space trick failed
+        // here on Fedora), so the page is: drives, folders, recent files.
         QCollator collator; // as Dolphin's KFileItemModel sets it up
         collator.setNumericMode(true);
         collator.setCaseSensitivity(Qt::CaseInsensitive);
         const QString folders = sectionKey(Section::Folders);
         const QString drives = sectionKey(Section::Drives);
         const QString recent = sectionKey(Section::Recent);
-        QVERIFY2(collator.compare(folders, drives) < 0, qPrintable(folders + QStringLiteral(" !< ") + drives));
-        QVERIFY(collator.compare(drives, recent) < 0);
+        QVERIFY2(collator.compare(drives, folders) < 0, qPrintable(drives + QStringLiteral(" !< ") + folders));
         QVERIFY(collator.compare(folders, recent) < 0);
+        // Russian, as translated in po/lucent-thispc.ru.po
+        QVERIFY(collator.compare(QStringLiteral("Диски и устройства"), QStringLiteral("Папки")) < 0);
     }
 
-    void sectionKeyShowsTheLabel()
+    void sectionKeyIsTheLabel()
     {
-        QCOMPARE(sectionKey(Section::Folders).trimmed(), QStringLiteral("Folders"));
-        QCOMPARE(sectionKey(Section::Drives).trimmed(), QStringLiteral("Drives and devices"));
-        QCOMPARE(sectionKey(Section::Recent).trimmed(), QStringLiteral("Recent files"));
-        // nothing but hair spaces in front
-        for (Section s : {Section::Folders, Section::Drives, Section::Recent}) {
-            const QString key = sectionKey(s);
-            const QString label = Text::section(s);
-            QVERIFY(key.endsWith(label));
-            for (QChar c : key.left(key.size() - label.size()))
-                QCOMPARE(c, QChar(0x200A));
-        }
+        QCOMPARE(sectionKey(Section::Folders), QStringLiteral("Folders"));
+        QCOMPARE(sectionKey(Section::Drives), QStringLiteral("Drives and devices"));
+        QCOMPARE(sectionKey(Section::Recent), QStringLiteral("Recent files"));
     }
 
     // ---- space

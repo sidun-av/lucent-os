@@ -3,14 +3,14 @@
 Files (Dolphin) opens on **This PC**, as Explorer does, following
 `docs/mockups/concepts-2026/pebble-drift/01-desktop.png`:
 
-- **Folders**: Desktop, Documents, Downloads, Pictures, Music, Videos (the
-  XDG user folders, so localised names work), each with its item count.
 - **Drives and devices**: the system drive as **Home** with the free space
   of the volume the user's files are really on; Windows partitions under
   the names `lucent-drive-letters` gives them (**"Local Disk (C:)"**), marked
   **Read-only**; USB drives, with **Eject**. Each drive's icon is a ring
   showing how full it is (accent for the system drive, slate for Windows,
   violet for USB, as the mockup's gauges).
+- **Folders**: Desktop, Documents, Downloads, Pictures, Music, Videos (the
+  XDG user folders, so localised names work), each with its item count.
 - **Recent files**: the ten newest files the user opened (KDE's recent
   documents list), with their folder and date.
 
@@ -72,10 +72,9 @@ folder, copy, "Open with", Properties, tooltips).
   as stock Dolphin does and no This PC in the sidebar, and the CI run shows a
   warning annotation (`build_files/thispc.sh`). Updates are never held back.
 - **What it relies on in Dolphin's behaviour** (not its code), checked in
-  `docs/screenshots/real/v4-this-pc/`: grouping by "Type" orders groups by
-  their text (the worker prefixes hair spaces, U+200A, to keep Folders,
-  Drives, Recent in that order in every language; if collation ever ignored
-  them, the groups would only be ordered alphabetically); the "Owner" role is
+  `docs/screenshots/real/v4-this-pc/`: grouping by "Type" puts folders
+  before files and then orders groups by their text (so drives, folders,
+  recent files in English and Russian); the "Owner" role is
   the grey line under each name; non-local locations share one set of view
   properties (`~/.local/share/dolphin/view_properties/remote/`). If Dolphin
   changed any of these, This PC would still list everything, only less
@@ -90,6 +89,11 @@ folder, copy, "Open with", Properties, tooltips).
   "Documents · Today") instead of cards with bold names and a "Read-only"
   pill; recent files are icons, not a table with Folder / Modified / Size
   columns (the Details view, Ctrl+3 shows those columns).
+- **Drives come first**, then folders, then recent files (the mockup has
+  folders first). Dolphin sorts groups by their title with ICU collation,
+  which ignores spaces and punctuation, so no invisible prefix can reorder
+  them (tried: hair spaces, U+200A; the unit test caught it on Fedora). It
+  matches Windows 11, whose This PC shows only the drives.
 - Within a section Dolphin sorts by name, not by the mockup's order: folders
   alphabetically, drives alphabetically ("Home", "KINGSTON", "Local Disk
   (C:)"), recent files alphabetically (they are the ten newest).
