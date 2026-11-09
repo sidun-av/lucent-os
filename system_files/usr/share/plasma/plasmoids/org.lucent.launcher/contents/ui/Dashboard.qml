@@ -70,6 +70,15 @@ Kicker.DashboardWindow {
                                                  : rootModel.modelForRow(category)
     property var entries: []
 
+    // Apps whose icons come from the Lucent icon theme: drawn on an 80 % grid.
+    // Other themes' icons are full-bleed, so they're shown at 80 % to match.
+    readonly property var lucentTiles: ["org.kde.dolphin.desktop", "org.mozilla.firefox.desktop",
+        "org.onlyoffice.desktopeditors.desktop", "org.kde.okular.desktop",
+        "com.github.jeromerobert.pdfarranger.desktop", "org.gimp.GIMP.desktop", "org.kde.krita.desktop",
+        "org.inkscape.Inkscape.desktop", "org.darktable.Darktable.desktop", "org.kde.kdenlive.desktop",
+        "systemsettings.desktop", "org.kde.discover.desktop", "org.kde.konsole.desktop",
+        "org.lucent.Migrate.desktop"]
+
     // Plain names for the apps a newcomer looks for (the mockups' wording);
     // everything else keeps the app's own name.
     readonly property var friendlyNames: ({
@@ -477,10 +486,11 @@ Kicker.DashboardWindow {
                 }
                 Kirigami.Icon {
                     id: appIcon
+                    readonly property real k: root.lucentTiles.indexOf(cell.modelData.id) >= 0 ? 1.0 : 0.8
                     x: (parent.width - width) / 2
-                    y: 6
-                    width: root.iconSize
-                    height: root.iconSize
+                    y: 6 + root.iconSize * (1 - k) / 2
+                    width: Math.round(root.iconSize * k)
+                    height: Math.round(root.iconSize * k)
                     source: cell.modelData.icon
                     roundToIconSize: false
                     visible: false
@@ -495,8 +505,7 @@ Kicker.DashboardWindow {
                     autoPaddingEnabled: true
                 }
                 Text {
-                    anchors.top: appIcon.bottom
-                    anchors.topMargin: Math.round(16 - root.iconSize * 0.1)
+                    y: 6 + root.iconSize * 0.9 + 16
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: Math.round(220 * root.s)
                     horizontalAlignment: Text.AlignHCenter

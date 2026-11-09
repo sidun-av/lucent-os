@@ -20,6 +20,9 @@ Theme=Lucent
 
 [KDE]
 LookAndFeelPackage=org.lucent.desktop
+# Quick Settings' light/dark/automatic theme picker offers Lucent, not Breeze.
+DefaultLightLookAndFeel=org.lucent.desktop
+DefaultDarkLookAndFeel=org.lucent.desktop.dark
 widgetStyle=Breeze
 # Windows habit: one click selects, double click opens (as in Explorer).
 SingleClick=false

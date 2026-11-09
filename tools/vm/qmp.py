@@ -77,6 +77,18 @@ def main():
             for k in reversed(keys):
                 q.cmd("input-send-event", events=[{"type": "key", "data": {"down": False, "key": {"type": "qcode", "data": k}}}])
             time.sleep(0.08)
+    elif what == "drag":
+        # drag X1 Y1 X2 Y2 WIDTH HEIGHT: press at 1, move in steps, release at 2
+        x1, y1, x2, y2, w, h = (int(v) for v in rest[:6])
+        absev = lambda x, y: [{"type": "abs", "data": {"axis": "x", "value": x * 32767 // (w - 1)}},
+                              {"type": "abs", "data": {"axis": "y", "value": y * 32767 // (h - 1)}}]
+        q.cmd("input-send-event", events=absev(x1, y1))
+        time.sleep(0.2)
+        q.cmd("input-send-event", events=[{"type": "btn", "data": {"down": True, "button": "left"}}])
+        for i in range(1, 21):
+            q.cmd("input-send-event", events=absev(x1 + (x2 - x1) * i // 20, y1 + (y2 - y1) * i // 20))
+            time.sleep(0.03)
+        q.cmd("input-send-event", events=[{"type": "btn", "data": {"down": False, "button": "left"}}])
     elif what in ("click", "move"):
         # click X Y WIDTH HEIGHT [left|right|middle]: absolute pointer via usb-tablet
         x, y, w, h = (int(v) for v in rest[:4])

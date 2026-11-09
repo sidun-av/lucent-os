@@ -18,6 +18,8 @@ ElectricBorderTiling=true
 ElectricBorderCornerRatio=0.25
 # Windows does not raise or focus windows just because the mouse passes over them.
 FocusPolicy=ClickToFocus
+# New windows open centred, as in the mockups (and Windows 11 for most apps).
+Placement=Centered
 
 [Plugins]
 blurEnabled=true

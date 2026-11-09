@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+# Lucent look: per-user defaults that can't come from /etc/xdg because the
+# apps keep them in $XDG_STATE_HOME. Seeds only what the user doesn't have
+# yet, so their own window sizes and panel widths always win.
+STATE=${XDG_STATE_HOME:-$HOME/.local/state}
+mkdir -p "$STATE"
+[ -e "$STATE/dolphinstaterc" ] || cp /usr/share/lucent/design/dolphinstaterc "$STATE/dolphinstaterc"
+exit 0
