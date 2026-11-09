@@ -9,7 +9,7 @@
 # against its SHA256SUMS, and relabelled for SELinux. Any failure leaves an
 # empty /var/lib/flatpak and the install continues: lucent-flatpak-setup
 # then downloads the apps after first boot, as on the online path.
-%post --nochroot --log=/tmp/lucent-apps.log
+%post --nochroot --interpreter=/usr/bin/bash --log=/tmp/lucent-apps.log
 set -u
 # Also on the serial console when there is one (CI's install test reads it).
 if [ -c /dev/ttyS0 ]; then exec > >(tee -a /dev/ttyS0) 2>&1; fi
