@@ -277,6 +277,23 @@ if [ -n "$opener" ]; then
 else
     as_user gio open "$DL/$NPP" 2>/dev/null | cat > "$LOGS/open.txt"
 fi
+# lucent-bridge's launch sheet ("Preparing Windows program", lucent-bridge
+# >= 0.2 + /usr/bin/lucent-bridge-sheet): it shows while the Windows
+# environment is prepared and a moment after the program starts. Watched
+# from the double-click on, as fast as KWin can be asked.
+SHEET_RE='^Preparing Windows program$'
+t_sheet=$SECONDS sheet=""
+while ((SECONDS - t_sheet < 25)); do
+    sheet=$(find_window "$SHEET_RE")
+    [ -n "$sheet" ] && break
+done
+if [ -n "$sheet" ]; then
+    shot 03-launch-sheet
+    IFS=$'\t' read -r s_cap s_cls _ _ _ s_w s_h _ <<<"$sheet"
+    record bridge.launch-sheet PASS "'$s_cap' (class $s_cls, ${s_w}x${s_h}) $((SECONDS - t_sheet)) s after the double-click"
+else
+    record bridge.launch-sheet FAIL "no '${SHEET_RE//[\^\$]/}' window within 25 s of the double-click; $(pgrep -a -u "$U" -f lucent-bridge-sheet | head -n1)"
+fi
 bridge_pid() { user_pids "lucent-bridge run .*${NPP//./\\.}" | head -n1; }
 if wait_until 60 bridge_pid; then
     bp=$(bridge_pid)
@@ -421,6 +438,13 @@ if [ -n "$entry" ]; then
         [ -n "$pid" ] && [ "$pid" != 0 ] && [ -d "/proc/$pid" ] || pid=$(user_pids 'notepad\+\+\.exe' | tail -n1)
         cg=$(cgroup_of "$pid")
         record window.notepadpp PASS "window '$cap' (class $cls, pid $pid) $((SECONDS - t_launch)) s after Enter in the launcher"
+        # Started from its launcher entry like Windows starts it for an
+        # administrator with UAC: not elevated, so no "[Administrator]".
+        if [[ "$cap" == *"[Administrator]"* ]]; then
+            record window.not-administrator FAIL "caption '$cap'"
+        else
+            record window.not-administrator PASS "caption '$cap'; started through $(pgrep -a -u "$U" -f 'lucent-start\.exe' | grep -o 'lucent-start\.exe' | head -n1 || echo '?')"
+        fi
         if [[ "$cg" == *'app-lucent\x2dbridge\x2dnotepadplusplus'* ]]; then
             record launch.from-entry PASS "the process runs in its entry's unit: $cg"
         else
@@ -459,6 +483,23 @@ if [ -n "$prefix" ]; then
         record prefix.selinux-labels FAIL "$n files in $prefix carry other labels than policy expects: $(oneline < "$LOGS/prefix-labels.txt"); e.g. $(head -n1 "$LOGS/prefix-relabel.txt")"
     fi
     metric prefix_size "$(du -sh "$prefix" | cut -f1) (apparent; btrfs reflinks share data with the template)"
+    # lucent-bridge 0.2 gives the prefix the desktop's look (light here:
+    # Pebble Drift's --surface-raised for windows, Inter for dialogs) and,
+    # on x86_64, its bundled DXVK.
+    win=$(grep -a -m1 -o '^"Window"="[0-9 ]*"' "$prefix/user.reg")
+    dlg=$(grep -a -m1 -o '^"MS Shell Dlg"="[^"]*"' "$prefix/system.reg")
+    dpi=$(grep -a -m1 -o '^"LogPixels"=dword:[0-9a-f]*' "$prefix/user.reg")
+    if [ "$win" = '"Window"="253 253 255"' ] && [ "$dlg" = '"MS Shell Dlg"="Inter"' ]; then
+        record prefix.appearance PASS "$win $dlg $dpi"
+    else
+        record prefix.appearance FAIL "${win:-no Window colour} ${dlg:-no MS Shell Dlg} ${dpi:-no LogPixels}"
+    fi
+    dxvk=$(grep -a -o -m1 'dxvk [0-9][0-9.]*\|DXVK v[0-9.]*\|v[0-9]\.[0-9.]*' "$prefix/drive_c/windows/system32/d3d11.dll" 2>/dev/null | head -n1)
+    if cmp -s "$prefix/drive_c/windows/system32/d3d11.dll" /usr/share/lucent-bridge/dxvk/x64/d3d11.dll; then
+        record prefix.dxvk PASS "system32/d3d11.dll is lucent-bridge's DXVK (${dxvk:-version not found in the DLL})"
+    else
+        record prefix.dxvk FAIL "system32/d3d11.dll differs from /usr/share/lucent-bridge/dxvk/x64/d3d11.dll"
+    fi
 fi
 as_user lucent-bridge list 2>/dev/null | cat > "$LOGS/bridge-list.txt"
 
