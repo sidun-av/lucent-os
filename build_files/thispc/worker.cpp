@@ -101,6 +101,10 @@ void rememberAutomounted(const QString &uuid)
 
 Gathered gatherVolumes()
 {
+    // The worker process lives on between listings, and Solid keeps its view
+    // of the drives current from udisks' D-Bus signals: deliver the ones that
+    // came in since the last request (a stick plugged in, a drive mounted).
+    QCoreApplication::processEvents();
     Gathered g;
     const QList<Solid::Device> devices = Solid::Device::listFromType(Solid::DeviceInterface::StorageVolume);
     for (const Solid::Device &dev : devices) {
@@ -300,7 +304,7 @@ private:
         // takes them away again), read-only Windows partitions once per
         // session (unmounted by the user, they stay unmounted).
         if (mountForSpace) {
-            bool mounted = false;
+            QHash<QString, QString> mounted; // id -> mount point
             const QStringList done = automounted();
             for (const Drive &d : std::as_const(drives)) {
                 if (!d.mountPoint.isEmpty() || (d.kind != DriveKind::Windows && d.kind != DriveKind::Removable) || !g.udiById.contains(d.id))
@@ -311,10 +315,16 @@ private:
                         continue;
                     rememberAutomounted(uuid);
                 }
-                mounted |= !mount(g.udiById.value(d.id), false, nullptr).isEmpty();
+                const QString mp = mount(g.udiById.value(d.id), false, nullptr);
+                if (!mp.isEmpty())
+                    mounted.insert(d.id, mp);
             }
-            if (mounted) {
-                g = gatherVolumes();
+            if (!mounted.isEmpty()) {
+                // Solid learns about the mount only from a D-Bus signal this
+                // worker can't process while it lists: use udisks' answer.
+                for (Volume &v : g.volumes)
+                    if (v.mountPoint.isEmpty() && mounted.contains(v.id))
+                        v.mountPoint = mounted.value(v.id);
                 drives = selectDrives(g.volumes, home, os, statFs);
             }
         }

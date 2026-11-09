@@ -55,7 +55,12 @@ whatever is missing in the background, retried until online.
 - **Language and keyboard**: English (`en_US.UTF-8`, `us` layout) unless the
   installer chose otherwise. Extra layouts come from the installer; with two
   or more, switch with **Alt+Shift** or **Win+Space**.
-- **Files (Dolphin)**: double-click opens (single-click off), file extensions
+- **Files (Dolphin)** opens on **This PC**, as Explorer does: the user
+  folders with item counts, the drives with their free space (ring gauges;
+  Windows partitions read-only, USB drives with Eject) and recent files; it
+  is also the first entry of the sidebar (`kio_thispc`, see
+  [docs/this-pc.md](docs/this-pc.md) for why it is a KIO worker and not a
+  Dolphin patch). Double-click opens (single-click off), file extensions
   always visible, Windows partitions appear as **"Local Disk (C:)"**,
   "Data (D:)" (the partition containing `\Windows` gets C:; Russian:
   «Локальный диск (C:)»), and right-click → **Create New → Document /
