@@ -70,4 +70,6 @@ clock.writeConfig("dateFormat", "custom");
 clock.writeConfig("customDateFormat", "ddd, MMM d");
 clock.writeConfig("autoFontAndSize", false);
 clock.writeConfig("fontSize", 11);
+// With no family set the clock takes the whole system font (weight 400 too).
+clock.writeConfig("fontFamily", "Inter");
 clock.writeConfig("fontWeight", 600);            // semibold, like the mockup's time
