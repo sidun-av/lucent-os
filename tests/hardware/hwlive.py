@@ -630,8 +630,35 @@ class Test:
                 info += "\n" + diag
                 self.record(f"ethernet.{model}-drivers", "INFO", diag)
             self.save(f"eth-{model}.txt", info)
-            self.check(f"ethernet.{model}", ok and ok2 and re.search(r"curl: (200|30\d)", info) is not None,
-                       f"{ifname}: {info}")
+            online = ok and ok2 and re.search(r"curl: (200|30\d)", info) is not None
+            if kind == "usb" and not online and "driver cdc_subset" in info:
+                # QEMU's only USB NIC reports the Linux USB gadget's IDs
+                # (0525:a4a2), which the legacy cdc_subset driver also claims:
+                # it grabs the data interface before cdc_ether can bind the
+                # CDC-ECM function, and no DHCP gets through. Real USB/dock
+                # NICs have their own IDs (r8152, ax88179_178a, cdc_ncm,
+                # cdc_ether). Bind it the way such a CDC-ECM adapter is bound
+                # and check the rest of the path: NetworkManager, DHCP, internet.
+                self.record(f"ethernet.{model}-as-plugged", "INFO",
+                            "emulator artifact, not a Lucent defect: QEMU's usb-net carries the Linux gadget IDs "
+                            f"0525:a4a2, cdc_subset took its data interface, no DHCP: {ifname}: {info}")
+                _, rb = self.ssh("d=$(grep -l '^0525$' /sys/bus/usb/devices/*/idVendor | head -n1); d=${d%/idVendor}; "
+                                 "n=${d##*/}; echo -n \"$n:1.1\" > /sys/bus/usb/drivers/cdc_subset/unbind; "
+                                 "echo -n \"$n:1.0\" > /sys/bus/usb/drivers/cdc_ether/bind; sleep 2; "
+                                 "for i in $d/*:*; do echo \"${i##*/} $(basename $(readlink -f $i/driver) 2>/dev/null)\"; done",
+                                 root=True)
+                ok, ifname = self.wait(30, f"i=$({find}); test -n \"$i\" && echo $i")
+                ifname = ifname.strip()
+                ok2, _ = self.wait(60, f"nmcli -t -f GENERAL.STATE dev show {ifname} | grep -q '100 '")
+                _, info = self.ssh(f"basename $(readlink -f /sys/class/net/{ifname}/device/driver); "
+                                   f"nmcli -f GENERAL.CONNECTION,IP4.ADDRESS,IP4.GATEWAY dev show {ifname}; "
+                                   f"curl -sS -o /dev/null -w 'curl: %{{http_code}} via %{{local_ip}}' --interface {ifname} "
+                                   f"--max-time 20 https://fedoraproject.org/")
+                self.save(f"eth-{model}-cdc-ether.txt", rb + "\n" + info)
+                self.check(f"ethernet.{model}-cdc-ether", ok and ok2 and re.search(r"curl: (200|30\d)", info) is not None,
+                           f"bound to cdc_ether ({' '.join(rb.split())}): {ifname}: {info}")
+            else:
+                self.check(f"ethernet.{model}", online, f"{ifname}: {info}")
             time.sleep(2)
             self.open_tray(1)
             self.shot(f"50-ethernet-{model}-tray")
