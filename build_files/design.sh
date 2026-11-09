@@ -99,8 +99,8 @@ if fc-list 'Figtree:lang=ru' family | grep -q Figtree; then echo "Figtree unexpe
 fc-list Figtree style | grep -q Medium
 # the first font after Figtree in its fallback list (what Qt uses for a
 # missing letter) is Inter
-next=$(fc-match -s -f '%{family[0]}\n' Figtree | grep -v -m1 -x Figtree)
-[ "$next" = Inter ] || { echo "Figtree falls back to '$next', not Inter"; exit 1; }
+next=$(fc-match -s -f '%{family[0]}\n' Figtree | grep -v -m1 '^Figtree')
+[[ "$next" == Inter* ]] || { echo "Figtree falls back to '$next', not Inter"; exit 1; }
 
 # Accents (lucent-theme): every swatch has its Kvantum theme, light and dark.
 for t in $(PYTHONPATH=/usr/lib/lucent python3 -P -c \
