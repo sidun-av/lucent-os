@@ -72,6 +72,7 @@ clock.writeConfig("dateFormat", "custom");
 clock.writeConfig("customDateFormat", "ddd, MMM d");
 clock.writeConfig("autoFontAndSize", false);
 clock.writeConfig("fontSize", 11);
-// With no family set the clock takes the whole system font (weight 400 too).
-clock.writeConfig("fontFamily", "Inter");
+// No family: the clock uses the UI font of the session (Figtree, or Inter in
+// a language Figtree has no letters for, so a Cyrillic date matches), at
+// this weight (autoFontAndSize is off, so fontWeight applies).
 clock.writeConfig("fontWeight", 600);            // semibold, like the mockup's time
