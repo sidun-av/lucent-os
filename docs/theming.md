@@ -58,7 +58,7 @@ use `--radius-window` (18 px).
 
 | Part | Mechanism |
 | --- | --- |
-| Colour scheme (Plasma, Kirigami apps, the launcher, Settings) | KDE's accent override: `plasma-apply-colorscheme --accent-color #hex` writes `kdeglobals [General] AccentColor`; Indigo removes it |
+| Colour scheme (Plasma, Kirigami apps, the launcher, Settings) | KDE's accent override: `plasma-apply-colorscheme --accent-color #hex`. Plasma 6 keeps no `AccentColor` key: it writes the colour into every set's `DecorationFocus` (exactly) and a tinted shade into `Colors:Selection`; `lucent-theme` reads `[Colors:Window] DecorationFocus` to know what is applied. Indigo is the schemes' own (`#4257e8` light, `#7088ff` dark), so choosing it re-applies the global theme |
 | Plasma theme | everything drawn in the accent is a vector shape with `class="ColorScheme-Highlight"`, which Plasma recolours |
 | Qt widget apps (Kvantum) | Kvantum's SVGs can't follow the palette, so each accent is a theme; `~/.config/Kvantum/kvantum.kvconfig` names it (`theme=LucentAzure`) and the widget style `lucent` / `lucent-dark` picks the light or dark variant |
 | Flatpak Qt apps | `/usr/libexec/lucent/kvantum-flatpak-sync` copies the active theme into each app (`~/.var/app/<id>/config/Kvantum`) with `QT_STYLE_OVERRIDE=kvantum` set by `lucent-flatpak-setup` |

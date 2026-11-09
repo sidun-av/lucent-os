@@ -153,6 +153,11 @@ def popover(s, r, fill, t):
 
 
 def write(path, doc):
+    # Plasma tiles frame edges unless told to stretch them: a tiled accent
+    # underline turns into dashes, a tiled pill edge into a seam.
+    if not any('id="hint-stretch-borders"' in i for i in doc.items):
+        doc.rect("hint-stretch-borders", 0, doc.h, 1, 1)
+        doc.h += 2
     path.parent.mkdir(parents=True, exist_ok=True)
     with gzip.GzipFile(path, "wb", mtime=0) as f:
         f.write(doc.svg().encode())

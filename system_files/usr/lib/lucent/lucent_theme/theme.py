@@ -232,15 +232,23 @@ def _apply_global_theme(r, pkg: str, errors: list[str]) -> None:
 
 
 def _accent_in_kde() -> str:
-    return _rgb_key(read("kdeglobals", "General", "AccentColor", ""))
+    """The accent the colour scheme shows now, '' if it is the scheme's own.
+
+    Plasma 6 keeps no AccentColor key: plasma-apply-colorscheme
+    --accent-color writes the colour into every set's DecorationFocus
+    (exactly; Selection gets a tinted shade) and a global theme puts the
+    scheme's own colours back. The Lucent schemes' own DecorationFocus is
+    their indigo (#4257e8 light, #7088ff dark)."""
+    focus = _rgb_key(read("kdeglobals", "Colors:Window", "DecorationFocus", ""))
+    own = {accents.INDIGO[False]["accent"], accents.INDIGO[True]["accent"]}
+    return "" if not focus or focus in own else focus
 
 
 def _apply_colour_accent(r, accent_id: str, errors: list[str]) -> None:
     a = accents.find(accent_id)
     if a.id == "indigo":
         if _accent_in_kde():
-            kwrite(r, "kdeglobals", "General", "AccentColor", None)
-            # The schemes' own selection colours come back with the global theme.
+            # The schemes' own colours come back with the global theme.
             _apply_global_theme(r, DARK_PKG if effective_dark() else LIGHT_PKG, errors)
         return
     if _accent_in_kde() != a.hex:

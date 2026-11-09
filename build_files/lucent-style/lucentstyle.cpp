@@ -23,14 +23,20 @@
  *  6. Dolphin's free-space indicator: on an image-based system Solid maps
  *     every local path to the read-only root ("0 B free", a full bar). The
  *     indicator is hidden when it reports that root instead of a wrong value.
+ *  7. Files' places panel is the Pebble Drift sidebar: a sunken well
+ *     (--surface-sunken, --shadow-sunken, radius 14) 12 px in from the window
+ *     edge, the places inset 10 px inside it (pebble-drift.css .side).
+ *     Kvantum has no element for a dock's body, so it is painted here.
  *
  * Keys: "lucent" (Kvantum, theme Lucent) and "lucent-dark" (kvantum-dark,
  * theme LucentDark). Without Kvantum it falls back to Breeze.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#include <QAbstractScrollArea>
 #include <QApplication>
 #include <QEvent>
+#include <QPainterPath>
 #include <QLayout>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -100,6 +106,11 @@ bool isFlatToolBarButton(const QWidget *w)
     const auto *tb = qobject_cast<const QToolButton *>(w);
     return tb && horizontalToolBar(tb) && !isSegment(tb);
 }
+
+// setViewportMargins() is protected; the style sets it on views it doesn't own.
+struct ScrollAreaAccess : QAbstractScrollArea {
+    using QAbstractScrollArea::setViewportMargins;
+};
 
 // The root is a read-only image (composefs): nothing can ever be free there.
 bool rootIsReadOnlyImage()
@@ -182,6 +193,17 @@ public:
             w->installEventFilter(this);
             fixItemViewPalette(static_cast<QGraphicsView *>(w));
         }
+        if (w->inherits("KFilePlacesView")) {
+            if (auto *area = qobject_cast<QAbstractScrollArea *>(w)) {
+                area->setProperty("_lucent_well", true);
+                area->installEventFilter(this);
+                // the well: 12 px from the window edge, 4 px before the splitter,
+                // 12 px above the bottom; the places 10 px inside it (Kvantum's
+                // item pills already keep 4 px from the viewport's sides)
+                static_cast<ScrollAreaAccess *>(area)->setViewportMargins(WellLeft + 6, 12, WellRight + 6, WellBottom + 12);
+                area->viewport()->setAutoFillBackground(false);
+            }
+        }
         if (w->inherits("StatusBarSpaceInfo") && rootIsReadOnlyImage()) {
             w->installEventFilter(this);
             for (QWidget *c : w->findChildren<QWidget *>())
@@ -202,6 +224,13 @@ public:
             && (e->type() == QEvent::Show || e->type() == QEvent::Resize || e->type() == QEvent::ParentChange)) {
             fixPathBar(static_cast<QWidget *>(o));
             return false;
+        }
+        if (e->type() == QEvent::Paint && o->property("_lucent_well").toBool()) {
+            auto *area = static_cast<QWidget *>(o);
+            QPainter p(area);
+            drawWell(&p, QRectF(area->rect()).adjusted(WellLeft, 0, -WellRight, -WellBottom),
+                     area->palette().color(QPalette::Window).lightness() < 128);
+            return false; // QFrame paints its (empty) frame, the places paint on top
         }
         if (o->property("_lucent_itemview").toBool()) {
             if (e->type() == QEvent::PaletteChange || e->type() == QEvent::Show)
@@ -236,6 +265,26 @@ public:
     }
 
 private:
+    static constexpr int WellLeft = 12, WellRight = 4, WellBottom = 12;
+
+    // pebble-drift.css .side: --surface-sunken fill, --shadow-sunken (inset
+    // 1 px ring + 1 px top shade), --radius-card
+    static void drawWell(QPainter *p, const QRectF &r, bool dark)
+    {
+        p->save();
+        p->setRenderHint(QPainter::Antialiasing);
+        QPainterPath shape;
+        shape.addRoundedRect(r, 14, 14);
+        p->fillPath(shape, dark ? QColor(0, 0, 10, 51) : QColor(48, 58, 120, 17));
+        p->setClipPath(shape);
+        p->fillRect(QRectF(r.left(), r.top() + 1, r.width(), 1), dark ? QColor(0, 0, 0, 89) : QColor(25, 35, 90, 26));
+        p->setClipping(false);
+        p->setPen(QPen(dark ? QColor(220, 228, 255, 10) : QColor(30, 40, 100, 13), 1));
+        p->setBrush(Qt::NoBrush);
+        p->drawRoundedRect(r.adjusted(0.5, 0.5, -0.5, -0.5), 13.5, 13.5);
+        p->restore();
+    }
+
     // Qt Quick (qqc2-desktop-style) selection: solid accent, radius 8, inset 4/1
     static void drawQuickSelection(const QStyleOption *opt, QPainter *p)
     {

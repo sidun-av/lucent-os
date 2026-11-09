@@ -56,4 +56,7 @@ def test_committed_theme_metadata():
         for f in ("widgets/panel-background.svgz", "dialogs/background.svgz", "widgets/tasks.svgz",
                   "widgets/viewitem.svgz", "widgets/lineedit.svgz", "widgets/tabbar.svgz"):
             with gzip.open(THEMES / tid / f) as fh:
-                assert fh.read(5) == b"<?xml"
+                text = fh.read()
+            assert text.startswith(b"<?xml")
+            # edges stretch instead of tiling (a tiled tab underline is dashed)
+            assert b'id="hint-stretch-borders"' in text, f

@@ -28,13 +28,15 @@ class FakeRunner:
             groups.setdefault(("KDE",), {})["LookAndFeelPackage"] = argv[-1]
             groups[("KDE",)]["widgetStyle"] = "lucent-dark" if dark else "lucent"
             groups.setdefault(("General",), {})["ColorScheme"] = "LucentDark" if dark else "LucentLight"
-            groups[("General",)].pop("AccentColor", None)     # a global theme drops the accent
+            # a global theme puts the scheme's own colours back (drops the accent)
+            groups.setdefault(("Colors:Window",), {})["DecorationFocus"] = "112,136,255" if dark else "66,87,232"
             kg.write_text(theme.dump_kconfig(groups))
         if tool == "plasma-apply-colorscheme" and "--accent-color" in argv:
             kg = self.cfg / "kdeglobals"
             groups = theme.parse_kconfig(kg.read_text()) if kg.exists() else {}
             c = argv[argv.index("--accent-color") + 1].lstrip("#")
-            groups.setdefault(("General",), {})["AccentColor"] = ",".join(str(int(c[i:i + 2], 16)) for i in (0, 2, 4))
+            # Plasma 6: the accent goes into DecorationFocus (exactly) of every set
+            groups.setdefault(("Colors:Window",), {})["DecorationFocus"] = ",".join(str(int(c[i:i + 2], 16)) for i in (0, 2, 4))
             kg.write_text(theme.dump_kconfig(groups))
         if tool == "kwriteconfig6":
             f = self.cfg / argv[argv.index("--file") + 1]
@@ -59,7 +61,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(cfg))
     monkeypatch.setenv("HOME", str(tmp_path))
     (cfg / "kdeglobals").write_text("[KDE]\nLookAndFeelPackage=org.lucent.desktop\nwidgetStyle=lucent\n"
-                                    "[General]\nColorScheme=LucentLight\n")
+                                    "[General]\nColorScheme=LucentLight\n[Colors:Window]\nDecorationFocus=66,87,232\n")
     return cfg, FakeRunner(cfg)
 
 
@@ -72,7 +74,7 @@ def test_dark_with_an_accent(env):
     assert theme.apply(r, mode="dark", accent="azure") == 0
     kg = theme.parse_kconfig((cfg / "kdeglobals").read_text())
     assert kg[("KDE",)]["LookAndFeelPackage"] == "org.lucent.desktop.dark"
-    assert kg[("General",)]["AccentColor"] == "47,122,224"          # #2f7ae0
+    assert kg[("Colors:Window",)]["DecorationFocus"] == "47,122,224"   # #2f7ae0
     assert kv_theme(cfg) == "LucentAzure"                            # lucent-dark picks LucentAzureDark
     # order matters: the global theme first (it resets the colours), then the accent
     tools = r.tools()
@@ -88,7 +90,7 @@ def test_indigo_removes_the_accent_override(env):
     r.calls.clear()
     theme.apply(r, accent="indigo")
     kg = theme.parse_kconfig((cfg / "kdeglobals").read_text())
-    assert "AccentColor" not in kg[("General",)]
+    assert kg[("Colors:Window",)]["DecorationFocus"] == "66,87,232"    # the scheme's own indigo
     assert kv_theme(cfg) == "Lucent"
     # the scheme's own colours come back by re-applying the global theme
     assert ["plasma-apply-lookandfeel", "-a", "org.lucent.desktop"] in r.calls
@@ -131,7 +133,7 @@ def test_sync_puts_the_accent_back_after_a_global_theme_switch(env):
     r.calls.clear()
     theme.sync(r)
     kg = theme.parse_kconfig((cfg / "kdeglobals").read_text())
-    assert kg[("General",)]["AccentColor"] == "122,85,224"
+    assert kg[("Colors:Window",)]["DecorationFocus"] == "122,85,224"
     # and once everything matches, sync changes nothing (no path-unit loop)
     r.calls.clear()
     theme.sync(r)
@@ -142,7 +144,7 @@ def test_sync_follows_the_wallpaper_accent(env):
     cfg, r = env
     (cfg / "kdeglobals").write_text("[KDE]\nLookAndFeelPackage=org.lucent.desktop\nwidgetStyle=lucent\n"
                                     "[General]\nColorScheme=LucentLight\naccentColorFromWallpaper=true\n"
-                                    "AccentColor=200,80,135\n")
+                                    "[Colors:Window]\nDecorationFocus=200,80,135\n")
     theme.sync(r)
     assert kv_theme(cfg) == "LucentRose"
     assert "plasma-apply-colorscheme" not in r.tools()
@@ -153,7 +155,7 @@ def test_sync_without_a_lucent_choice_follows_kde(env):
     doesn't undo it, Kvantum follows it."""
     cfg, r = env
     (cfg / "kdeglobals").write_text("[KDE]\nLookAndFeelPackage=org.lucent.desktop\nwidgetStyle=lucent\n"
-                                    "[General]\nColorScheme=LucentLight\nAccentColor=63,143,104\n")
+                                    "[General]\nColorScheme=LucentLight\n[Colors:Window]\nDecorationFocus=63,143,104\n")
     theme.sync(r)
     assert "plasma-apply-lookandfeel" not in r.tools()
     assert kv_theme(cfg) == "LucentPine"
@@ -210,3 +212,12 @@ def test_accents_list(env, capsys):
     assert cli.main(["accents", "--json"], runner=r) == 0
     names = [a["id"] for a in json.loads(capsys.readouterr().out)]
     assert names == ["indigo", "azure", "lagoon", "violet", "orchid", "rose", "pine", "slate"]
+
+
+def test_indigo_in_dark_mode_is_the_schemes_own_accent(env):
+    """The dark scheme's own accent is the light indigo #7088ff: nothing to undo."""
+    cfg, r = env
+    theme.apply(r, mode="dark")
+    r.calls.clear()
+    theme.sync(r)
+    assert "plasma-apply-lookandfeel" not in r.tools() and "plasma-apply-colorscheme" not in r.tools()
