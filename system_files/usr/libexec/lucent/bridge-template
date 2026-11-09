@@ -1,0 +1,35 @@
+#!/usr/bin/bash
+# Build lucent-bridge's Wine prefix template in /var (1.7-2.4 GB), so a
+# Windows program's first launch copies a ready prefix (~1 s, a btrfs
+# reflink) instead of running `wineboot --init` (~8 s). Not in the image:
+# it would add gigabytes to every download and update.
+#
+# Run by lucent-bridge-template.timer a few minutes after boot, at idle
+# priority. Rebuilds only when Wine or lucent-bridge changed (an image
+# update), otherwise exits at once. Until it exists, lucent-bridge simply
+# uses wineboot.
+set -euo pipefail
+
+DIR=/var/lib/lucent-bridge/prefix-template
+STAMP=$DIR/lucent-bridge-template.toml
+
+stamp_value() {  # key -> value from the template's TOML stamp
+    sed -n "s/^$1 *= *\"\(.*\)\"$/\1/p" "$STAMP" 2>/dev/null | head -n1
+}
+
+wine_version=$(wine --version 2>/dev/null || true)
+bridge_version="lucent-bridge $(lucent-bridge --version | awk '{print $NF}')"
+
+if [ -f "$DIR/system.reg" ] && [ -n "$wine_version" ] &&
+   [ "$(stamp_value wine_version)" = "$wine_version" ] &&
+   [ "$(stamp_value built_by)" = "$bridge_version" ]; then
+    echo "prefix template is current ($wine_version, $bridge_version)"
+    exit 0
+fi
+
+echo "building prefix template for ${wine_version:-unknown Wine} ($bridge_version)"
+# Writes to a temporary sibling directory and renames it into place, so a
+# program launched meanwhile never sees a half-built template.
+lucent-bridge build-template "$DIR"
+chmod 0755 "$DIR"
+du -sh "$DIR" || true

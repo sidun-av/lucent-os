@@ -62,6 +62,8 @@ jobs:
             --label org.opencontainers.image.revision=${{ github.sha }} \
             -t "$IMAGE:${{ matrix.arch }}" -f Containerfile .
           sudo podman images
+      - name: Smoke test (Windows apps, units, rules) inside the built image
+        run: sudo podman run --rm -v ./build_files:/t:ro "$IMAGE:${{ matrix.arch }}" /t/smoke-test.sh
       - name: Push
         if: github.event_name != 'pull_request'
         run: |

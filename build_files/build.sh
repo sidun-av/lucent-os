@@ -46,18 +46,23 @@ INSTALL=(
     python3-pyside6                         # migration wizard GUI
     ntfsprogs                               # ntfsls: find the Windows (C:) volume without mounting
     udisks2 ntfs-3g                         # read-only Windows disk access (normally present)
+    zstd                                    # unpacks the installer's offline app bundle (iso/)
 )
 # Wine is installed piecewise, NOT via the `wine` metapackage: that pulls
 # wine-desktop -> wine-systemd, which registers its own binfmt handler for
 # Windows (MZ) executables and would compete with the binfmt.d entry that
-# lucent-bridge ships.
+# lucent-bridge ships (its RPM conflicts with wine-systemd).
 WINE_PKGS=(wine-core wine-common wine-winefonts wine-cms wine-ldap wine-smartcard
            wine-twain wine-mono)
 OPTIONAL=()
 case "$ARCH" in
     x86_64)
-        INSTALL+=("${WINE_PKGS[@]}" wine-pulseaudio mingw64-wine-gecko)
-        OPTIONAL+=(wine-opencl wine-dxvk mingw32-wine-gecko) ;;
+        # Gecko (both bitnesses) and DXVK are required, not optional: a
+        # first launch must never ask to download anything, and Direct3D
+        # 9-11 apps need DXVK. lucent-bridge's E2E installs exactly this set
+        # on Fedora 45.
+        INSTALL+=("${WINE_PKGS[@]}" wine-pulseaudio mingw64-wine-gecko mingw32-wine-gecko wine-dxvk)
+        OPTIONAL+=(wine-opencl) ;;
     aarch64)
         # Windows x86/x64 apps on ARM: lucent-bridge's primary path is an
         # ARM64EC-enabled Wine + FEX's ARM64EC/WoW64 DLLs. Fedora proper
@@ -69,34 +74,96 @@ case "$ARCH" in
         curl -fsSL "https://copr.fedorainfracloud.org/coprs/lacamar/wine-arm64ec/repo/fedora-$FEDORA/lacamar-wine-arm64ec-fedora-$FEDORA.repo" \
             -o /etc/yum.repos.d/lacamar-wine-arm64ec.repo
         echo "priority=10" >> /etc/yum.repos.d/lacamar-wine-arm64ec.repo
-        INSTALL+=("${WINE_PKGS[@]}" fex-emu fex-emu-wine)
-        OPTIONAL+=(wine-dxvk)
-        # The x86 rootfs (fex-emu-rootfs-fedora, ~1 GB) is fetched by
-        # lucent-bridge on demand instead of bloating every ARM image.
+        INSTALL+=("${WINE_PKGS[@]}" fex-emu fex-emu-wine wine-dxvk)
+        # The x86 rootfs (fex-emu-rootfs-fedora, ~1 GB) is only needed by
+        # lucent-bridge's fallback runner, so it is not in every ARM image.
         ;;
 esac
 "$DNF" "${DNF_OPTS[@]}" install "${INSTALL[@]}"
-"$DNF" "${DNF_OPTS[@]}" install --skip-unavailable "${OPTIONAL[@]}"
-if rpm -q wine-systemd; then echo "wine-systemd must not be installed (binfmt clash with lucent-bridge)"; exit 1; fi
+if ((${#OPTIONAL[@]})); then
+    "$DNF" "${DNF_OPTS[@]}" install --skip-unavailable "${OPTIONAL[@]}"
+fi
 if [ "$ARCH" = aarch64 ]; then
-    rpm -q --qf '%{NAME}-%{VERSION}-%{RELEASE} from %{VENDOR}\n' wine-core fex-emu-wine
+    rpm -q --qf '%{NAME}-%{VERSION}-%{RELEASE} from %{VENDOR}\n' wine-core fex-emu-wine wine-dxvk
+fi
+
+# Fedora's wine-dxvk %posttrans asks `vulkaninfo` for a GPU; in an image
+# build there is none, so it registers DXVK *below* wined3d and every
+# machine would silently run Direct3D on wined3d. Switch the alternatives
+# to DXVK (lucent-bridge's script), then prove it took.
+/ctx/build_files/enable-dxvk.sh
+shopt -s nullglob
+d3d11_links=(/etc/alternatives/wine-d3d11*)
+shopt -u nullglob
+if ((${#d3d11_links[@]})); then
+    d3d11=$(readlink -f "${d3d11_links[0]}")
+    case "$d3d11" in
+        *dxvk*) echo "Direct3D 11 -> $d3d11" ;;
+        *) echo "DXVK is not the Direct3D 11 implementation (got: $d3d11)"; exit 1 ;;
+    esac
+else
+    # No alternatives at all: wine-dxvk installs its DLLs directly (the
+    # aarch64 COPR build does this, as in lucent-bridge's E2E).
+    rpm -ql wine-dxvk | grep -i 'd3d11.*\.dll' | head -n3
 fi
 
 # ---------------------------------------------------------------------------
-# 3. ===== LUCENT-BRIDGE HOOK =====
-# The sibling project lucent-bridge (Wine on x86_64, FEX+Wine on aarch64)
-# will ship as an RPM. Until it is published to a repo, CI or a developer
-# drops it into ./rpms/ and it gets installed here. When a COPR/repo exists,
-# replace this block with: dnf install lucent-bridge
+# 3. Lucent Bridge: double-click a Windows .exe/.msi and it runs.
+# Release RPM from GitHub, verified against the release's SHA256SUMS and
+# against the hashes pinned in build_files/lucent-bridge.sha256.
 # ---------------------------------------------------------------------------
+PIN=/ctx/build_files/lucent-bridge.sha256
+BRIDGE_VERSION=$(awk '$1 == "version" {print $2}' "$PIN")
+BRIDGE_RPM="lucent-bridge-$BRIDGE_VERSION-1.fc$(rpm -E %fedora).$ARCH.rpm"
+BRIDGE_URL="https://github.com/sidun-av/lucent-bridge/releases/download/v$BRIDGE_VERSION"
+dl=$(mktemp -d)
+curl -fsSL --retry 3 -o "$dl/$BRIDGE_RPM" "$BRIDGE_URL/$BRIDGE_RPM"
+curl -fsSL --retry 3 -o "$dl/SHA256SUMS" "$BRIDGE_URL/SHA256SUMS"
+pinned=$(awk -v f="$BRIDGE_RPM" '$2 == f {print $1}' "$PIN")
+released=$(awk -v f="$BRIDGE_RPM" '$2 == f {print $1}' "$dl/SHA256SUMS")
+actual=$(sha256sum "$dl/$BRIDGE_RPM" | cut -d' ' -f1)
+if [ -z "$pinned" ] || [ "$actual" != "$pinned" ] || [ "$actual" != "$released" ]; then
+    echo "lucent-bridge RPM hash mismatch: file $actual, pinned ${pinned:-none}, release ${released:-none}"
+    exit 1
+fi
+# dnf, not `rpm -i`: Fedora 45's rpm refuses unsigned packages.
+"$DNF" "${DNF_OPTS[@]}" install "$dl/$BRIDGE_RPM"
+rm -rf "$dl"
+
+# A local RPM dropped into ./rpms/ (a bridge build under test) wins.
 shopt -s nullglob
-bridge=(/ctx/rpms/lucent-bridge-*."$ARCH".rpm /ctx/rpms/lucent-bridge-*.noarch.rpm)
-if ((${#bridge[@]})); then
-    "$DNF" "${DNF_OPTS[@]}" install "${bridge[@]}"
-else
-    echo "LUCENT-BRIDGE HOOK: no lucent-bridge RPM in ./rpms, skipping"
+local_rpms=(/ctx/rpms/*."$ARCH".rpm /ctx/rpms/*.noarch.rpm)
+if ((${#local_rpms[@]})); then
+    "$DNF" "${DNF_OPTS[@]}" install "${local_rpms[@]}"
 fi
 shopt -u nullglob
+
+# Double-click in Dolphin: the RPM ships its MIME defaults as a fragment;
+# merge them into the distro-level mimeapps.list and into every
+# higher-precedence list that exists, so nothing shadows them.
+python3 /ctx/build_files/merge-mimeapps.py /usr/share/lucent-bridge/mimeapps.list \
+    /usr/share/applications/mimeapps.list \
+    /usr/share/applications/kde-mimeapps.list /etc/xdg/mimeapps.list /etc/xdg/kde-mimeapps.list
+
+# The prefix template (1.7-2.4 GB) is NOT baked into the image: it is built
+# at first boot into /var by lucent-bridge-template.service. lucent-bridge
+# looks for it at /usr/share/lucent-bridge/prefix-template, so that path is
+# a link into /var (dangling until the build is done; lucent-bridge then
+# falls back to `wineboot`). In /var the per-app copy is also a btrfs
+# reflink, which it can't be from composefs /usr.
+ln -sfn /var/lib/lucent-bridge/prefix-template /usr/share/lucent-bridge/prefix-template
+
+# --- Checks: fail the image build if Windows-app support is incomplete. ---
+lucent-bridge --version
+if rpm -q wine-systemd; then echo "wine-systemd must not be installed (binfmt clash with lucent-bridge)"; exit 1; fi
+test -f /usr/lib/binfmt.d/lucent-bridge.conf
+for mime in application/x-ms-dos-executable application/x-msdownload application/x-msi; do
+    handler=$(XDG_CURRENT_DESKTOP=KDE XDG_CONFIG_HOME=/nonexistent XDG_DATA_HOME=/nonexistent \
+              XDG_CONFIG_DIRS=/etc/xdg XDG_DATA_DIRS=/usr/local/share:/usr/share \
+              gio mime "$mime" | sed -n 's/^Default application for .*: //p')
+    echo "$mime -> ${handler:-nothing}"
+    [ "$handler" = lucent-bridge.desktop ] || { echo "$mime must open with lucent-bridge"; exit 1; }
+done
 
 # ---------------------------------------------------------------------------
 # 4. Lucent components and services
@@ -108,7 +175,7 @@ PYTHONPATH=/usr/lib/lucent python3 -P -m lucent_migrate.i18n /ctx/migration-wiza
 python3 /ctx/build_files/make_wallpaper.py /usr/share/wallpapers/Lucent/contents
 gtk-update-icon-cache -f /usr/share/icons/hicolor 2>/dev/null || true
 
-systemctl enable lucent-flatpak-setup.service lucent-drive-letters.service
+systemctl enable lucent-flatpak-setup.service lucent-drive-letters.service lucent-bridge-template.timer
 
 # Privacy: Fedora's "countme" sends a weekly anonymous ping used to count
 # installations. Lucent promises no telemetry, so it is masked.

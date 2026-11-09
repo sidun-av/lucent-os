@@ -19,8 +19,9 @@ COPY system_files/ /
 # Migration wizard («Переезд с Windows»).
 COPY migration-wizard/lucent_migrate/ /usr/lib/lucent/lucent_migrate/
 
-# build.sh: declutter, fonts, Wine without wine-systemd (x86_64), ARM64EC Wine +
-# FEX from COPR lacamar/wine-arm64ec (aarch64 only), LUCENT-BRIDGE HOOK, services.
+# build.sh: declutter, fonts, Wine without wine-systemd + DXVK, ARM64EC Wine +
+# FEX from COPR lacamar/wine-arm64ec (aarch64 only), lucent-bridge (pinned
+# release RPM), services.
 RUN --mount=type=bind,source=.,target=/ctx,ro \
     /ctx/build_files/build.sh
 

@@ -1,0 +1,12 @@
+[Unit]
+Description=Lucent OS: prepare the Windows-program template after boot
+Documentation=https://github.com/sidun-av/lucent-bridge
+
+[Timer]
+# Late enough not to slow the first login down; the check is instant when
+# the template is already current.
+OnBootSec=3min
+RandomizedDelaySec=1min
+
+[Install]
+WantedBy=timers.target

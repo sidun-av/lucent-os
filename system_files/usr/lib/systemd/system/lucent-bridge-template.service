@@ -1,0 +1,19 @@
+[Unit]
+Description=Lucent OS: prepare the Windows-program environment template
+Documentation=https://github.com/sidun-av/lucent-bridge
+# Needs only local packages; never the network.
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/lucent/bridge-template
+# Background work: never compete with the user's session.
+Nice=19
+CPUSchedulingPolicy=idle
+IOSchedulingClass=idle
+StateDirectory=lucent-bridge
+StateDirectoryMode=0755
+PrivateTmp=yes
+ProtectHome=yes
+NoNewPrivileges=yes
+TimeoutStartSec=30min

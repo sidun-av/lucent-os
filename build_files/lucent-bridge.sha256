@@ -1,0 +1,8 @@
+# lucent-bridge release pinned into the image. The build downloads the RPM
+# for its architecture from the GitHub release, checks it against the
+# release's SHA256SUMS *and* against these pinned hashes, then installs it
+# with dnf. To update: bump the version, paste the two RPM lines from the
+# new release's SHA256SUMS.
+version 0.1.0
+e59694783d27cca39cda0b887a72d54920a22bbebe79c06af11fa562ed8d1ab3  lucent-bridge-0.1.0-1.fc45.aarch64.rpm
+215f521fb7db7daee9f6c3c7bdaca554148df85e2e712234a784d40f3eb3faf7  lucent-bridge-0.1.0-1.fc45.x86_64.rpm

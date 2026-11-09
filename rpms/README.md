@@ -1,2 +1,4 @@
-Drop extra RPMs here (notably `lucent-bridge-*.rpm`) and they are installed
-into the image by `build_files/build.sh`. See the LUCENT-BRIDGE HOOK there.
+Optional: drop a locally built `lucent-bridge-*.rpm` (or any other RPM for
+the build architecture) here to test it in the image. It is installed after,
+and therefore over, the pinned lucent-bridge release that `build_files/build.sh`
+downloads (see `build_files/lucent-bridge.sha256`).
