@@ -151,14 +151,29 @@ class SvgDoc:
         self.items.append(f'<rect id="{eid}" x="{x}" y="{y}" width="{w}" height="{h}" '
                           f'style="fill:{fill};fill-opacity:{opacity};stroke:none"/>')
 
+    def group(self, eid, x, y, img, overlay=""):
+        """A raster piece plus vector `overlay` (in the piece's own coordinates)
+        under one id. Vector parts may use class="ColorScheme-Highlight" with
+        fill:currentColor: Plasma recolours those to the current accent."""
+        h, w = img.shape[0] // SCALE, img.shape[1] // SCALE
+        self.items.append(f'<g id="{eid}" transform="translate({x},{y})">'
+                          f'<image x="0" y="0" width="{w}" height="{h}" preserveAspectRatio="none" '
+                          f'xlink:href="{png_data(img)}"/>{overlay}</g>')
+
     def raw(self, s):
         self.items.append(s)
 
+    # KSvg/Plasma replace this style sheet with the current colour scheme.
+    COLOR_SCHEME_STYLE = ('<style type="text/css" id="current-color-scheme">'
+                          '.ColorScheme-Highlight { color:#3daee9; } .ColorScheme-Text { color:#232629; }</style>')
+
     def svg(self):
+        body = "\n".join(self.items)
+        style = self.COLOR_SCHEME_STYLE + "\n" if "ColorScheme-" in body else ""
         return ('<?xml version="1.0" encoding="UTF-8"?>\n'
                 f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '
                 f'width="{self.w}" height="{self.h}" viewBox="0 0 {self.w} {self.h}" version="1.1">\n'
-                + "\n".join(self.items) + "\n</svg>\n")
+                + style + body + "\n</svg>\n")
 
 
 class Cursor:
@@ -184,9 +199,11 @@ class Cursor:
         return self.y + self.row_h
 
 
-def nine_slice(doc, cur, prefix, img, cw_l, ch_t, cw_r, ch_b, mask=None):
+def nine_slice(doc, cur, prefix, img, cw_l, ch_t, cw_r, ch_b, mask=None, overlays=None):
     """Cut `img` (logical size W x H) into 9 elements with the given corner
-    sizes and add them to `doc`; optional mask image gets mask-* ids."""
+    sizes and add them to `doc`; optional mask image gets mask-* ids.
+    overlays: {"bottom": svg, ...} vector parts added to a piece, given in
+    the coordinates of the whole W x H image."""
     H, W = img.shape[0] // SCALE, img.shape[1] // SCALE
     cols = [(0, cw_l), (cw_l, W - cw_l - cw_r), (W - cw_r, cw_r)]
     rows = [(0, ch_t), (ch_t, H - ch_t - ch_b), (H - ch_b, ch_b)]
@@ -201,7 +218,13 @@ def nine_slice(doc, cur, prefix, img, cw_l, ch_t, cw_r, ch_b, mask=None):
             for ci, (cx, cw) in enumerate(cols):
                 if rw_zero(cw, rh):
                     continue
-                doc.image(pre + names[ri][ci], x + cx, y + ry, crop(src, cx, ry, cw, rh))
+                piece = crop(src, cx, ry, cw, rh)
+                extra = (overlays or {}).get(names[ri][ci]) if src is img else None
+                if extra:
+                    doc.group(pre + names[ri][ci], x + cx, y + ry, piece,
+                              f'<g transform="translate({-cx},{-ry})">{extra}</g>')
+                else:
+                    doc.image(pre + names[ri][ci], x + cx, y + ry, piece)
 
 
 def rw_zero(w, h):

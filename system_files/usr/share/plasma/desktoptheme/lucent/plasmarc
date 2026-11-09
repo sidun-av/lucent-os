@@ -1,10 +1,7 @@
 [ContrastEffect]
-# Behind the translucent taskbar/popups: blur + a little more
-# saturation, like `backdrop-filter: blur() saturate(1.7)` in the mockups.
-enabled=true
-contrast=0.2
-intensity=2.0
-saturation=1.7
+# Pebble Drift: surfaces are >= 93 % opaque; the light blur behind them
+# gets no saturation or contrast boost.
+enabled=false
 
 [AdaptiveTransparency]
 enabled=true

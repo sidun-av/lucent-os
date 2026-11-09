@@ -1,9 +1,10 @@
 // Lucent OS default layout, applied by plasmashell on a user's first login.
 // Uses only the stock Plasma 6 desktop scripting API.
 //
-// One floating taskbar at the bottom (docs/mockups/01-desktop, lucent.css
-// #taskbar): 64 px tall, 14/12 px from the screen edges (the gap comes from
-// the Lucent Plasma theme), translucent and blurred.
+// One taskbar attached to the bottom edge (Pebble Drift,
+// docs/mockups/concepts-2026/pebble-drift/01-desktop, .taskbar): 68 px tall,
+// full width, a matte slab (--surface-taskbar) with a hairline on top. The
+// slab, its shadow and the task buttons come from the Lucent Plasma theme.
 //
 //   [start] [ Search      ]  ....  [pinned + running apps]  ....  [tray] [time/date]
 //
@@ -18,14 +19,15 @@ for (var i = 0; i < desktopsArray.length; i++) {
     var d = desktopsArray[i];
     d.wallpaperPlugin = "org.kde.image";
     d.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
+    // Drift (day and night images: Plasma shows the night one in dark mode).
     d.writeConfig("Image", "file:///usr/share/wallpapers/Drift/");
 }
 
 var bar = new Panel;
 bar.location = "bottom";
-bar.height = 64;
+bar.height = 68;
 bar.lengthMode = "fill";
-bar.floating = true;
+bar.floating = false;
 bar.hiding = "none";
 
 var launcher = bar.addWidget("org.lucent.launcher");

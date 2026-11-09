@@ -5,11 +5,11 @@
                 "Name": "Lucent OS contributors"
             }
         ],
-        "Description": "Lucent: floating translucent taskbar and rounded popups",
+        "Description": "Lucent (Pebble Drift): edge-attached matte taskbar and popovers",
         "Id": "lucent",
         "License": "Apache-2.0",
         "Name": "Lucent",
-        "Version": "1.0",
+        "Version": "2.0",
         "Website": "https://github.com/sidun-av/lucent-os"
     },
     "X-Plasma-API-Minimum-Version": "6.0"

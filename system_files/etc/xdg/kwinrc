@@ -1,6 +1,7 @@
 [org.kde.kdecoration2]
 # Lucent window decoration (Aurorae v2, /usr/share/aurorae/themes/Lucent):
-# 44 px title bar in the app header colour, thin glyph buttons, soft shadow.
+# a 48 px header row in the window colour (runs into the app's own menu and
+# toolbar), 44 x 36 rounded buttons, Pebble Drift's long soft shadow.
 library=org.kde.kwin.aurorae.v2
 theme=__aurorae__svg__Lucent
 BorderSize=None
@@ -23,7 +24,7 @@ Placement=Centered
 
 [Plugins]
 blurEnabled=true
-# KDE-Rounded-Corners: clips every window to the 14 px radius of the mockups.
+# KDE-Rounded-Corners: clips every window to Pebble Drift's --radius-window (18 px).
 kwin4_effect_shapecornersEnabled=true
 scaleEnabled=true
 glideEnabled=false
@@ -33,10 +34,11 @@ shakecursorEnabled=false
 wobblywindowsEnabled=false
 
 [Effect-blur]
-# Frosted taskbar, popups and launcher (mockups: backdrop-filter blur(34px)).
-# Strength 10 is the cheapest level that still reads as frosted glass.
-BlurStrength=10
-NoiseStrength=0
+# Pebble Drift: surfaces are >= 93 % opaque, so the blur behind the taskbar
+# and popups is light (--surface-blur: 24 px) and cheap; the noise is the
+# design's paper grain on shell surfaces.
+BlurStrength=6
+NoiseStrength=3
 
 [TabBox]
 # Alt+Tab shows large window thumbnails, like Windows 10/11 (Lucent switcher).
@@ -47,18 +49,18 @@ LayoutName=org.lucent.switcher
 Meta=org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu
 
 [Round-Corners]
-# Same radius as the decoration and docs/mockups (--radius-win), a plain
-# circular arc, and a 1 px hairline instead of a heavy border.
-Size=14
-InactiveCornerRadius=14
+# Same radius as the decoration (pebble-drift.css --radius-window), a plain
+# circular arc, and the 1 px ring of --shadow-window instead of a border.
+Size=18
+InactiveCornerRadius=18
 UseSquircleShape=false
 UseNativeDecorationShadows=true
 OutlineThickness=1
 InactiveOutlineThickness=1
-OutlineColor=15,20,35
-InactiveOutlineColor=15,20,35
-ActiveOutlineAlpha=30
-InactiveOutlineAlpha=24
+OutlineColor=30,40,100
+InactiveOutlineColor=30,40,100
+ActiveOutlineAlpha=26
+InactiveOutlineAlpha=20
 SecondOutlineThickness=0
 InactiveSecondOutlineThickness=0
 

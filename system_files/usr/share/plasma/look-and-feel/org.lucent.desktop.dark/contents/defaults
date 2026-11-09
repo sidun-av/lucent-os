@@ -34,10 +34,10 @@ ActiveOutlineAlpha=140
 InactiveOutlineAlpha=120
 SecondOutlineThickness=1
 InactiveSecondOutlineThickness=1
-SecondOutlineColor=255,255,255
-InactiveSecondOutlineColor=255,255,255
-ActiveSecondOutlineAlpha=12
-InactiveSecondOutlineAlpha=8
+SecondOutlineColor=220,228,255
+InactiveSecondOutlineColor=220,228,255
+ActiveSecondOutlineAlpha=20
+InactiveSecondOutlineAlpha=14
 
 [ksplashrc][KSplash]
 Engine=KSplashQML

@@ -28,10 +28,10 @@ ButtonsOnLeft=M
 ButtonsOnRight=IAX
 
 [kwinrc][Round-Corners]
-OutlineColor=15,20,35
-InactiveOutlineColor=15,20,35
-ActiveOutlineAlpha=30
-InactiveOutlineAlpha=24
+OutlineColor=30,40,100
+InactiveOutlineColor=30,40,100
+ActiveOutlineAlpha=26
+InactiveOutlineAlpha=20
 SecondOutlineThickness=0
 InactiveSecondOutlineThickness=0
 SecondOutlineColor=255,255,255
