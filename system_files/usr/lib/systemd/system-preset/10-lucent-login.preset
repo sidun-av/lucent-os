@@ -1,0 +1,4 @@
+# Lucent's login screen is SDDM (theme "lucent"); Fedora 45's presets would
+# enable Plasma Login Manager when presets are applied (first boot, rebase).
+enable sddm.service
+disable plasmalogin.service
