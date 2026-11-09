@@ -40,7 +40,8 @@ env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/lucent-os
 
 concurrency:
-  group: hardware-audit-${{ github.event_name }}-${{ github.ref }}
+  # Manual runs (probes of different tags) never replace each other.
+  group: hardware-audit-${{ github.event_name }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || github.ref }}
   cancel-in-progress: false
 
 jobs:

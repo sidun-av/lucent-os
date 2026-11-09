@@ -85,11 +85,14 @@ ptouch-driver               any     Brother P-touch label printers
 sane-airscan                any     network and IPP-over-USB scanners (driverless)
 sane-backends-drivers-scanners any  USB scanners (Canon, Epson, HP and others)
 
+# The largest addition: foomatic-db requires foomatic-db-ppds (86 MB of
+# text PPD files, measured in the build log), the printer makers' own
+# descriptions for office lasers and copiers that predate driverless
+# printing. Kept: such printers are common in offices and small businesses.
+#
 # Deliberately NOT here:
-# - foomatic-db-ppds (86 MB): pre-generated PPDs for old printers;
-#   foomatic-db above generates the same PPD when such a printer is added.
-# - epson-inkjet-printer-escpr/escpr2: not in Fedora (Epson's licence/RPM
-#   Fusion); Epson inkjets since ~2015 print driverless (IPP Everywhere),
+# - epson-inkjet-printer-escpr/escpr2: not in the Fedora 45 repositories
+#   (dnf repoquery '*escpr*' finds nothing); Epson inkjets since ~2015 print driverless (IPP Everywhere),
 #   older ones through gutenprint.
 # - mlxsw_spectrum/netronome/qed/liquidio/mrvlprestera firmware
 #   (~200 MB): data-centre switches and server NICs, not PC hardware
