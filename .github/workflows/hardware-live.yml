@@ -125,7 +125,9 @@ jobs:
           test -r /dev/kvm && test -w /dev/kvm
       - name: Test rig (helpers for the VM, USB sticks, Windows disk, LAN with a printer)
         run: |
+          set -o pipefail
           kver=$(head -n1 "$WORK/image/kver.txt")
+          mkdir -p "$WORK/tools"
           sudo podman run --rm -v "$WORK/tools:/out" -v "$PWD/tests/hardware/runner:/r:ro" "$FEDORA" \
             bash /r/fetch-tools.sh /out "$kver" 2>&1 | tail -n 40
           sudo chown -R "$USER" "$WORK/tools"
