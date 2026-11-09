@@ -48,6 +48,10 @@ def test_wizard_walkthrough(windows_root, tmp_path, monkeypatch):
     wiz.next()  # -> copy, then auto-advances to done
     wait_until(lambda: isinstance(wiz.currentPage(), app.DonePage))
     assert wiz.result.copied == 6 and not wiz.result.errors
+    # the summary page offers only Finish
+    assert wiz.button(wiz.WizardButton.FinishButton).isVisible()
+    assert not wiz.button(wiz.WizardButton.BackButton).isVisible()
+    assert not wiz.button(wiz.WizardButton.CancelButton).isVisible()
     assert (home / "Documents" / "Проекты" / "план.xlsx").exists()
     exported = list((home / "Documents" / "Bookmarks from Windows").iterdir())
     assert len(exported) == 4

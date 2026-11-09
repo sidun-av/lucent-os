@@ -78,6 +78,14 @@ def _wrap(text: str) -> QLabel:
     return label
 
 
+def _section(text: str) -> QLabel:
+    """A group title inside a page (styled by style.py)."""
+    label = QLabel(text)
+    label.setObjectName("lucentSection")
+    label.setIndent(0)
+    return label
+
+
 class IntroPage(QWizardPage):
     def __init__(self, wiz: "MigrationWizard"):
         super().__init__()
@@ -219,10 +227,10 @@ class ExtrasPage(QWizardPage):
         self.wiz = wiz
         self.setTitle(_("Browsers and Wi-Fi"))
         lay = QVBoxLayout(self)
-        lay.addWidget(QLabel("<b>" + _("Browser bookmarks") + "</b>"))
+        lay.addWidget(_section(_("Browser bookmarks")))
         self.browsers = QListWidget()
         lay.addWidget(self.browsers)
-        lay.addWidget(QLabel("<b>" + _("Wi-Fi networks") + "</b>"))
+        lay.addWidget(_section(_("Wi-Fi networks")))
         lay.addWidget(_wrap(_(
             "Windows keeps Wi-Fi passwords encrypted (DPAPI) and tied to that Windows "
             "installation, so they cannot be decrypted from here. Only the <b>network "
