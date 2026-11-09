@@ -34,16 +34,17 @@ whatever is missing in the background, retried until online.
 
 ## Desktop: macOS-clean look, Windows habits
 
-- **One floating taskbar** at the bottom (as in `docs/mockups/`): start
-  button and a search field on the left, pinned and running apps in the
-  middle (active app on a light tile with an accent bar, running apps with
-  a dot), system tray and a two-line clock on the right. Translucent and
-  blurred, 20 px corners, floating 12 px above the screen edge. No global
+- **One taskbar** attached to the bottom edge (Pebble Drift,
+  `docs/mockups/concepts-2026/pebble-drift/`): start button and a search
+  field on the left, pinned and running apps in the middle (active app on a
+  raised tile with an accent bar, running apps with a dot), system tray and
+  a two-line clock on the right. A matte, near-opaque 68 px slab. No global
   menu — menus stay inside each window, which is what Windows users expect
   and what Flatpak/GTK/ONLYOFFICE apps actually support.
 - **Launcher** (Win key, start button or the search field): full screen,
-  a large search field, category chips and a grid of large app icons;
-  typing searches apps, files and settings at once.
+  a large search field, category tabs and a grid of large app icons;
+  typing searches apps, files and settings at once; your account and
+  Lock / Restart / Sleep / Shut down at the bottom.
 - **Windows**: minimise / maximise / close on the **right**; double-click the
   title bar to maximise; drag to a screen edge to snap (Aero Snap).
 - **Shortcuts**: Win (alone) opens the launcher · Win+E Files · Win+D show
@@ -60,16 +61,17 @@ whatever is missing in the background, retried until online.
   «Локальный диск (C:)»), and right-click → **Create New → Document /
   Spreadsheet / Presentation** creates blank `.docx/.xlsx/.pptx` that open
   in ONLYOFFICE.
-- **Look**: Lucent Light / Lucent Dark global themes built from the
-  mockups' design tokens: own Plasma theme (taskbar, frosted popups),
-  window decoration (44 px title bar that merges with the app header, thin
-  minimise/maximise/close glyphs, 14 px rounded corners), Lucent app and
-  folder icons on top of Papirus (folders in the accent's indigo at every
-  size, Papirus's own recoloured to match), colour schemes, Inter at 11 pt,
-  the "Drift" wallpaper (its night version in dark mode; also on the lock
-  and login screens), a boot splash with the Lucent mark on Drift night and
-  the Alt+Tab switcher. Generators and sources: `design/`, licenses:
-  `THIRD_PARTY.md`.
+- **Look**: Pebble Drift, light and dark, generated from the design's
+  tokens (`pebble-drift.css`): own Plasma theme (taskbar, matte popovers),
+  Kvantum widget style (raised controls, sunken fields), window frame (a
+  header row in the window colour, rounded minimise/maximise/close buttons,
+  18 px corners), eight accent colours (`lucent-theme`, see
+  `docs/theming.md`), Lucent app and folder icons on top of Papirus
+  (folders in the accent's indigo at every size, Papirus's own recoloured
+  to match), colour schemes, Inter at 11 pt, the "Drift" wallpaper (its
+  night version in dark mode; also on the lock and login screens), a boot
+  splash with the Lucent mark on Drift night and the Alt+Tab switcher.
+  Generators and sources: `design/`, licenses: `THIRD_PARTY.md`.
 
 Everything is done with stock Plasma 6 mechanisms — a look-and-feel package
 with a layout script (`system_files/usr/share/plasma/look-and-feel/`) and
