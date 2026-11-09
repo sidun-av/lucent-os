@@ -127,6 +127,22 @@ class Controller:
         QTimer.singleShot(int(max(0.0, delay) * 1000), lambda: self.app.exit(code))
 
 
+# What lucent-bridge itself says in Russian for the sample errors (its
+# src/i18n.rs), so a Russian preview is Russian throughout.
+SAMPLE_TEXTS_RU = {
+    "Windows didn't shut down completely": "Windows не была полностью выключена",
+    SAMPLES["hibernated"][1]["message"]:
+        "Photo Organizer находится на диске Windows, которая не была полностью выключена (быстрый "
+        "запуск или гибернация). Lucent открывает такой диск только для чтения, чтобы ничего на нём не "
+        "повредить, поэтому программы оттуда не смогут ничего сохранить рядом с собой.",
+    SAMPLES["hibernated"][1]["hints"][0]:
+        "Чтобы пользоваться диском полностью, запустите Windows и выключите её, удерживая Shift.",
+    SAMPLES["hibernated"][1]["hints"][1]:
+        "Или установите программу в Lucent: откройте её установщик из папки «Загрузки».",
+    "VALORANT won't work": "VALORANT не будет работать",
+}
+
+
 def preview(args) -> int:
     if args.theme:
         os.environ["LUCENT_SHEET_THEME"] = args.theme
@@ -134,6 +150,10 @@ def preview(args) -> int:
     sheet = Sheet(looks.load(scale=1.0))
     state = model.State()
     for e in SAMPLES[args.preview]:
+        if e["event"] == "error" and i18n.language() == "ru":
+            ru = SAMPLE_TEXTS_RU.get
+            e = {**e, "title": ru(e["title"], e["title"]), "message": ru(e["message"], e["message"]),
+                 "hints": [ru(h, h) for h in e["hints"]]}
         state = model.apply(state, e)
     sheet.set_state(state)
     sheet.shown_fraction = state.fraction
