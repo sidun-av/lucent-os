@@ -28,7 +28,7 @@ flatpak uninstall --system --noninteractive --unused || true
 flatpak repair --system >/dev/null 2>&1 || true
 rm -rf /var/lib/flatpak/repo/tmp/* /var/lib/flatpak/.removed
 
-flatpak list --system --columns=application,branch,arch,installed > /tmp/apps.txt
+flatpak list --system --columns=application,branch,arch,size > /tmp/apps.txt
 cat /tmp/apps.txt
 installed=$(du -sb /var/lib/flatpak | cut -f1)
 
