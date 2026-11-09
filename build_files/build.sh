@@ -175,6 +175,7 @@ done
 # ---------------------------------------------------------------------------
 # 4. Lucent components and services
 # ---------------------------------------------------------------------------
+/ctx/build_files/lucent-store.sh          # the Store (replaces Discover in the launcher)
 python3 -m compileall -q /usr/lib/lucent   # /usr is read-only at runtime
 
 # SELinux: Windows programs must be able to load Wine's DLLs from composefs

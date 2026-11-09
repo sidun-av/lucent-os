@@ -141,23 +141,67 @@ pip install pytest PySide6   # PySide6 optional: only for the GUI smoke test
 pytest
 ```
 
+## Lucent Store
+
+`apps/lucent-store/` — the "Store" in the launcher and taskbar (PySide6 +
+QML, Lucent tokens, light/dark following the system). KDE Discover stays
+installed (it still opens `.flatpakref` files) but is hidden from the launcher.
+
+- **No recommendations, ads, AI or tracking.** Home and the category pages
+  show only the curated, versioned catalog shipped in the image
+  (`lucent_store/catalog.toml`): "Instead of Microsoft Word → ONLYOFFICE",
+  Photoshop → GIMP, Acrobat → Okular + PDF Arranger, … 7-Zip → Archives,
+  each with Installed/Install, plus a "Have a Windows installer? Just
+  double-click it" card explaining Lucent Bridge.
+- **Search covers all of Flathub** from flatpak's local AppStream copy
+  (`/var/lib/flatpak/appstream/flathub/<arch>/active/appstream.xml.gz`):
+  typing never touches the network. Ranking: name, keywords, summary;
+  verified publishers and curated apps win ties; a Windows program's name
+  ("photoshop", "acrobat") brings its curated replacement first. Results
+  show the verified-publisher mark and the license.
+- **App page**: description, screenshots (downloaded on that page only and
+  cached in `~/.cache/lucent-store`), version, size, license and the
+  sandbox permissions in plain words ("Can read and change all your files").
+- **Installed** and **Updates** (Flatpak apps; Lucent itself updates in
+  Settings → Updates). The only other network use is flatpak's own update
+  check and AppStream refresh (at most daily) against Flathub.
+- Installs run the `flatpak` CLI as the user (`flatpak install --system -y`,
+  progress parsed from its output); flatpak's system helper and polkit
+  decide, as Fedora configures them: an active local admin needs no
+  password, others get Plasma's prompt. The store never runs as root.
+- English UI with a Russian gettext catalog (`apps/lucent-store/po/`);
+  a test checks that every Python, QML and catalog string is translated.
+
+```sh
+cd apps/lucent-store
+pip install pytest PySide6
+pytest                                    # 68 tests: catalog, AppStream search, flatpak
+                                          # commands/progress, permissions, i18n, QML smoke
+python -m lucent_store --fake             # preview anywhere (no flatpak needed)
+```
+
 ## "Next generation (beta)": ArtCraft
 
 [ArtCraft](https://getartcraft.com/apps) (`github.com/storytold`, Apache-2.0)
 is a new suite of creative/office apps written from scratch in Rust. It is
-weeks old and alpha, so it is **not preinstalled**: the launcher entry
-"Next generation (beta)" / `lucent-nextgen install` downloads the official
-launcher Flatpak bundle for your CPU, verifies it against the release's
-`SHA256SUMS.txt`, and installs it for the current user (`lucent-nextgen
-remove` undoes it).
+weeks old and alpha, so it is **not preinstalled**: the Store's "Next
+generation · beta" section (also the launcher entry "Next generation
+(beta)") installs an app with `lucent-nextgen install --yes --version V
+--sha256 H APP`: the app's official Flatpak bundle for your CPU, verified
+against the release's `SHA256SUMS.txt` **and** the hash pinned in the
+Store's catalog, installed for the current user only.
 
-**AI audit (Nov 2026):** the launcher and the apps checked (e.g. PhotoCraft)
-contain **no AI features** and no telemetry; the separate
-`craft-ai-integrations` layer (cloud generative providers, local
-segmentation models) is not linked by them. The launcher does contact
-GitHub for update checks and screenshots. PhotoCraft's roadmap mentions a
-future "AI / generative" tier, so each new version needs a re-check before
-Lucent recommends it.
+**AI audit (2026-11-09, at the pinned tags):** VectorCraft, WordCraft,
+GridCraft and DeckCraft link no AI library (`craft-ai-integrations`, ONNX,
+cloud clients) and have no AI features; they get portals plus one or two
+XDG folders, no home or host access. Not offered: **PhotoCraft** (a local
+face-detection neural network) and **PdfCraft** (neural OCR models and
+visible "AI assistant" menu entries), and the **ArtCraft launcher** (it can
+run host commands and installs apps Lucent hasn't checked). Caveats: every
+Craft app checks GitHub for a newer release at startup (a plain GET, no
+identifiers), and each includes a dormant MCP server (an interface for AI
+agents to drive the app) that runs only when started from the command line. Each version
+bump in `catalog.toml` needs a re-audit.
 
 ## Windows apps: `lucent-bridge`
 
@@ -273,6 +317,7 @@ design/                       generators for the theme assets (from docs/mockups
 system_files/                 copied to / : /etc/xdg defaults, look-and-feel,
                               colour schemes, systemd units, scripts, templates
 migration-wizard/             "Move from Windows" wizard (lucent_migrate, po/, tests)
+apps/lucent-store/            the Store (lucent_store, catalog.toml, po/, tests)
 tools/vm/                     boot the real image in QEMU (test-only VM images from CI)
 iso/                          installer ISO: offline app bundle, kickstart, config
 .github/workflows/            CI
@@ -285,7 +330,6 @@ iso/                          installer ISO: offline app bundle, kickstart, conf
 - On the online path (`bootc switch`, or a disk image without the app
   bundle) apps still arrive in the background after login, with no
   progress UI; the installer ISO doesn't have this gap.
-- Discover's home page still shows Flathub's editorial picks.
 - Firefox's own telemetry settings are Mozilla's defaults (no enterprise
   policy shipped yet for the Flatpak).
 - Fedora's `wine-dxvk` has no 32-bit build on x86_64, so 32-bit Direct3D
@@ -313,7 +357,9 @@ iso/                          installer ISO: offline app bundle, kickstart, conf
 PDF Arranger (вместо Acrobat), GIMP 3, Krita, Inkscape, darktable, Kdenlive,
 Scribus, Firefox. При установке с ISO они ставятся с самого носителя, без сети,
 и есть уже при первом входе. Программы Windows (.exe, .msi) запускаются двойным
-щелчком через **Lucent Bridge** — ничего доустанавливать не нужно. При первом
+щелчком через **Lucent Bridge** — ничего доустанавливать не нужно. Новые программы — в
+**Магазине**: подборка «вместо Word, Photoshop, Acrobat…» и поиск по всему Flathub,
+без рекомендаций, рекламы и слежки. При первом
 входе помощник **«Переезд с Windows»** переносит документы, фото, закладки
 браузеров и названия сетей Wi-Fi с диска Windows (диск открывается только для
 чтения, без пароля для администратора компьютера).

@@ -1,5 +1,5 @@
 # Lucent OS: initial launcher favorites for new users (read by Kickoff on
 # first use; takes precedence over Fedora's list in kde-settings).
 [General]
-Prepend=preferred://browser;org.kde.dolphin.desktop;org.onlyoffice.desktopeditors.desktop;org.kde.okular.desktop;org.kde.konsole.desktop;org.lucent.Migrate.desktop;org.kde.discover.desktop;systemsettings.desktop
+Prepend=preferred://browser;org.kde.dolphin.desktop;org.onlyoffice.desktopeditors.desktop;org.kde.okular.desktop;org.kde.konsole.desktop;org.lucent.Migrate.desktop;org.lucent.Store.desktop;systemsettings.desktop
 IgnoreDefaults=true

@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=Store
+Name[ru]=Магазин
+GenericName=App store
+GenericName[ru]=Магазин программ
+Comment=Find, install and update apps
+Comment[ru]=Поиск, установка и обновление программ
+Exec=/usr/bin/lucent-store
+Icon=system-software-install
+Categories=System;PackageManager;
+Keywords=apps;install;software;flathub;flatpak;update;store;discover;
+Keywords[ru]=apps;install;software;программы;установить;магазин;обновления;
+StartupNotify=true
+StartupWMClass=org.lucent.Store

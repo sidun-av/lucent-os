@@ -1,0 +1,653 @@
+# Russian translation of Lucent Store. English is the source language.
+# Compiled at image build time by `python3 -m lucent_store.i18n po /usr/share/locale`.
+msgid ""
+msgstr ""
+"Project-Id-Version: lucent-store\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "3D CAD for engineering and product design"
+msgstr "Трёхмерное проектирование деталей и изделий"
+
+msgid "3D modelling, animation and rendering"
+msgstr "3D-моделирование, анимация и рендеринг"
+
+msgid "All apps are up to date"
+msgstr "Все программы обновлены"
+
+msgid "All your games from different stores in one place"
+msgstr "Игры из разных магазинов в одном месте"
+
+msgid "Apps from Flathub update here."
+msgstr "Здесь обновляются программы из Flathub."
+
+msgid "Archives"
+msgstr "Архивы"
+
+msgid "ArtCraft apps are installed for your account only and checked by Lucent before they are offered. Each one checks GitHub for a newer version when it starts."
+msgstr "Программы ArtCraft устанавливаются только для вашей учётной записи, и Lucent проверяет их, прежде чем предложить. При запуске каждая из них проверяет на GitHub, нет ли новой версии."
+
+msgid "Back"
+msgstr "Назад"
+
+msgid "Block-building sandbox game"
+msgstr "Песочница: стройте из блоков"
+
+msgid "Browsers, messengers and video calls."
+msgstr "Браузеры, мессенджеры и видеозвонки."
+
+msgid "Built in"
+msgstr "Встроено"
+
+msgid "Can read all your files"
+msgstr "Может читать все ваши файлы"
+
+msgid "Can read and change all your files"
+msgstr "Может читать и изменять все ваши файлы"
+
+msgid "Can read and change your Desktop folder"
+msgstr "Может читать и изменять папку «Рабочий стол»"
+
+msgid "Can read and change your Documents folder"
+msgstr "Может читать и изменять папку «Документы»"
+
+msgid "Can read and change your Downloads folder"
+msgstr "Может читать и изменять папку «Загрузки»"
+
+msgid "Can read and change your Music folder"
+msgstr "Может читать и изменять папку «Музыка»"
+
+msgid "Can read and change your Pictures folder"
+msgstr "Может читать и изменять папку «Изображения»"
+
+msgid "Can read and change your Videos folder"
+msgstr "Может читать и изменять папку «Видео»"
+
+msgid "Can read and change your home folder"
+msgstr "Может читать и изменять вашу домашнюю папку"
+
+msgid "Can read your Desktop folder"
+msgstr "Может читать папку «Рабочий стол»"
+
+msgid "Can read your Documents folder"
+msgstr "Может читать папку «Документы»"
+
+msgid "Can read your Downloads folder"
+msgstr "Может читать папку «Загрузки»"
+
+msgid "Can read your Music folder"
+msgstr "Может читать папку «Музыка»"
+
+msgid "Can read your Pictures folder"
+msgstr "Может читать папку «Изображения»"
+
+msgid "Can read your Videos folder"
+msgstr "Может читать папку «Видео»"
+
+msgid "Can read your home folder"
+msgstr "Может читать вашу домашнюю папку"
+
+msgid "Can run programs outside its sandbox"
+msgstr "Может запускать программы вне своей «песочницы»"
+
+msgid "Can see other windows (older display system)"
+msgstr "Может видеть другие окна (старая графическая система)"
+
+msgid "Can use Bluetooth"
+msgstr "Может пользоваться Bluetooth"
+
+msgid "Can use cameras, game controllers and other devices"
+msgstr "Может пользоваться камерами, геймпадами и другими устройствами"
+
+msgid "Can use game controllers"
+msgstr "Может пользоваться геймпадами"
+
+msgid "Can use some other folders"
+msgstr "Может пользоваться некоторыми другими папками"
+
+msgid "Can use your GPG keys"
+msgstr "Может пользоваться вашими ключами GPG"
+
+msgid "Can use your SSH keys"
+msgstr "Может пользоваться вашими ключами SSH"
+
+msgid "Can use your saved passwords"
+msgstr "Может пользоваться сохранёнными паролями"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Catalog"
+msgstr "Каталог"
+
+msgid "Check again"
+msgstr "Проверить снова"
+
+msgid "Check the internet connection and try again."
+msgstr "Проверьте подключение к интернету и попробуйте ещё раз."
+
+msgid "Checking for updates…"
+msgstr "Проверка обновлений…"
+
+msgid "Checking…"
+msgstr "Проверка…"
+
+msgid "Code editors and tools for programmers."
+msgstr "Редакторы кода и инструменты для программистов."
+
+msgid "Compare and merge files and folders"
+msgstr "Сравнение и слияние файлов и папок"
+
+msgid "Containers and Kubernetes"
+msgstr "Контейнеры и Kubernetes"
+
+msgid "Convert videos to other formats"
+msgstr "Перевод видео в другие форматы"
+
+msgid "Couldn't check for updates"
+msgstr "Не удалось проверить обновления"
+
+msgid "Couldn't install {name}"
+msgstr "Не удалось установить {name}"
+
+msgid "Couldn't remove {name}"
+msgstr "Не удалось удалить {name}"
+
+msgid "Couldn't update {name}"
+msgstr "Не удалось обновить {name}"
+
+msgid "Database tool for SQL databases"
+msgstr "Работа с базами данных SQL"
+
+msgid "Development"
+msgstr "Разработка"
+
+msgid "Digital painting and illustration"
+msgstr "Цифровая живопись и иллюстрация"
+
+msgid "Documents, PDFs, mail and notes. Everything opens Microsoft Office files."
+msgstr "Документы, PDF, почта и заметки. Всё открывает файлы Microsoft Office."
+
+msgid "Documents, spreadsheets and presentations in Microsoft Office formats"
+msgstr "Документы, таблицы и презентации в форматах Microsoft Office"
+
+msgid "Double-click it"
+msgstr "Дважды щёлкните по нему"
+
+msgid "Download the installer"
+msgstr "Скачайте установщик"
+
+msgid "Download {size}"
+msgstr "Загрузка {size}"
+
+msgid "E-book library, reader and converter"
+msgstr "Библиотека, чтение и конвертация электронных книг"
+
+msgid "Edit and record video and sound, play music and films."
+msgstr "Монтаж и запись видео и звука, музыка и фильмы."
+
+msgid "Emulators for classic game consoles"
+msgstr "Эмуляторы старых игровых приставок"
+
+msgid "Find it in the app launcher."
+msgstr "Её можно найти в меню программ."
+
+msgid "Find it in the launcher"
+msgstr "Найдите её в меню программ"
+
+msgid "Free and open source"
+msgstr "Свободная, с открытым кодом"
+
+msgid "From Flathub"
+msgstr "Из Flathub"
+
+msgid "Full access to system services"
+msgstr "Полный доступ к системным службам"
+
+msgid "Full access to your session's services"
+msgstr "Полный доступ к службам вашего сеанса"
+
+msgid "Full office suite: Writer, Calc and Impress"
+msgstr "Полный офисный пакет: Writer, Calc и Impress"
+
+msgid "Game engine"
+msgstr "Игровой движок"
+
+msgid "Game store and library; runs many Windows games"
+msgstr "Магазин и библиотека игр; запускает многие игры для Windows"
+
+msgid "Game stores that run many Windows games, and games to play right away."
+msgstr "Магазины, в которых работают многие игры для Windows, и игры, в которые можно играть сразу."
+
+msgid "Games"
+msgstr "Игры"
+
+msgid "Get the program's installer (.exe or .msi) from its website, as you would on Windows."
+msgstr "Скачайте установщик программы (.exe или .msi) с её сайта — так же, как в Windows."
+
+msgid "Graphics & Photo"
+msgstr "Графика и фото"
+
+msgid "Handwritten notes and PDF annotation"
+msgstr "Рукописные заметки и пометки в PDF"
+
+msgid "Have a Windows installer? Just double-click it."
+msgstr "Есть установщик для Windows? Просто дважды щёлкните по нему."
+
+msgid "Historical real-time strategy"
+msgstr "Историческая стратегия в реальном времени"
+
+msgid "Home"
+msgstr "Главная"
+
+msgid "How it works"
+msgstr "Как это работает"
+
+msgid "Install"
+msgstr "Установить"
+
+msgid "Installed"
+msgstr "Установлено"
+
+msgid "Installed for your account only. Lucent offers the versions it has checked: no AI features and no tracking."
+msgstr "Устанавливаются только для вашей учётной записи. Lucent предлагает проверенные версии: без функций ИИ и без слежки."
+
+msgid "Installing…"
+msgstr "Установка…"
+
+msgid "Instead of"
+msgstr "Вместо"
+
+msgid "Instead of Windows programs"
+msgstr "Замены для Windows-программ"
+
+msgid "Internet & Chat"
+msgstr "Интернет и общение"
+
+msgid "Kart racing"
+msgstr "Гонки на картах"
+
+msgid "Launcher for Minecraft: Java Edition"
+msgstr "Лаунчер для Minecraft: Java Edition"
+
+msgid "License not stated"
+msgstr "Лицензия не указана"
+
+msgid "Loading screenshot…"
+msgstr "Загрузка снимка экрана…"
+
+msgid "Loading the list of apps…"
+msgstr "Загрузка списка программ…"
+
+msgid "Looking for something else? Search finds every app on Flathub."
+msgstr "Ищете что-то другое? Поиск найдёт любую программу из Flathub."
+
+msgid "Lucent itself updates in Settings"
+msgstr "Сам Lucent обновляется в Параметрах"
+
+msgid "Mail, calendar and contacts"
+msgstr "Почта, календарь и контакты"
+
+msgid "Merge, split and reorder PDF pages"
+msgstr "Склейка, разделение и порядок страниц PDF"
+
+msgid "Messenger"
+msgstr "Мессенджер"
+
+msgid "Microsoft's code editor"
+msgstr "Редактор кода от Microsoft"
+
+msgid "Minesweeper"
+msgstr "Сапёр"
+
+msgid "Most Windows programs (.exe and .msi), like Notepad++ or 7-Zip, install and run here with no extra setup. Lucent Bridge takes care of it."
+msgstr "Большинство программ для Windows (.exe и .msi), например Notepad++ или 7-Zip, устанавливаются и работают здесь без дополнительной настройки. Об этом заботится Lucent Bridge."
+
+msgid "Most Windows programs install and run here with a double-click."
+msgstr "Большинство программ для Windows устанавливаются и запускаются здесь двойным щелчком."
+
+msgid "Music player for your own library"
+msgstr "Проигрыватель для вашей музыки"
+
+msgid "Music streaming (needs a Spotify account)"
+msgstr "Музыкальный сервис (нужна учётная запись Spotify)"
+
+msgid "My apps"
+msgstr "Мои программы"
+
+msgid "Next generation · beta"
+msgstr "Новое поколение · бета"
+
+msgid "Not everything works: games with anti-cheat, programs that install drivers, and some copy-protected software usually don't. For those, look for an app here first."
+msgstr "Работает не всё: игры с античитом, программы, которые ставят драйверы, и часть программ с защитой от копирования обычно не запускаются. Для таких задач сначала поищите программу здесь."
+
+msgid "Not for this computer"
+msgstr "Не для этого компьютера"
+
+msgid "Not isolated: it can act outside its sandbox, like a Windows program."
+msgstr "Не изолирована: может действовать вне «песочницы», как программа для Windows."
+
+msgid "Nothing found. Try another word, or the name of the Windows program you are used to."
+msgstr "Ничего не найдено. Попробуйте другое слово или название привычной программы из Windows."
+
+msgid "ONLYOFFICE Docs"
+msgstr "ONLYOFFICE Документы"
+
+msgid "ONLYOFFICE Presentations"
+msgstr "ONLYOFFICE Презентации"
+
+msgid "ONLYOFFICE Spreadsheets"
+msgstr "ONLYOFFICE Таблицы"
+
+msgid "Office"
+msgstr "Офис"
+
+msgid "Only for you"
+msgstr "Только для вас"
+
+msgid "Only for your account"
+msgstr "Только для вашей учётной записи"
+
+msgid "Open"
+msgstr "Открыть"
+
+msgid "Open Settings"
+msgstr "Открыть Параметры"
+
+msgid "Open your Downloads folder and double-click the file. The installer looks just like on Windows."
+msgstr "Откройте папку «Загрузки» и дважды щёлкните по файлу. Установщик выглядит так же, как в Windows."
+
+msgid "Open-source web browser, the base of Google Chrome"
+msgstr "Открытый браузер, на котором основан Google Chrome"
+
+msgid "Opens .zip, .7z and .rar files"
+msgstr "Открывает файлы .zip, .7z и .rar"
+
+msgid "Opens .zip, .7z and .rar files; already built in"
+msgstr "Открывает .zip, .7z и .rar; уже встроено"
+
+msgid "Opens and saves .docx without losing formatting"
+msgstr "Открывает и сохраняет .docx без потерь"
+
+msgid "Opens and saves .pptx, runs slide shows"
+msgstr "Открывает и сохраняет .pptx, показывает слайды"
+
+msgid "Opens and saves .xlsx with formulas and charts"
+msgstr "Открывает и сохраняет .xlsx с формулами и диаграммами"
+
+msgid "Opens only the files you choose"
+msgstr "Открывает только выбранные вами файлы"
+
+msgid "Organise a large photo collection"
+msgstr "Порядок в большой фотоколлекции"
+
+msgid "Page layout and desktop publishing"
+msgstr "Вёрстка и настольные издательские системы"
+
+msgid "Page layout for flyers, brochures and books"
+msgstr "Вёрстка листовок, буклетов и книг"
+
+msgid "Part of Lucent"
+msgstr "Часть Lucent"
+
+msgid "Partly isolated: it can reach your files or devices."
+msgstr "Изолирована частично: имеет доступ к вашим файлам или устройствам."
+
+msgid "Password manager that keeps passwords on your computer"
+msgstr "Менеджер паролей, который хранит пароли на вашем компьютере"
+
+msgid "Photo editing, drawing, vector art and 3D."
+msgstr "Обработка фото, рисование, векторная графика и 3D."
+
+msgid "Photo library and RAW development"
+msgstr "Каталог снимков и проявка RAW"
+
+msgid "Photo retouching and image editing"
+msgstr "Ретушь фотографий и редактирование изображений"
+
+msgid "Plays almost any video or audio file"
+msgstr "Воспроизводит почти любое видео и аудио"
+
+msgid "Plays sound and can use the microphone"
+msgstr "Воспроизводит звук и может пользоваться микрофоном"
+
+msgid "Prefer Notepad++ itself? Its Windows installer runs here too."
+msgstr "Нужен именно Notepad++? Его установщик для Windows тоже работает здесь."
+
+msgid "Presentations"
+msgstr "Презентации"
+
+msgid "Private messenger"
+msgstr "Защищённый мессенджер"
+
+msgid "Program Arduino boards"
+msgstr "Программирование плат Arduino"
+
+msgid "Proprietary"
+msgstr "Несвободная"
+
+msgid "Python for beginners"
+msgstr "Python для начинающих"
+
+msgid "RAW photo processing"
+msgstr "Обработка снимков RAW"
+
+msgid "Read and sign PDFs, merge and reorder pages"
+msgstr "Чтение, подписи, склейка и порядок страниц"
+
+msgid "Record and edit audio"
+msgstr "Запись и монтаж звука"
+
+msgid "Record, cut and clean up audio"
+msgstr "Запись, монтаж и очистка звука"
+
+msgid "Remove"
+msgstr "Удалить"
+
+msgid "Remove {name}?"
+msgstr "Удалить {name}?"
+
+msgid "Removing…"
+msgstr "Удаление…"
+
+msgid "Retouching, layers and masks; opens .psd"
+msgstr "Ретушь, слои, маски, открывает .psd"
+
+msgid "Screen recording and live streaming"
+msgstr "Запись экрана и прямые трансляции"
+
+msgid "Search"
+msgstr "Поиск"
+
+msgid "Search apps"
+msgstr "Поиск программ"
+
+msgid "Shared app components can be updated"
+msgstr "Можно обновить общие компоненты программ"
+
+msgid "Show fewer"
+msgstr "Свернуть"
+
+msgid "Simple drawing and quick image edits"
+msgstr "Простое рисование и быстрая правка картинок"
+
+msgid "Simple video editor"
+msgstr "Простой видеоредактор"
+
+msgid "Solitaire, FreeCell, Spider and other card games"
+msgstr "Пасьянсы: «Косынка», «Свободная ячейка», «Паук» и другие"
+
+msgid "Spreadsheets and calculations"
+msgstr "Таблицы и расчёты"
+
+msgid "Store"
+msgstr "Магазин"
+
+msgid "System updates install in the background and apply at the next restart."
+msgstr "Обновления системы устанавливаются в фоне и применяются при следующей перезагрузке."
+
+msgid "Text and code editor with tabs and syntax colours"
+msgstr "Редактор текста и кода с вкладками и подсветкой"
+
+msgid "The ArtCraft family: open-source apps written in Rust by an independent team, fast and with one shared look."
+msgstr "Семейство ArtCraft: открытые программы на Rust от независимой команды, быстрые и с единым интерфейсом."
+
+msgid "The full list of apps from Flathub isn't on this computer yet, so only Lucent's own picks are searched. It is downloaded with the next update check."
+msgstr "Полного списка программ из Flathub на этом компьютере пока нет, поэтому поиск идёт только по подборке Lucent. Список загрузится при следующей проверке обновлений."
+
+msgid "The program appears in the app launcher with a small Windows badge, and opens its files on double-click."
+msgstr "Программа появится в меню с небольшим значком Windows и будет открывать свои файлы двойным щелчком."
+
+msgid "These are alpha versions: they work, but expect bugs and possible loss of unsaved work. Keep copies of important files."
+msgstr "Это альфа-версии: они работают, но возможны ошибки и потеря несохранённых данных. Для важной работы держите копии файлов."
+
+msgid "Torrent downloads"
+msgstr "Загрузка торрентов"
+
+msgid "Try"
+msgstr "Попробовать"
+
+msgid "Type the name of an app, or of the Windows program you are used to."
+msgstr "Введите название программы или привычной программы из Windows."
+
+msgid "Update"
+msgstr "Обновить"
+
+msgid "Update all"
+msgstr "Обновить всё"
+
+msgid "Updates"
+msgstr "Обновления"
+
+msgid "Updating…"
+msgstr "Обновление…"
+
+msgid "Used to a program from Windows? Here's what does the same job here, free and without a subscription."
+msgstr "Привыкли к программе из Windows? Вот что делает то же самое здесь — бесплатно и без подписки."
+
+msgid "Uses the internet"
+msgstr "Пользуется интернетом"
+
+msgid "Uses {size}"
+msgstr "Занимает {size}"
+
+msgid "Vector graphics"
+msgstr "Векторная графика"
+
+msgid "Vector graphics and logos"
+msgstr "Векторная графика и логотипы"
+
+msgid "Vector graphics, logos, SVG and PDF"
+msgstr "Векторная графика, логотипы, SVG и PDF"
+
+msgid "Verified publisher"
+msgstr "Проверенный издатель"
+
+msgid "Version {v}"
+msgstr "Версия {v}"
+
+msgid "Video & Audio"
+msgstr "Видео и звук"
+
+msgid "Video editing, titles and transitions"
+msgstr "Монтаж видео, титры, переходы"
+
+msgid "Video editor with titles and transitions"
+msgstr "Видеоредактор с титрами и переходами"
+
+msgid "Video meetings"
+msgstr "Видеовстречи"
+
+msgid "View, annotate and sign PDFs"
+msgstr "Просмотр, пометки и подпись PDF"
+
+msgid "Visual Studio Code without Microsoft's telemetry"
+msgstr "Visual Studio Code без телеметрии Microsoft"
+
+msgid "Voice and text chat for communities"
+msgstr "Голосовой и текстовый чат для сообществ"
+
+msgid "Waiting…"
+msgstr "Ожидание…"
+
+msgid "Web browser"
+msgstr "Веб-браузер"
+
+msgid "Website"
+msgstr "Сайт"
+
+msgid "Well isolated: it can only reach what is listed here."
+msgstr "Хорошо изолирована: доступно только то, что здесь перечислено."
+
+msgid "What it can access"
+msgstr "К чему есть доступ"
+
+msgid "Windows programs"
+msgstr "Windows-программы"
+
+msgid "Word processor"
+msgstr "Текстовый редактор"
+
+msgid "Work with Git repositories"
+msgstr "Работа с репозиториями Git"
+
+msgid "Your Epic, GOG and Amazon games"
+msgstr "Ваши игры из Epic, GOG и Amazon"
+
+msgid "Your documents and files stay where they are. You can install it again any time."
+msgstr "Ваши документы и файлы останутся на месте. Программу можно установить снова в любой момент."
+
+msgid "alpha"
+msgstr "альфа"
+
+msgid "early access"
+msgstr "ранний доступ"
+
+msgid "the apps"
+msgstr "программы"
+
+msgid "the updates"
+msgstr "обновления"
+
+msgid "{name} is installed"
+msgstr "{name}: установлено"
+
+msgid "{name} isn't available for this computer"
+msgstr "{name} недоступна для этого компьютера"
+
+msgctxt "sidebar"
+msgid "Installed"
+msgstr "Установленные"
+
+msgid "{n} app found"
+msgid_plural "{n} apps found"
+msgstr[0] "Найдена {n} программа"
+msgstr[1] "Найдены {n} программы"
+msgstr[2] "Найдено {n} программ"
+
+msgid "{n} app installed"
+msgid_plural "{n} apps installed"
+msgstr[0] "Установлена {n} программа"
+msgstr[1] "Установлены {n} программы"
+msgstr[2] "Установлено {n} программ"
+
+msgid "{n} app update"
+msgid_plural "{n} app updates"
+msgstr[0] "{n} обновление программ"
+msgstr[1] "{n} обновления программ"
+msgstr[2] "{n} обновлений программ"
+
+msgid "Also {n} shared component that apps use."
+msgid_plural "Also {n} shared components that apps use."
+msgstr[0] "И ещё {n} общий компонент программ."
+msgstr[1] "И ещё {n} общих компонента программ."
+msgstr[2] "И ещё {n} общих компонентов программ."
+
+msgid "Show {n} more"
+msgid_plural "Show {n} more"
+msgstr[0] "Показать ещё {n}"
+msgstr[1] "Показать ещё {n}"
+msgstr[2] "Показать ещё {n}"

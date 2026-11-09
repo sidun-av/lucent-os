@@ -1,0 +1,413 @@
+# Lucent Store catalog: everything the store shows *without* being asked.
+#
+# This file is the whole editorial content of the store. There is no remote
+# feed, no trending list and no ranking by popularity: Home and the category
+# pages show exactly these apps, in this order. Search covers all of Flathub
+# (from the local AppStream data) and is the only way to reach the rest.
+#
+# Rules for editing:
+# - English only; every user-visible string here needs a Russian translation
+#   in apps/lucent-store/po/ru.po (tests/test_i18n.py checks it).
+# - App ids are Flatpak application ids on Flathub (the `app/<id>/...` ref,
+#   NOT the AppStream <id>, which differs for some KDE apps). Apps missing
+#   on the running architecture are hidden automatically.
+# - No apps whose main feature is AI, no ad-supported apps.
+# - Bump `version` whenever the content changes.
+
+schema = 1
+version = "2026.11.09"
+
+# ---------------------------------------------------------------------------
+# Home: "Instead of Windows programs". One card per Windows program a
+# switcher is looking for; `apps` are installed together.
+# ---------------------------------------------------------------------------
+
+[[replacement]]
+windows = "Microsoft Word"
+apps = ["org.onlyoffice.desktopeditors"]
+name = "ONLYOFFICE Docs"
+description = "Opens and saves .docx without losing formatting"
+icon = "docs"
+
+[[replacement]]
+windows = "Adobe Photoshop"
+apps = ["org.gimp.GIMP"]
+name = "GIMP"
+description = "Retouching, layers and masks; opens .psd"
+
+[[replacement]]
+windows = "Adobe Acrobat"
+apps = ["org.kde.okular", "com.github.jeromerobert.pdfarranger"]
+name = "Okular + PDF Arranger"
+description = "Read and sign PDFs, merge and reorder pages"
+
+[[replacement]]
+windows = "Adobe Illustrator"
+apps = ["org.inkscape.Inkscape"]
+name = "Inkscape"
+description = "Vector graphics, logos, SVG and PDF"
+
+[[replacement]]
+windows = "Adobe Lightroom"
+apps = ["org.darktable.Darktable"]
+name = "darktable"
+description = "Photo library and RAW development"
+
+[[replacement]]
+windows = "Adobe Premiere"
+apps = ["org.kde.kdenlive"]
+name = "Kdenlive"
+description = "Video editing, titles and transitions"
+
+[[replacement]]
+windows = "Microsoft Excel"
+apps = ["org.onlyoffice.desktopeditors"]
+name = "ONLYOFFICE Spreadsheets"
+description = "Opens and saves .xlsx with formulas and charts"
+icon = "sheets"
+
+[[replacement]]
+windows = "Microsoft PowerPoint"
+apps = ["org.onlyoffice.desktopeditors"]
+name = "ONLYOFFICE Presentations"
+description = "Opens and saves .pptx, runs slide shows"
+icon = "slides"
+
+[[replacement]]
+windows = "Adobe InDesign"
+apps = ["net.scribus.Scribus"]
+name = "Scribus"
+description = "Page layout for flyers, brochures and books"
+
+[[replacement]]
+windows = "Adobe Audition"
+apps = ["org.audacityteam.Audacity"]
+name = "Audacity"
+description = "Record, cut and clean up audio"
+
+[[replacement]]
+windows = "Notepad++"
+apps = ["org.kde.kate"]
+name = "Kate"
+description = "Text and code editor with tabs and syntax colours"
+note = "Prefer Notepad++ itself? Its Windows installer runs here too."
+
+[[replacement]]
+windows = "7-Zip"
+apps = ["org.kde.ark"]
+name = "Archives"
+description = "Opens .zip, .7z and .rar files; already built in"
+
+[[replacement]]
+windows = "Microsoft Outlook"
+apps = ["org.mozilla.thunderbird"]
+name = "Thunderbird"
+description = "Mail, calendar and contacts"
+
+[[replacement]]
+windows = "Windows Media Player"
+apps = ["org.videolan.VLC"]
+name = "VLC"
+description = "Plays almost any video or audio file"
+
+[[replacement]]
+windows = "Paint"
+apps = ["com.github.PintaProject.Pinta"]
+name = "Pinta"
+description = "Simple drawing and quick image edits"
+
+# ---------------------------------------------------------------------------
+# Categories (sidebar order). `apps` are shown in this order.
+# ---------------------------------------------------------------------------
+
+[[category]]
+id = "office"
+name = "Office"
+icon = "office"
+description = "Documents, PDFs, mail and notes. Everything opens Microsoft Office files."
+apps = ["org.onlyoffice.desktopeditors", "org.libreoffice.LibreOffice", "org.kde.okular",
+        "com.github.jeromerobert.pdfarranger", "org.mozilla.thunderbird", "net.scribus.Scribus",
+        "com.github.xournalpp.xournalpp", "com.calibre_ebook.calibre", "org.keepassxc.KeePassXC"]
+
+[[category]]
+id = "graphics"
+name = "Graphics & Photo"
+icon = "brush"
+description = "Photo editing, drawing, vector art and 3D."
+apps = ["org.gimp.GIMP", "org.kde.krita", "org.inkscape.Inkscape", "org.darktable.Darktable",
+        "com.github.PintaProject.Pinta", "com.rawtherapee.RawTherapee", "org.kde.digikam",
+        "org.blender.Blender", "org.freecad.FreeCAD"]
+
+[[category]]
+id = "media"
+name = "Video & Audio"
+icon = "film"
+description = "Edit and record video and sound, play music and films."
+apps = ["org.kde.kdenlive", "org.shotcut.Shotcut", "com.obsproject.Studio", "org.audacityteam.Audacity",
+        "org.videolan.VLC", "fr.handbrake.ghb", "org.kde.elisa", "com.spotify.Client"]
+
+[[category]]
+id = "internet"
+name = "Internet & Chat"
+icon = "globe"
+description = "Browsers, messengers and video calls."
+apps = ["org.mozilla.firefox", "org.chromium.Chromium", "org.mozilla.thunderbird", "org.telegram.desktop",
+        "org.signal.Signal", "com.discordapp.Discord", "us.zoom.Zoom", "org.qbittorrent.qBittorrent"]
+
+[[category]]
+id = "games"
+name = "Games"
+icon = "game"
+description = "Game stores that run many Windows games, and games to play right away."
+apps = ["com.valvesoftware.Steam", "com.heroicgameslauncher.hgl", "net.lutris.Lutris",
+        "org.kde.kpat", "org.kde.kmines", "net.supertuxkart.SuperTuxKart", "com.play0ad.zeroad",
+        "org.luanti.luanti", "org.prismlauncher.PrismLauncher", "org.libretro.RetroArch"]
+
+[[category]]
+id = "development"
+name = "Development"
+icon = "code"
+description = "Code editors and tools for programmers."
+apps = ["com.vscodium.codium", "com.visualstudio.code", "org.kde.kate", "io.github.shiftey.Desktop",
+        "org.gnome.meld", "io.dbeaver.DBeaverCommunity", "io.podman_desktop.PodmanDesktop",
+        "org.godotengine.Godot", "cc.arduino.IDE2", "org.thonny.Thonny"]
+
+# The Windows-programs page has no app list: it explains Lucent Bridge.
+[[category]]
+id = "windows"
+name = "Windows programs"
+icon = "winapp"
+description = "Most Windows programs install and run here with a double-click."
+apps = []
+
+# ---------------------------------------------------------------------------
+# Curated one-line descriptions, used on Home and the category pages (the
+# app page shows the full AppStream text). `system = "<desktop id>"` marks
+# apps that are part of Lucent itself (not Flatpaks): they can be opened,
+# not installed or removed.
+# ---------------------------------------------------------------------------
+
+[apps."org.onlyoffice.desktopeditors"]
+name = "ONLYOFFICE"
+summary = "Documents, spreadsheets and presentations in Microsoft Office formats"
+[apps."org.libreoffice.LibreOffice"]
+name = "LibreOffice"
+summary = "Full office suite: Writer, Calc and Impress"
+[apps."org.kde.okular"]
+name = "Okular"
+summary = "View, annotate and sign PDFs"
+[apps."com.github.jeromerobert.pdfarranger"]
+name = "PDF Arranger"
+summary = "Merge, split and reorder PDF pages"
+[apps."org.mozilla.thunderbird"]
+name = "Thunderbird"
+summary = "Mail, calendar and contacts"
+[apps."net.scribus.Scribus"]
+name = "Scribus"
+summary = "Page layout and desktop publishing"
+[apps."com.github.xournalpp.xournalpp"]
+name = "Xournal++"
+summary = "Handwritten notes and PDF annotation"
+[apps."com.calibre_ebook.calibre"]
+name = "calibre"
+summary = "E-book library, reader and converter"
+[apps."org.keepassxc.KeePassXC"]
+name = "KeePassXC"
+summary = "Password manager that keeps passwords on your computer"
+
+[apps."org.gimp.GIMP"]
+name = "GIMP"
+summary = "Photo retouching and image editing"
+[apps."org.kde.krita"]
+name = "Krita"
+summary = "Digital painting and illustration"
+[apps."org.inkscape.Inkscape"]
+name = "Inkscape"
+summary = "Vector graphics and logos"
+[apps."org.darktable.Darktable"]
+name = "darktable"
+summary = "Photo library and RAW development"
+[apps."com.github.PintaProject.Pinta"]
+name = "Pinta"
+summary = "Simple drawing and quick image edits"
+[apps."com.rawtherapee.RawTherapee"]
+name = "RawTherapee"
+summary = "RAW photo processing"
+[apps."org.kde.digikam"]
+name = "digiKam"
+summary = "Organise a large photo collection"
+[apps."org.blender.Blender"]
+name = "Blender"
+summary = "3D modelling, animation and rendering"
+[apps."org.freecad.FreeCAD"]
+name = "FreeCAD"
+summary = "3D CAD for engineering and product design"
+
+[apps."org.kde.kdenlive"]
+name = "Kdenlive"
+summary = "Video editor with titles and transitions"
+[apps."org.shotcut.Shotcut"]
+name = "Shotcut"
+summary = "Simple video editor"
+[apps."com.obsproject.Studio"]
+name = "OBS Studio"
+summary = "Screen recording and live streaming"
+[apps."org.audacityteam.Audacity"]
+name = "Audacity"
+summary = "Record and edit audio"
+[apps."org.videolan.VLC"]
+name = "VLC"
+summary = "Plays almost any video or audio file"
+[apps."fr.handbrake.ghb"]
+name = "HandBrake"
+summary = "Convert videos to other formats"
+[apps."org.kde.elisa"]
+name = "Elisa"
+summary = "Music player for your own library"
+[apps."com.spotify.Client"]
+name = "Spotify"
+summary = "Music streaming (needs a Spotify account)"
+
+[apps."org.mozilla.firefox"]
+name = "Firefox"
+summary = "Web browser"
+[apps."org.chromium.Chromium"]
+name = "Chromium"
+summary = "Open-source web browser, the base of Google Chrome"
+[apps."org.telegram.desktop"]
+name = "Telegram"
+summary = "Messenger"
+[apps."org.signal.Signal"]
+name = "Signal"
+summary = "Private messenger"
+[apps."com.discordapp.Discord"]
+name = "Discord"
+summary = "Voice and text chat for communities"
+[apps."us.zoom.Zoom"]
+name = "Zoom"
+summary = "Video meetings"
+[apps."org.qbittorrent.qBittorrent"]
+name = "qBittorrent"
+summary = "Torrent downloads"
+
+[apps."com.valvesoftware.Steam"]
+name = "Steam"
+summary = "Game store and library; runs many Windows games"
+[apps."com.heroicgameslauncher.hgl"]
+name = "Heroic Games Launcher"
+summary = "Your Epic, GOG and Amazon games"
+[apps."net.lutris.Lutris"]
+name = "Lutris"
+summary = "All your games from different stores in one place"
+[apps."org.kde.kpat"]
+name = "KPatience"
+summary = "Solitaire, FreeCell, Spider and other card games"
+[apps."org.kde.kmines"]
+name = "KMines"
+summary = "Minesweeper"
+[apps."net.supertuxkart.SuperTuxKart"]
+name = "SuperTuxKart"
+summary = "Kart racing"
+[apps."com.play0ad.zeroad"]
+name = "0 A.D."
+summary = "Historical real-time strategy"
+[apps."org.luanti.luanti"]
+name = "Luanti"
+summary = "Block-building sandbox game"
+[apps."org.prismlauncher.PrismLauncher"]
+name = "Prism Launcher"
+summary = "Launcher for Minecraft: Java Edition"
+[apps."org.libretro.RetroArch"]
+name = "RetroArch"
+summary = "Emulators for classic game consoles"
+
+[apps."com.vscodium.codium"]
+name = "VSCodium"
+summary = "Visual Studio Code without Microsoft's telemetry"
+[apps."com.visualstudio.code"]
+name = "Visual Studio Code"
+summary = "Microsoft's code editor"
+[apps."org.kde.kate"]
+name = "Kate"
+summary = "Text and code editor with tabs and syntax colours"
+[apps."io.github.shiftey.Desktop"]
+name = "GitHub Desktop"
+summary = "Work with Git repositories"
+[apps."org.gnome.meld"]
+name = "Meld"
+summary = "Compare and merge files and folders"
+[apps."io.dbeaver.DBeaverCommunity"]
+name = "DBeaver"
+summary = "Database tool for SQL databases"
+[apps."io.podman_desktop.PodmanDesktop"]
+name = "Podman Desktop"
+summary = "Containers and Kubernetes"
+[apps."org.godotengine.Godot"]
+name = "Godot"
+summary = "Game engine"
+[apps."cc.arduino.IDE2"]
+name = "Arduino IDE"
+summary = "Program Arduino boards"
+[apps."org.thonny.Thonny"]
+name = "Thonny"
+summary = "Python for beginners"
+
+[apps."org.kde.ark"]
+name = "Archives"
+summary = "Opens .zip, .7z and .rar files"
+system = "org.kde.ark.desktop"
+
+# ---------------------------------------------------------------------------
+# Next generation · beta: ArtCraft (github.com/storytold, Apache-2.0).
+# Installed per user by /usr/bin/lucent-nextgen from the app's GitHub
+# release bundle, verified against the release's SHA256SUMS.txt AND the
+# hashes pinned here. Pinned versions are the audited ones (no AI features,
+# no AI libraries linked, see README "Next generation"); re-audit before
+# bumping a version.
+#
+# Audit of 2026-11-09 (tags below): no app links craft-ai-integrations or a
+# cloud AI client; all four use org.freedesktop.Platform from Flathub, get
+# portals plus one or two XDG folders (no home, no host), and check GitHub
+# for a newer release when they start. Not offered, because they contain
+# machine learning:
+#   PhotoCraft v0.22.0  local face-detection network ("Detect Faces")
+#   PdfCraft v0.20.0    neural OCR models, and "AI assistant" menu entries
+# The ArtCraft launcher is not offered either: it can run commands outside
+# its sandbox and installs apps Lucent hasn't checked.
+# ---------------------------------------------------------------------------
+
+[[nextgen]]
+key = "vectorcraft"
+id = "ai.storyteller.vectorcraft"
+name = "VectorCraft"
+description = "Vector graphics"
+repo = "storytold/vectorcraft"
+version = "v0.23.0"
+sha256 = { x86_64 = "076f14797d7c4aeb5ee46d16c8ff6290e18ab39355fde86876dbfb32cbe5182d", aarch64 = "0b88f4c2fbd3408b315a04304500ed83bc04bf3aa1e1755f5eb739a2a8daace9" }
+
+[[nextgen]]
+key = "wordcraft"
+id = "ai.storyteller.wordcraft"
+name = "WordCraft"
+description = "Word processor"
+repo = "storytold/wordcraft"
+version = "v0.17.0"
+sha256 = { x86_64 = "4b2b09e05afcb671955bfe4a7d73dedbd433b946ac99efdb7cfcd50b02e70af6", aarch64 = "7a8d94a961151fc7838fc7b34392bc0c7f60f2cb64ae0c27524f43a9007a6e9a" }
+
+[[nextgen]]
+key = "gridcraft"
+id = "ai.storyteller.gridcraft"
+name = "GridCraft"
+description = "Spreadsheets and calculations"
+repo = "storytold/gridcraft"
+version = "v0.18.0"
+sha256 = { x86_64 = "92b3f85ef74b66cfdc7ddb7cf4c6efb7cc12aa3bdf9908135a683514d268a41a", aarch64 = "84aae2eff1b081d4724ee2725fc99f513faa10cea7205290b8a1eb748c366a68" }
+
+[[nextgen]]
+key = "deckcraft"
+id = "ai.storyteller.deckcraft"
+name = "DeckCraft"
+description = "Presentations"
+repo = "storytold/deckcraft"
+version = "v0.17.0"
+sha256 = { x86_64 = "dfecba9b6e1ba445437a26f7f1e3741d6da556d1f59e7fde15cfc14c516f2cc0", aarch64 = "f337a2ad42ff68ee3aaee8bec128b49cbedfe55d75051730a063248572fbc801" }

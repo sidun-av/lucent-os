@@ -43,7 +43,7 @@ tasks.writeConfig("launchers", [
     "applications:org.onlyoffice.desktopeditors.desktop",
     "applications:org.kde.okular.desktop",
     "applications:org.gimp.GIMP.desktop",
-    "applications:org.kde.discover.desktop",
+    "applications:org.lucent.Store.desktop",
     "applications:systemsettings.desktop"
 ]);
 tasks.writeConfig("groupingStrategy", 1);          // group windows by app

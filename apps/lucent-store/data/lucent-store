@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+# Lucent Store (apps/lucent-store). Runs as the user, never as root.
+export PYTHONPATH=/usr/lib/lucent${PYTHONPATH:+:$PYTHONPATH}
+exec /usr/bin/python3 -P -m lucent_store "$@"

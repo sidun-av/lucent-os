@@ -1,49 +1,76 @@
 #!/usr/bin/bash
-# Lucent "Next generation (beta)" channel: opt-in installer for the ArtCraft
-# Craft apps launcher (https://getartcraft.com, github.com/storytold).
+# Lucent "Next generation (beta)": installs ArtCraft's alpha apps
+# (https://getartcraft.com, github.com/storytold, Apache-2.0) for the current
+# user only. Lucent Store calls it with the version and SHA-256 it audited
+# (apps/lucent-store/lucent_store/catalog.toml); by hand it works too.
 #
-# ArtCraft is young alpha software (first public releases autumn 2026). It is
-# NOT preinstalled; this script installs the official, checksum-verified
-# Flatpak bundle for the current user only, and can remove it again.
+# The app's Flatpak bundle comes from its GitHub release and must match the
+# release's SHA256SUMS.txt and, when given, the pinned --sha256.
 #
-# AI note: as audited for Lucent 0.1, the launcher and the apps it offered
-# (e.g. PhotoCraft) contain no AI features; the separate
-# storytold/craft-ai-integrations layer is not linked by them. The launcher
-# does contact GitHub (update checks, screenshots). Re-audit before trusting
-# newer app versions.
+# AI audit (2026-11-09, see README): VectorCraft, WordCraft, GridCraft and
+# DeckCraft contain no AI features or AI libraries. PhotoCraft (face
+# detection network) and PdfCraft (neural OCR, "AI assistant" menu) contain
+# machine learning and are not offered by the store. The ArtCraft launcher
+# can run host commands and installs unchecked apps; it stays installable
+# from here for those who ask for it explicitly, but the store doesn't.
 #
-# Usage: lucent-nextgen [install|remove|status]   (default: install)
+# Usage: lucent-nextgen install [--yes] [--version vX.Y.Z] [--sha256 HEX] [APP]
+#        lucent-nextgen remove [APP]
+#        lucent-nextgen status [APP]
+# APP: vectorcraft, wordcraft, gridcraft, deckcraft, photocraft, pdfcraft,
+#      launcher (the default, for compatibility)
 set -euo pipefail
 
-REPO=storytold/craft-launcher
-APP_ID=ai.storyteller.artcraft-launcher
-VERSION=${LUCENT_ARTCRAFT_VERSION:-latest}   # e.g. v0.16.1 to pin
-
-say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
+say() { printf '\n%s\n' "$*"; }
 # English is the default; Russian when the session language is Russian.
 LANG_UI=${LANGUAGE:-${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}}
 t() { if [[ $LANG_UI == ru* ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
 
+app_info() {   # APP -> "REPO APP_ID"
+    case "$1" in
+        launcher)    echo "storytold/craft-launcher ai.storyteller.artcraft-launcher" ;;
+        vectorcraft) echo "storytold/vectorcraft ai.storyteller.vectorcraft" ;;
+        wordcraft)   echo "storytold/wordcraft ai.storyteller.wordcraft" ;;
+        gridcraft)   echo "storytold/gridcraft ai.storyteller.gridcraft" ;;
+        deckcraft)   echo "storytold/deckcraft ai.storyteller.deckcraft" ;;
+        photocraft)  echo "storytold/photocraft ai.storyteller.photocraft" ;;
+        pdfcraft)    echo "storytold/pdfcraft ai.storyteller.pdfcraft" ;;
+        *) echo "$(t "Unknown app" "Неизвестная программа"): $1" >&2; exit 2 ;;
+    esac
+}
+
 confirm() {
     say "$(t "Next generation (beta)" "Новое поколение (бета)")"
-    t "This installs the ArtCraft launcher (alpha!) for your user account only.
-From it you can install new Rust-based creative apps (photo, vector, video,
-documents). They are early previews: expect missing features and bugs.
-" "Будет установлен лаунчер ArtCraft (альфа-версия) только для вашей учётной
-записи. Из него можно установить новые программы на Rust (фото, векторная
-графика, видео, документы). Это ранние версии: возможны ошибки и недоделки.
+    t "This installs an ArtCraft app (alpha!) for your user account only.
+These are early previews: expect missing features and bugs.
+" "Будет установлена программа ArtCraft (альфа-версия) только для вашей учётной
+записи. Это ранние версии: возможны ошибки и недоделки.
 "
     read -r -p "$(t "Continue? [y/N] " "Продолжить? [д/Н] ")" ans
     [[ "$ans" =~ ^[YyДд] ]]
 }
 
 install() {
-    confirm || { t "Cancelled." "Отменено."; echo; return 1; }
-    local arch; arch=$(uname -m)
-    case "$arch" in x86_64|aarch64) ;; *) echo "$(t "Unsupported architecture" "Неподдерживаемая архитектура"): $arch"; return 1;; esac
+    local yes=0 version=${LUCENT_ARTCRAFT_VERSION:-latest} pin="" app=launcher
+    while (($#)); do
+        case "$1" in
+            --yes|-y) yes=1 ;;
+            --version) version=$2; shift ;;
+            --sha256) pin=$2; shift ;;
+            -*) echo "Unknown option: $1" >&2; exit 2 ;;
+            *) app=$1 ;;
+        esac
+        shift
+    done
+    local repo app_id
+    read -r repo app_id < <(app_info "$app")
+    ((yes)) || confirm || { t "Cancelled." "Отменено."; echo; return 1; }
 
-    local api="https://api.github.com/repos/$REPO/releases/${VERSION/#v/tags/v}"
-    [ "$VERSION" = latest ] && api="https://api.github.com/repos/$REPO/releases/latest"
+    local arch; arch=$(uname -m)
+    case "$arch" in x86_64|aarch64) ;; *) echo "$(t "Unsupported architecture" "Неподдерживаемая архитектура"): $arch" >&2; return 1;; esac
+
+    local api="https://api.github.com/repos/$repo/releases/tags/$version"
+    [ "$version" = latest ] && api="https://api.github.com/repos/$repo/releases/latest"
 
     local tmp; tmp=$(mktemp -d)
     trap 'rm -rf "$tmp"' RETURN
@@ -62,20 +89,31 @@ PY
     local bundle_url sums_url bundle
     { read -r bundle_url; read -r sums_url; read -r bundle; } <<<"$urls"
 
-    say "$(t "Downloading" "Загрузка") $bundle"
+    say "Downloading $bundle"
     curl -fL --progress-bar "$bundle_url" -o "$tmp/$bundle"
     curl -fsSL "$sums_url" -o "$tmp/SHA256SUMS.txt"
+    say "Verifying"
     (cd "$tmp" && grep -E "  \*?$bundle\$" SHA256SUMS.txt | sha256sum -c -) \
-        || { t "Checksum verification FAILED, nothing installed." "Контрольная сумма НЕ совпала, ничего не установлено."; echo; return 1; }
+        || { t "Checksum verification FAILED, nothing installed." "Контрольная сумма НЕ совпала, ничего не установлено." >&2; echo >&2; return 1; }
+    if [ -n "$pin" ]; then
+        local actual; actual=$(sha256sum "$tmp/$bundle" | cut -d' ' -f1)
+        [ "$actual" = "$pin" ] \
+            || { echo "$(t "Not the version Lucent checked" "Это не та версия, которую проверил Lucent"): $actual != $pin" >&2; return 1; }
+    fi
 
+    # The bundle's runtime (org.freedesktop.Platform) comes from Flathub.
     flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-    flatpak install --user --noninteractive --bundle "$tmp/$bundle"
-    say "$(t "Installed. Find \"ArtCraft\" in the launcher. Remove with:" "Установлено. Ищите «ArtCraft» в меню. Удалить:") lucent-nextgen remove"
+    flatpak install --user -y --bundle "$tmp/$bundle"
+    say "Installed. $(t "Find it in the launcher. Remove with:" "Ищите в меню программ. Удалить:") lucent-nextgen remove $app"
 }
 
-case "${1:-install}" in
-    install) install ;;
-    remove)  flatpak uninstall --user --noninteractive "$APP_ID" ;;
-    status)  flatpak info --user "$APP_ID" 2>/dev/null || { t "Not installed." "Не установлено."; echo; } ;;
-    *) echo "Usage: $0 [install|remove|status]"; exit 2 ;;
+cmd=${1:-install}
+(($#)) && shift
+case "$cmd" in
+    install) install "$@" ;;
+    remove)  read -r _repo app_id < <(app_info "${1:-launcher}")
+             flatpak uninstall --user -y "$app_id" ;;
+    status)  read -r _repo app_id < <(app_info "${1:-launcher}")
+             flatpak info --user "$app_id" 2>/dev/null || { t "Not installed." "Не установлено."; echo; } ;;
+    *) echo "Usage: $0 install [--yes] [--version vX.Y.Z] [--sha256 HEX] [APP] | remove [APP] | status [APP]"; exit 2 ;;
 esac
