@@ -1,7 +1,0 @@
-# bootc-image-builder settings for the installer ISO.
-# Let Anaconda ask for language/keyboard and create the first user.
-[customizations.installer.modules]
-enable = [
-  "org.fedoraproject.Anaconda.Modules.Localization",
-  "org.fedoraproject.Anaconda.Modules.Users",
-]

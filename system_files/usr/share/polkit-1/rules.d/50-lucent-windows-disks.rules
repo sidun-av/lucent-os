@@ -1,0 +1,25 @@
+// Lucent OS: let the administrator sitting at the computer open its own
+// Windows partitions (the "Move from Windows" assistant, Dolphin) without
+// typing a password.
+//
+// udisks classifies internal disks as "system" devices and asks for admin
+// authentication to mount them. This grants exactly that action, only for
+//   - an active, local session (not SSH, not another seat),
+//   - a member of wheel (the installer's first user is one),
+//   - an NTFS file system on a non-removable drive.
+// Read-only is enforced by udisks itself for these partitions
+// (/usr/lib/udev/rules.d/99-lucent-windows-readonly.rules: "rw" is not an
+// allowed option), so this rule can never give write access. Everyone
+// else still gets the normal password prompt.
+polkit.addRule(function (action, subject) {
+    if (action.id !== "org.freedesktop.udisks2.filesystem-mount-system") {
+        return polkit.Result.NOT_HANDLED;
+    }
+    if (!subject.local || !subject.active || !subject.isInGroup("wheel")) {
+        return polkit.Result.NOT_HANDLED;
+    }
+    if (action.lookup("id.type") !== "ntfs" || action.lookup("drive.removable") === "true") {
+        return polkit.Result.NOT_HANDLED;
+    }
+    return polkit.Result.YES;
+});

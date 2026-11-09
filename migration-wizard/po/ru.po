@@ -37,6 +37,12 @@ msgstr "На дисках Windows не найдено папок пользов�
 msgid "Could not open: {errors}"
 msgstr "Не удалось открыть: {errors}"
 
+msgid "You need an administrator's permission to open this disk."
+msgstr "Чтобы открыть этот диск, нужно разрешение администратора."
+
+msgid "Windows is hibernated or uses Fast Startup, so its disk can't be opened. Start Windows, hold Shift while you click Shut down, then try again."
+msgstr "Windows находится в режиме гибернации или использует быстрый запуск, поэтому её диск нельзя открыть. Запустите Windows, удерживайте Shift и нажмите «Завершение работы», затем попробуйте снова."
+
 msgid "What to copy"
 msgstr "Что перенести"
 

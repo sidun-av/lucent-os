@@ -1,0 +1,16 @@
+# Lucent OS: internal Windows (NTFS) partitions are always mounted read-only
+# by udisks (Dolphin, the "Move from Windows" assistant, udisksctl).
+#
+# Windows with Fast Startup or hibernation leaves its disk in a state where
+# writing from another OS can destroy data; and Lucent's polkit rule
+# (50-lucent-windows-disks.rules) lets the local admin mount these without
+# a password, so "rw" is removed from the allowed options here rather than
+# merely not being the default. USB drives and SD cards are not affected.
+# /etc/fstab entries are never touched by udisks overrides.
+SUBSYSTEM!="block", GOTO="lucent_windows_ro_end"
+ENV{ID_FS_TYPE}!="ntfs", GOTO="lucent_windows_ro_end"
+ENV{ID_BUS}=="usb", GOTO="lucent_windows_ro_end"
+KERNEL=="mmcblk*", GOTO="lucent_windows_ro_end"
+ENV{UDISKS_MOUNT_OPTIONS_DEFAULTS}="ro"
+ENV{UDISKS_MOUNT_OPTIONS_ALLOW}="exec,noexec,nodev,nosuid,atime,noatime,nodiratime,ro,sync,dirsync,noload"
+LABEL="lucent_windows_ro_end"

@@ -101,10 +101,19 @@ def run_lsblk() -> list[Volume]:
 def udisksctl_mount_cmd(vol: Volume) -> list[str]:
     # Read-only on purpose: Windows may be hibernated ("Fast Startup"), and a
     # migration tool must never risk the user's only copy of their data.
-    return ["udisksctl", "mount", "--no-user-interaction", "-b", vol.path, "-o", "ro"]
+    # (udisks also enforces it for internal NTFS partitions, see
+    # /usr/lib/udev/rules.d/99-lucent-windows-readonly.rules.)
+    #
+    # No --no-user-interaction: internal disks need the "mount a system
+    # device" polkit permission. Lucent's rule grants it to the administrator
+    # at the computer without a prompt; anyone else gets the standard
+    # password dialog instead of a silent failure.
+    return ["udisksctl", "mount", "-b", vol.path, "-o", "ro"]
 
 
 _MOUNTED_RE = re.compile(r"^Mounted \S+ at (.+?)\.?\s*$")
+_ALREADY_RE = re.compile(r"is already mounted at [`'\"](.+?)['\"]")
+_DBUS_ERROR_RE = re.compile(r"GDBus\.Error:[\w.]+:\s*")
 
 
 def parse_udisksctl_mount(text: str) -> str | None:
@@ -115,14 +124,38 @@ def parse_udisksctl_mount(text: str) -> str | None:
     return None
 
 
+def parse_already_mounted(text: str) -> str | None:
+    """udisks' AlreadyMounted error names the existing mount point."""
+    m = _ALREADY_RE.search(text)
+    return m.group(1) if m else None
+
+
+def mount_error_message(text: str) -> str:
+    """udisksctl's error output, in plain language where we know the cause."""
+    if "NotAuthorized" in text:
+        return _("You need an administrator's permission to open this disk.")
+    if "hibernat" in text.lower():
+        return _(
+            "Windows is hibernated or uses Fast Startup, so its disk can't be opened. "
+            "Start Windows, hold Shift while you click Shut down, then try again.")
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    if not lines:
+        return ""
+    last = lines[-1]
+    m = _DBUS_ERROR_RE.search(last)
+    return last[m.end():].rstrip(".") if m else last
+
+
 def mount_readonly(vol: Volume) -> str:
-    """Mount via udisks (polkit allows this for the active local user)."""
+    """Mount read-only via udisks; returns the mount point."""
     if vol.mountpoint:
         return vol.mountpoint
     proc = subprocess.run(udisksctl_mount_cmd(vol), capture_output=True, text=True)
-    where = parse_udisksctl_mount(proc.stdout)
-    if proc.returncode != 0 or not where:
-        raise OSError((proc.stderr or proc.stdout).strip() or f"cannot mount {vol.path}")
+    output = (proc.stderr or "") + (proc.stdout or "")
+    where = parse_udisksctl_mount(proc.stdout or "") if proc.returncode == 0 else None
+    where = where or parse_already_mounted(output)
+    if not where:
+        raise OSError(mount_error_message(output) or f"cannot mount {vol.path}")
     return where
 
 
