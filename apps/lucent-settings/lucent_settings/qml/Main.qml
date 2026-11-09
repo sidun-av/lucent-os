@@ -7,7 +7,7 @@ import "pages"
 
 // Pebble Drift structure (docs/mockups/concepts-2026/pebble-drift/04-settings):
 // one header row (app icon, title, back / forward, centred search, window
-// buttons), then a sunken sidebar well (account, sections) and the page of
+// buttons), then a floating glass sidebar card (account, sections) and the page of
 // cards. The window is frameless and draws that row itself with the shared
 // org.lucent.chrome module (chrome/Frame.qml); without the module
 // (System.frameless false) KWin's title bar sits above a row without them.
@@ -167,7 +167,7 @@ C.ApplicationWindow {
                         radius: Theme.radiusControl + 2; color: Theme.accent; visible: search.activeFocus
                     }
                     Rectangle { anchors.fill: parent; radius: Theme.radiusControl; color: Theme.raised; visible: search.activeFocus }
-                    Well { anchors.fill: parent; visible: !search.activeFocus }
+                    Well { anchors.fill: parent; visible: !search.activeFocus; tint: Theme.glassField }
                     Sym { x: 14; anchors.verticalCenter: parent.verticalCenter; name: "search"; size: 18; color: Theme.text2 }
                 }
             }
@@ -189,8 +189,10 @@ C.ApplicationWindow {
             Layout.bottomMargin: Theme.bodyPad
             spacing: Theme.bodyPad
 
-            // sunken sidebar well
+            // the sidebar: a floating glass card (tier 1: painted over the
+            // window's own surface, no wallpaper blur behind it)
             Well {
+                tint: Theme.glassSidebar
                 Layout.preferredWidth: Theme.sidebarWidth
                 Layout.fillHeight: true
                 radius: Theme.radiusCard

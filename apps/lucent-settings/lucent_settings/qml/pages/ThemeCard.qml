@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Shapes
 import Lucent
 
-// .mode: a sunken tile with a 170 px preview; chosen = light card, accent ring.
+// .mode: a glass card tile with a 170 px preview; chosen = light card, accent ring.
 Item {
     id: card
     property string mode            // light | dark | auto

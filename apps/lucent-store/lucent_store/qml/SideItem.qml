@@ -12,7 +12,7 @@ Item {
     height: store.t.sideItemHeight
     Rectangle { anchors.fill: parent; radius: store.t.radiusItem; color: it.tk.hover
                 visible: area.containsMouse && !it.selected }
-    Raised { anchors.fill: parent; radius: store.t.radiusItem; visible: it.selected }
+    Rectangle { anchors.fill: parent; radius: store.t.radiusItem; visible: it.selected; color: it.tk.accentSoft }
     activeFocusOnTab: true
     Keys.onReturnPressed: win.go(target)
     Keys.onSpacePressed: win.go(target)

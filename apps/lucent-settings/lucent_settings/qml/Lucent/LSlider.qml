@@ -12,7 +12,7 @@ C.Slider {
         y: s.topPadding + s.availableHeight / 2 - Theme.sliderTrack / 2
         width: s.availableWidth
         height: Theme.sliderTrack
-        Well { anchors.fill: parent; radius: Theme.sliderTrack / 2 + 1; tint: Theme.wellStrong }
+        Well { anchors.fill: parent; radius: Theme.sliderTrack / 2 + 1; tint: Theme.track; flat: true }
         Rectangle {
             width: s.visualPosition * parent.width
             height: parent.height

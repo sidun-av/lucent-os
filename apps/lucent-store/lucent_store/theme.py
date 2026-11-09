@@ -2,7 +2,7 @@
 
 Materials are the "Pebble" direction (docs/mockups/concepts-2026/pebble/
 pebble.css): matte near-opaque surfaces with a fine grain, depth from soft
-long shadows, raised "pillow" controls and recessed wells. The
+long shadows, raised "pillow" controls and light glass cards (nothing recessed). The
 layout keeps docs/mockups/06-store. QML views use only `store.t.<token>`
 for colours, type, radii, shadows and the main measures, so a restyle
 swaps this file, not the views.
@@ -26,8 +26,11 @@ LIGHT = {
     "line": "rgba(40,50,110,.10)", "lineStrong": "rgba(40,50,110,.17)",
     "winBg": "#f2f3fa",                                        # --surface-window-solid
     "raised": "#fdfdff", "raised2": "#f3f4fb",                 # --surface-raised(-2)
-    "well": "rgba(48,58,120,.065)", "wellStrong": "rgba(48,58,120,.11)",   # --surface-sunken(-strong)
-    "wellShade": "rgba(25,35,90,.10)", "wellRing": "rgba(30,40,100,.05)",  # --shadow-sunken
+    # Glass Card (docs/mockups/concepts-2026/glass/glass.css): nothing is sunken.
+    # Fills are flattened over winBg, so a card is one opaque Rectangle.
+    "well": "#fbfbfe", "wellStrong": "rgba(48,58,120,.13)",   # --glass-card, --track (flat)
+    "wellShade": "rgba(255,255,255,.95)", "wellRing": "rgba(30,40,100,.08)",  # --glass-highlight, --elev-1 ring
+    "glassRim": "rgba(255,255,255,.45)", "glassSidebar": "#f7f8fd", "glassField": "#fcfcfe",
     "hover": "rgba(48,58,120,.065)",                           # --state-hover
     # --shadow-raised / --shadow-lift / --shadow-accent, drawn by Shadow.qml
     "shadow": "#19235a", "shadowRing": "rgba(30,40,100,.08)", "topLight": "rgba(255,255,255,.90)",
@@ -51,8 +54,9 @@ DARK = {
     "line": "rgba(220,228,255,.08)", "lineStrong": "rgba(220,228,255,.14)",
     "winBg": "#1d1f2e",
     "raised": "#33364d", "raised2": "#2c2f44",
-    "well": "rgba(0,0,10,.20)", "wellStrong": "rgba(0,0,10,.30)",
-    "wellShade": "rgba(0,0,0,.35)", "wellRing": "rgba(220,228,255,.04)",
+    "well": "#292b39", "wellStrong": "rgba(220,228,255,.14)",
+    "wellShade": "rgba(255,255,255,.10)", "wellRing": "rgba(0,0,0,.30)",
+    "glassRim": "rgba(255,255,255,.045)", "glassSidebar": "#222539", "glassField": "#2d2f3d",
     "hover": "rgba(220,228,255,.07)",
     "shadow": "#000000", "shadowRing": "rgba(0,0,0,.35)", "topLight": "rgba(220,228,255,.08)",
     "shadowNear": 0.30, "shadowMid": 0.25, "shadowLift": 0.50, "accentShadowNear": 0.40, "accentShadow": 0.35,

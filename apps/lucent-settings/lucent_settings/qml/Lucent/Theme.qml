@@ -42,8 +42,18 @@ QtObject {
     readonly property color raised2: dark ? "#2c2f44" : "#f3f4fb"         // raised-2
     readonly property color selectedCard: dark ? "#343b6a" : "#eef0ff"    // selected
     readonly property color selectedCard2: dark ? "#2e345e" : "#e6e9fd"   // selected-2
-    readonly property color well: dark ? Qt.rgba(0, 0, 10 / 255, 0.20) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.065)        // sunken
-    readonly property color wellStrong: dark ? Qt.rgba(0, 0, 10 / 255, 0.30) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.11)   // sunken-strong
+    // Glass Card (docs/mockups/concepts-2026/glass/glass.css): nothing is sunken.
+    // Fills are the glass tokens flattened over `surface`, so a card is one
+    // opaque Rectangle (no blending of what lies behind the window, no layer).
+    readonly property color glassCard: dark ? "#292b39" : "#fbfbfe"        // --glass-card
+    readonly property color glassField: dark ? "#2d2f3d" : "#fcfcfe"       // --glass-field
+    readonly property color glassSidebar: dark ? "#222539" : "#f7f8fd"     // --glass-sidebar (tier 1: no blur)
+    readonly property color glassTop: dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.95)   // --glass-highlight, top line
+    readonly property color glassRim: dark ? Qt.rgba(1, 1, 1, 0.045) : Qt.rgba(1, 1, 1, 0.45)  // --glass-highlight, inner rim
+    readonly property color elevRing: dark ? Qt.rgba(0, 0, 0, 0.30) : Qt.rgba(30 / 255, 40 / 255, 100 / 255, 0.08)  // --elev-1 ring + contact
+    readonly property color track: dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.14) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.13)  // --track
+    readonly property color well: glassCard           // Well.qml is the glass card now
+    readonly property color wellStrong: track         // flat tint (tracks, neutral pills)
     readonly property color popup: dark ? Qt.rgba(36 / 255, 38 / 255, 56 / 255, 0.97) : Qt.rgba(248 / 255, 249 / 255, 253 / 255, 0.96)
     readonly property color scrim: dark ? Qt.rgba(14 / 255, 16 / 255, 32 / 255, 0.60) : Qt.rgba(40 / 255, 48 / 255, 100 / 255, 0.18)
     readonly property color hover: dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.07) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.065)   // state-hover

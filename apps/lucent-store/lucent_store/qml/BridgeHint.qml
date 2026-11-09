@@ -3,7 +3,7 @@
 import QtQuick
 import QtQuick.Layouts
 
-Well {                         // sunken, so it reads as a note, not another app card
+Well {                         // a light glass card: a note next to the app cards
     id: h
     property bool large: false
     radius: large ? tk.radiusCard : tk.radiusRow

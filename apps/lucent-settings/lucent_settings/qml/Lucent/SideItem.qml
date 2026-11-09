@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 
-// .si: 38 px row, line glyph; selected = raised pillow, accent text.
+// .si: 38 px row, line glyph; selected = a soft --accent-soft pill, accent text.
 Item {
     id: si
     property string icon
@@ -12,7 +12,7 @@ Item {
     signal clicked()
     Layout.fillWidth: true
     implicitHeight: Theme.sideItemHeight
-    Raised { anchors.fill: parent; visible: si.selected; radius: Theme.radiusItem }
+    Rectangle { anchors.fill: parent; visible: si.selected; radius: Theme.radiusItem; color: Theme.accentSoft }
     Rectangle { anchors.fill: parent; radius: Theme.radiusItem; color: Theme.hover; visible: !si.selected && m.containsMouse }
     RowLayout {
         anchors { fill: parent; leftMargin: 12; rightMargin: 10 }

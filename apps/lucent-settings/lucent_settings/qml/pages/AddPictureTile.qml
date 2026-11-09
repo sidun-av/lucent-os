@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Lucent
 
-// "Add a picture": a sunken tile that opens the file chooser.
+// "Add a picture": a glass card tile that opens the file chooser.
 Item {
     signal clicked()
     Layout.fillWidth: true

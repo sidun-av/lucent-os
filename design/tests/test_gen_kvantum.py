@@ -82,3 +82,20 @@ def test_committed_themes_match_the_generator():
         base = KV / folder / t["name"]
         assert base.with_suffix(".kvconfig").read_text() == gen_kvantum.kvconfig(t), f"run design/gen_kvantum.py ({t['name']})"
         assert base.with_suffix(".svg").read_text() == gen_kvantum.build(t).text(), f"run design/gen_kvantum.py ({t['name']})"
+
+
+@pytest.mark.parametrize("dark", [False, True])
+def test_nothing_is_sunken(dark):
+    """Glass Card: fields and segmented strips are light glass that sits on
+    the surface (drop below, top highlight), tracks are a flat tint, and a
+    selection is a soft accent pill with no outline."""
+    t = gen_kvantum.theme_dict(tokens.load().mode(dark), "indigo", dark)
+    assert not hasattr(gen_kvantum, "well")
+    layers = gen_kvantum.glass(t, t["field"])
+    assert layers[0] == ("shape", t["card_drop"], 0, 1)
+    assert layers[-1] == ("topline", t["glass_hl"], 1, 1)
+    text = gen_kvantum.build(t).text()
+    for eid in ("progress-normal", "slider-normal"):
+        assert gen_kvantum.paint(t["track"]) in text.split(f'id="{eid}')[1][:400], eid
+    sel = text.split('id="itemview-pressed')[1][:600]
+    assert gen_kvantum.paint(t["accent_ring"], "stroke") not in sel

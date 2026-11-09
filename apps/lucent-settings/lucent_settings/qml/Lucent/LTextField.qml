@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic as C
 
-// .field: a sunken well; focused = raised surface with an accent ring.
+// .field: light glass with a hairline; focused = an accent ring.
 C.TextField {
     id: f
     implicitHeight: Theme.fieldHeight
@@ -28,6 +28,6 @@ C.TextField {
             visible: f.activeFocus
         }
         Rectangle { anchors.fill: parent; radius: Theme.radiusControl; color: Theme.raised; visible: f.activeFocus }
-        Well { anchors.fill: parent; visible: !f.activeFocus }
+        Well { anchors.fill: parent; visible: !f.activeFocus; tint: Theme.glassField }
     }
 }

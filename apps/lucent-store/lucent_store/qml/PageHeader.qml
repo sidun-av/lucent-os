@@ -51,7 +51,7 @@ Item {
         width: Math.min(store.t.searchWidth, h.width * 0.42)
         height: store.t.searchHeight
         radius: store.t.radiusField
-        color: input.activeFocus ? h.tk.raised : h.tk.well
+        color: input.activeFocus ? h.tk.raised : h.tk.glassField
         border.width: input.activeFocus ? 2 : 1
         border.color: input.activeFocus ? h.tk.accent : h.tk.wellRing
         Rectangle {          // focus halo (0 0 0 6px accent-soft)

@@ -23,9 +23,10 @@
  *  6. Dolphin's free-space indicator: on an image-based system Solid maps
  *     every local path to the read-only root ("0 B free", a full bar). The
  *     indicator is hidden when it reports that root instead of a wrong value.
- *  7. Files' places panel is the Pebble Drift sidebar: a sunken well
- *     (--surface-sunken, --shadow-sunken, radius 14) 12 px in from the window
- *     edge, the places inset 10 px inside it (pebble-drift.css .side).
+ *  7. Files' places panel is the Glass Card sidebar: a floating light card
+ *     (--glass-sidebar over the window's own surface, no wallpaper blur;
+ *     --glass-highlight, --elev-2; radius 14) 12 px in from the window edge,
+ *     the places inset 10 px inside it (glass.css .side). Nothing is sunken.
  *     Kvantum has no element for a dock's body, so it is painted here.
  *
  * Keys: "lucent" (Kvantum, theme Lucent) and "lucent-dark" (kvantum-dark,
@@ -267,21 +268,46 @@ public:
 private:
     static constexpr int WellLeft = 12, WellRight = 4, WellBottom = 12;
 
-    // pebble-drift.css .side: --surface-sunken fill, --shadow-sunken (inset
-    // 1 px ring + 1 px top shade), --radius-card
+    // glass.css .side, tier 1 (no blur): --glass-sidebar fill, --elev-2
+    // (hairline ring, short contact drop, one soft long drop, approximated by
+    // a few unblurred translucent layers: no extra pass, no texture read) and
+    // --glass-highlight (1 px top light + faint inner rim), --r-md.
     static void drawWell(QPainter *p, const QRectF &r, bool dark)
     {
         p->save();
         p->setRenderHint(QPainter::Antialiasing);
+        p->setPen(Qt::NoPen);
+        const QColor drop = dark ? QColor(0, 0, 0) : QColor(25, 35, 90);
+        // long soft drop (0 14px 30px -12px): three widening, fading layers
+        const int longA[3] = {dark ? 14 : 7, dark ? 10 : 5, dark ? 6 : 3};
+        for (int i = 0; i < 3; ++i) {
+            QColor c = drop;
+            c.setAlpha(longA[i]);
+            p->setBrush(c);
+            const qreal g = 2 + 2 * i;
+            p->drawRoundedRect(r.adjusted(g, 4 + 2 * i, -g, 2 + 2 * i), 14 + i, 14 + i);
+        }
+        QColor contact = drop;     // 0 2px 6px
+        contact.setAlpha(dark ? 51 : 13);
+        p->setBrush(contact);
+        p->drawRoundedRect(r.adjusted(0, 1, 0, 1.5), 14, 14);
+        // ring (0 0 0 1px) and fill
+        p->setBrush(dark ? QColor(0, 0, 0, 89) : QColor(30, 40, 100, 18));
+        p->drawRoundedRect(r.adjusted(-1, -1, 1, 1), 15, 15);
+        const QColor win = dark ? QColor(26, 28, 42) : QColor(245, 246, 252);
+        p->setBrush(win);
+        p->drawRoundedRect(r, 14, 14);
+        p->setBrush(dark ? QColor(36, 39, 60, 153) : QColor(248, 249, 255, 158));
+        p->drawRoundedRect(r, 14, 14);
+        // --glass-highlight: inner rim, then the brighter top line
         QPainterPath shape;
         shape.addRoundedRect(r, 14, 14);
-        p->fillPath(shape, dark ? QColor(0, 0, 10, 51) : QColor(48, 58, 120, 17));
         p->setClipPath(shape);
-        p->fillRect(QRectF(r.left(), r.top() + 1, r.width(), 1), dark ? QColor(0, 0, 0, 89) : QColor(25, 35, 90, 26));
-        p->setClipping(false);
-        p->setPen(QPen(dark ? QColor(220, 228, 255, 10) : QColor(30, 40, 100, 13), 1));
+        p->setPen(QPen(dark ? QColor(255, 255, 255, 11) : QColor(255, 255, 255, 115), 1));
         p->setBrush(Qt::NoBrush);
         p->drawRoundedRect(r.adjusted(0.5, 0.5, -0.5, -0.5), 13.5, 13.5);
+        p->setPen(Qt::NoPen);
+        p->fillRect(QRectF(r.left(), r.top(), r.width(), 1), dark ? QColor(255, 255, 255, 26) : QColor(255, 255, 255, 242));
         p->restore();
     }
 

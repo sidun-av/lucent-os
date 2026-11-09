@@ -1,9 +1,10 @@
-// Left column: catalogue categories and "My apps", a recessed well
-// (pebble.css .side) with raised selection (.si.sel).
+// Left column: catalogue categories and "My apps", a floating glass card
+// (glass.css .side, tier 1: no wallpaper blur) with an accent-pill selection.
 import QtQuick
 
 Well {
     id: side
+    tint: tk.glassSidebar
 
     Column {
         anchors.fill: parent

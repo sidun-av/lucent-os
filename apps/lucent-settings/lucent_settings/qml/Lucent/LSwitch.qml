@@ -11,8 +11,8 @@ Item {
     Well {
         anchors.fill: parent
         radius: Theme.radiusSwitch
-        tint: sw.checked ? Theme.accent : Theme.wellStrong
-        border.color: sw.checked ? "transparent" : Qt.rgba(Theme.wellTop.r, Theme.wellTop.g, Theme.wellTop.b, 0.04)
+        flat: true      // --track: a flat tint, no inner shadow
+        tint: sw.checked ? Theme.accent : Theme.track
     }
     Raised {
         width: sw.height - 6; height: width

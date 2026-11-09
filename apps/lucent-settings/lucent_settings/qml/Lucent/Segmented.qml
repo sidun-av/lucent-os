@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 
-// .seg: sunken track, the chosen segment a raised pillow in accent text.
+// .seg: a light glass strip, the chosen segment an --accent-soft pill in accent text.
 Item {
     id: seg
     property var options: []     // [{value, label}]
@@ -9,7 +9,7 @@ Item {
     signal picked(string value)
     implicitHeight: Theme.segHeight
     implicitWidth: row.implicitWidth + 6
-    Well { anchors.fill: parent; radius: Theme.radiusSegTrack }
+    Well { anchors.fill: parent; radius: Theme.radiusSegTrack; tint: Theme.glassField }
     RowLayout {
         id: row
         x: 3; y: 3
@@ -22,7 +22,7 @@ Item {
                 readonly property bool on: modelData.value === seg.current
                 implicitWidth: lbl.implicitWidth + 32
                 implicitHeight: seg.height - 6
-                Raised { anchors.fill: parent; visible: parent.on; radius: Theme.radiusSegment }
+                Rectangle { anchors.fill: parent; visible: parent.on; radius: Theme.radiusSegment; color: Theme.accentSoft }
                 Rectangle { anchors.fill: parent; radius: Theme.radiusSegment; color: Theme.hover; visible: !parent.on && m.containsMouse }
                 LText {
                     id: lbl

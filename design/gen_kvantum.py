@@ -18,13 +18,14 @@ Shapes and colours come from docs/mockups/concepts-2026/pebble-drift/
 pebble-drift.css (design/tokens.py):
   push buttons, combos, the "on" segment and tab   raised pillow: --surface-raised
         -> -raised-2 gradient, 1 px ring, 1 px soft drop, top highlight, radius 10
-  fields, spin boxes, segmented tracks, progress    sunken well: --surface-sunken,
-        inner ring + top inner shadow (--shadow-sunken), radius 10
+  fields, spin boxes, segmented strips              Glass Card (glass.css): --glass-field,
+        --elev-1 hairline + 1 px drop, top highlight, radius 10; nothing is sunken
+  slider / progress tracks                          flat --track tint
   menus / combo popups / tooltips                   --surface-popover, radius 12,
         hairline, long soft shadow
   menu items                                        --accent-soft pill
   item views                                        hover --state-hover; selected
-        --surface-selected with a --accent-ring outline (.card.sel)
+        = a soft --accent-soft pill (.si.sel), accent text
   checkboxes / radios                               18 px, radius 6, accent when on
 Every element Kvantum's built-in default theme would otherwise supply is
 generated here, so nothing falls back to its dark "Enlightenment" look.
@@ -69,6 +70,8 @@ def theme_dict(tk: dict, accent_id: str, dark: bool) -> dict:
     raised, raised2 = tk["surface-raised"], tk["surface-raised-2"]
     sh_raised = tokens.shadows(tk["shadow-raised"])
     sh_sunken = tokens.shadows(tk["shadow-sunken"])
+    gl = tokens.load(tokens.GLASS).mode(dark)          # Glass Card materials
+    e1 = tokens.shadows(gl["elev-1"])
     return dict(
         name=theme_name(accent_id) + ("Dark" if dark else ""), dark=dark, accent_id=accent_id,
         text=tk["text-primary"], text2=tk["text-secondary"], text3=tk["text-tertiary"],
@@ -96,6 +99,11 @@ def theme_dict(tk: dict, accent_id: str, dark: bool) -> dict:
         check_border=tk["line-control"],
         knob_top=tk["knob"].split("(")[1].split(",")[0].strip(), knob_bottom=tk["knob"].rsplit(",", 1)[1].strip(" )"),
         link=a["accent-text"], visited=tk["accent-2"], danger=tk["status-danger"],
+        # Glass Card (glass.css): fields, strips and tracks never look pressed in
+        field=gl["glass-field"], field_focus=gl["glass-field-focus"],
+        field_hover=gl["glass-control-hover"], card=gl["glass-card"],
+        card_ring=e1[0][4], card_drop=e1[1][4],
+        glass_hl=tokens.shadows(gl["glass-highlight"])[0][4], track=gl["track"],
     )
 
 
@@ -369,9 +377,12 @@ def pillow(t, top, bottom=None, drop=True, highlight=True):
     return layers
 
 
-def well(t, fill, ring=None):
-    """Sunken well (.field / .seg / tracks): fill, inner hairline, inner top shadow."""
-    return [("shape", fill, 0, 0), ("band", ring or t["well_ring"], 0, 1), ("topline", t["well_shadow"], 1, 1)]
+def glass(t, fill):
+    """Glass Card field / strip (.field, .seg): a 1 px contact drop, the
+    --elev-1 hairline, the light fill and the 1 px top highlight. It sits on
+    the surface; nothing is inset. Needs the 1 px bottom inset (PI)."""
+    return [("shape", t["card_drop"], 0, 1), ("band", t["card_ring"], 0, 1), ("shape", fill, 1, 0),
+            ("topline", t["glass_hl"], 1, 1)]
 
 
 # ------------------------------------------------------------ indicators ----
@@ -502,33 +513,33 @@ def build(t):
     # tool buttons (.pb.flat): flat; hover/press tint; "on" = raised pillow
     for st, fill in (("normal", NONE), ("focused", t["hover"]), ("pressed", t["press"])):
         box(svg, "tbutton", st, 10, fill)
-    lbox(svg, "tbutton", "toggled", 10, raised, PI)
-    # grouped toolbar buttons = segmented control (.seg): sunken track, raised "on" segment
-    lbox(svg, "seg", "normal", 10, well(t, t["well"]))
-    lbox(svg, "seg", "focused", 10, well(t, t["well_hover"]))
-    lbox(svg, "seg", "pressed", 10, well(t, t["well_strong"]))
-    lbox(svg, "seg", "toggled", 9, raised, PI)
+    box(svg, "tbutton", "toggled", 10, t["accent_soft"])      # .seg .ib.on: accent pill
+    # grouped toolbar buttons = segmented control (.seg): a glass strip, the
+    # "on" segment an --accent-soft pill (no raised tile)
+    lbox(svg, "seg", "normal", 10, glass(t, t["field"]), PI)
+    lbox(svg, "seg", "focused", 10, glass(t, t["field_hover"]), PI)
+    lbox(svg, "seg", "pressed", 10, glass(t, t["field_focus"]), PI)
+    box(svg, "seg", "toggled", 9, t["accent_soft"])
     sep = f'<rect x="1" y="4" width="1" height="16" {paint(t["line_strong"])}/>'
     svg.add("seg-separator-normal", 3, 24, sep)
     svg.add("seg-separator-top", 3, 3, "")
     svg.add("seg-separator-bottom", 3, 3, "")
-    # line edits / spin boxes (.field): sunken well, radius 10; focus = raised + 2 px accent ring
-    focus = [("shape", t["raised"], 0, 0), ("band", t["accent_ring"], 0, 2)]
+    # line edits / spin boxes (.field): light glass, radius 10; focus = 2 px accent ring
+    focus = [("shape", t["field_focus"], 0, 0), ("band", t["accent_ring"], 0, 2)]
     for el in ("lineedit", "spin"):
-        lbox(svg, el, "normal", 10, well(t, t["well"]))
+        lbox(svg, el, "normal", 10, glass(t, t["field"]), PI)
         lbox(svg, el, "focused", 10, focus)
-        lbox(svg, el, "pressed", 10, well(t, t["well_strong"]))
+        lbox(svg, el, "pressed", 10, glass(t, t["field_focus"]), PI)
     # combo boxes: pillow controls like push buttons
     for st, layers in (("normal", raised), ("focused", hovered), ("pressed", pressed), ("toggled", pressed)):
         lbox(svg, "combo", st, 10, layers, PI)
-    # item views: hover --state-hover; selected = .card.sel (--surface-selected + accent outline)
-    # Kvantum: "pressed" = selected in the focused view, "toggled" = selected elsewhere
+    # item views: hover --state-hover; selected = a soft accent pill (.si.sel), no
+    # outline, no shadow. Kvantum: "pressed" = selected in the focused view,
+    # "toggled" = selected elsewhere (Files' current place)
     box(svg, "itemview", "normal", 10, NONE, ix=4, iy=1)
     box(svg, "itemview", "focused", 10, t["hover"], ix=4, iy=1)
-    IV = (4, 1, 4, 1)
-    lbox(svg, "itemview", "pressed", 10, [("shape", t["selected"], 0, 0), ("band", t["accent_ring"], 0, 1.5)], IV)
-    # selected in a view without focus (Files' current place, .si.sel): a raised pillow
-    lbox(svg, "itemview", "toggled", 10, raised, IV)
+    box(svg, "itemview", "pressed", 10, t["accent_soft_strong"], ix=4, iy=1)
+    box(svg, "itemview", "toggled", 10, t["accent_soft"], ix=4, iy=1)
     # menus (popups): --surface-popover, radius 12, hairline, long soft shadow
     popup(svg, "menu", 14, 12, t["popup"], t["popup_line"], t["shadow"])
     popup(svg, "tooltip", 8, 10, t["tooltip"], t["popup_line"], t["shadow"])
@@ -570,8 +581,8 @@ def build(t):
     for st in ("normal", "focused", "pressed"):
         empty(svg, f"grip-{st}")
     frame(svg, "scrollgroove-normal", 5, 3, NONE)
-    # sliders: sunken track, accent fill, knob (--knob) with a soft shadow
-    frame(svg, "slider-normal", 3, 3, t["well_strong"])
+    # sliders: flat --track, accent fill, knob (--knob) with a soft shadow
+    frame(svg, "slider-normal", 3, 3, t["track"])
     frame(svg, "slider-toggled", 3, 3, t["accent"])
     empty(svg, "slider-tick-normal", 5, 1)
     kg = svg.gradient("linearGradient", [(0, t["knob_top"]), (1, t["knob_bottom"])], x1=0, y1=0, x2=0, y2=1)
@@ -580,9 +591,9 @@ def build(t):
         svg.add(f"slidercursor-{st}", 20, 20,
                 f'<circle cx="10" cy="10.8" r="9" fill="#141e50" fill-opacity="0.22"/>'
                 f'<circle cx="10" cy="10" r="8.5" fill="{kg}" {paint(ring, "stroke")} stroke-width="1"/>')
-    # progress bars (.prog): sunken strong track, flat accent fill, radius 5
-    frame(svg, "progress-normal", 3, 3, t["well_strong"])
-    frame(svg, "expand-progress-normal", 5, 5, t["well_strong"])
+    # progress bars (.prog): flat --track, flat accent fill, radius 5
+    frame(svg, "progress-normal", 3, 3, t["track"])
+    frame(svg, "expand-progress-normal", 5, 5, t["track"])
     frame(svg, "progress-pattern-normal", 3, 3, t["accent"])
     frame(svg, "expand-progress-pattern-normal", 5, 5, t["accent"])
     frame(svg, "progress-pattern-disabled", 3, 3, t["disabled"])
@@ -1040,7 +1051,7 @@ text.margin.left=4
 text.margin.right=4
 text.normal.color={tx}
 text.focus.color={tx}
-text.press.color={tx}
+text.press.color={t['accent_ink']}
 text.toggle.color={t['accent_ink']}
 min_width=0
 min_height=+0.6font

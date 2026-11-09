@@ -10,7 +10,7 @@ Page {
     lead: System.tr("The familiar buttons and keyboard shortcuts are already on. Check or change them here.")
     Component.onCompleted: HabitsPage.refresh()
 
-    // A choice tile like the Mode tiles on Appearance: sunken, or (chosen)
+    // A choice tile like the Mode tiles on Appearance: a glass card, or (chosen)
     // a light card with an accent ring.
     component ButtonsCard: Item {
         id: wbo
