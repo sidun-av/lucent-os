@@ -324,10 +324,40 @@ responsiveness() {
     app_start notepadpp Notepad++ 'notepad'
 }
 
+# What a lighter boot must not take away (second boot): power profiles, the
+# network stack with Wi-Fi support, Bluetooth, printing and printer
+# discovery, updates and their notifier, the launcher's file search. A VM has
+# no Wi-Fi or Bluetooth hardware, so those check that the services are there.
+keep() { # id ok? detail
+    if [ "$2" = 0 ]; then record "keep.$1" PASS "$3"; else record "keep.$1" FAIL "$3"; fi
+}
+keep_checks() {
+    local v
+    v=$(busctl --system get-property org.freedesktop.UPower.PowerProfiles /org/freedesktop/UPower/PowerProfiles \
+        org.freedesktop.UPower.PowerProfiles ActiveProfile 2>&1)
+    keep power-profiles "$( [[ "$v" == 's "'* ]] && systemctl is-active -q upower.service; echo $?)" \
+        "power profile $v ($(rpm -q --whatprovides ppd-service 2>&1 | head -n1)); upower $(systemctl is-active upower.service)"
+    v=$(nmcli -t -f RUNNING,WIFI-HW,WIFI general 2>&1)
+    keep network "$(systemctl is-active -q NetworkManager.service && rpm -q NetworkManager-wifi >/dev/null; echo $?)" \
+        "NetworkManager $(systemctl is-active NetworkManager.service); nmcli: $v; $(rpm -q NetworkManager-wifi wpa_supplicant 2>&1 | tr '\n' ' ')"
+    v=$(systemctl is-enabled bluetooth.service 2>&1)
+    keep bluetooth "$( [ "$v" = enabled ] && rpm -q bluez >/dev/null; echo $?)" \
+        "bluetooth.service $v (starts when an adapter appears), $(rpm -q bluez 2>&1)"
+    v=$(lpstat -r 2>&1)
+    keep printing "$( [[ "$v" == *"is running"* ]] && systemctl is-active -q avahi-daemon.service; echo $?)" \
+        "CUPS: $v; printer discovery: avahi-daemon $(systemctl is-active avahi-daemon.service), cups-browsed $(systemctl is-enabled cups-browsed.service 2>&1)"
+    v=$(rpm-ostree status --booted 2>&1 | grep -m1 -E 'ostree-image|ostree-unverified|Version')
+    keep updates "$( [ -n "$v" ] && pgrep -u "$U" -f DiscoverNotifier >/dev/null; echo $?)" \
+        "rpm-ostree: ${v:-no answer}; update notifier (DiscoverNotifier) $(pgrep -u "$U" -f DiscoverNotifier >/dev/null && echo running || echo 'not running')"
+    v=$(as_user sh -c 'balooctl6 status 2>/dev/null || balooctl status' 2>/dev/null | head -n 3 | tr '\n' ' ')
+    keep search "$( [[ "$v" == *"is running"* ]]; echo $?)" "Baloo: ${v:-no answer}"
+}
+
 sleep 25
 if ((BOOT == 2)); then
     shot 07-desktop-second-boot
     boot_numbers boot2_ boot2
+    keep_checks
     responsiveness
     log "second boot done, failed=$FAILED"
     exit 0
