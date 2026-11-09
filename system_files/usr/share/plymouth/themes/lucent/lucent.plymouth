@@ -1,6 +1,6 @@
 [Plymouth Theme]
 Name=Lucent
-Description=Lucent OS boot splash: the Lucent logo on the dark wallpaper's navy, with Fedora's spinner
+Description=Lucent OS boot splash: the Lucent mark on Drift night (the login screen's colours), with Fedora's spinner
 ModuleName=two-step
 
 [two-step]
@@ -17,10 +17,16 @@ WatermarkHorizontalAlignment=.5
 WatermarkVerticalAlignment=.45
 Transition=none
 TransitionDuration=0.0
-BackgroundStartColor=0x0d1222
-BackgroundEndColor=0x1a1540
-ProgressBarBackgroundColor=0x2b2f38
-ProgressBarForegroundColor=0x5b8bff
+# Drift night as the login screen shows it (blurred, dimmed), so boot hands
+# over to it without a jump: background.png (design/render-boot-background.py,
+# 640x360, scaled to the screen once) over a gradient of its top and bottom
+# averages, which is also what a Plymouth without background.png shows.
+ScaleBackgroundImage=true
+BackgroundStartColor=0x201b57
+BackgroundEndColor=0x183653
+# --surface-raised-2 and --accent of pebble-drift.css, dark
+ProgressBarBackgroundColor=0x2c2f44
+ProgressBarForegroundColor=0x7088ff
 MessageBelowAnimation=true
 
 [boot-up]

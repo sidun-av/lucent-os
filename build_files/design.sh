@@ -121,12 +121,13 @@ for pkg in /usr/share/plasma/plasmoids/org.lucent.*; do
     test -f "$pkg/metadata.json" && test -f "$pkg/contents/ui/main.qml"
 done
 
-# Boot splash: Lucent logo + Fedora's spinner frames (plymouth-theme-spinner,
+# Boot splash: Lucent logo on Drift night (background.png, design/
+# render-boot-background.py) + Fedora's spinner frames (plymouth-theme-spinner,
 # GPL-2.0-or-later) copied into the lucent theme, then the initramfs is
 # rebuilt so Plymouth has the theme before the root filesystem is mounted.
 theme=/usr/share/plymouth/themes/lucent
 for f in /usr/share/plymouth/themes/spinner/*.png; do
-    [ "${f##*/}" = watermark.png ] || cp -a "$f" "$theme/"
+    case "${f##*/}" in watermark.png|background*.png) ;; *) cp -a "$f" "$theme/" ;; esac
 done
 plymouth-set-default-theme lucent
 kver=$(ls /usr/lib/modules | head -n1)
@@ -134,6 +135,7 @@ DRACUT_NO_XATTR=1 dracut --no-hostonly --kver "$kver" --reproducible --zstd -v -
     -f "/usr/lib/modules/$kver/initramfs.img"
 lsinitrd "/usr/lib/modules/$kver/initramfs.img" > /tmp/initramfs.list
 grep "plymouth/themes/lucent/lucent.plymouth" /tmp/initramfs.list
+grep "plymouth/themes/lucent/background.png" /tmp/initramfs.list
 rm /tmp/initramfs.list
 
 # Translations of the Lucent plasmoids (design/po/<domain>.<lang>.po), compiled
