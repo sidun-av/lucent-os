@@ -1,23 +1,42 @@
 #!/usr/bin/bash
-# First-boot Flatpak setup (system-wide): make Flathub the single app source
-# and install Lucent's default apps. Idempotent; retried by systemd until it
-# succeeds (e.g. when the first boot happens offline).
+# Lucent's default apps (system-wide Flatpaks from Flathub).
+#
+# Installed from the installer ISO, apps are already present before the
+# first login (iso/lucent-apps.ks unpacks the offline bundle into
+# /var/lib/flatpak). This unit then only sets the remote up (no network) and
+# finds nothing missing. On the online path (`bootc switch`, a disk image
+# without the bundle, or a damaged bundle) it downloads what is missing,
+# retried by systemd until it succeeds.
 set -euo pipefail
 
 DONE=/var/lib/lucent/flatpaks-v1.done
 LIST=/usr/share/lucent/flatpaks.list
 
-flatpak remote-add --system --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+has_remote() { flatpak remotes --system --columns=name | grep -qx "$1"; }
+
+# `remote-add` fetches the .flatpakrepo file, so only when it isn't set up yet.
+if ! has_remote flathub; then
+    flatpak remote-add --system --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+fi
 # Fedora ships Flathub filtered/disabled; Lucent uses the full, upstream-built Flathub.
 flatpak remote-modify --system --enable --no-filter flathub
 # One source of truth: avoid duplicate Okular/Firefox entries from Fedora's
 # own Flatpak remote showing up next to the Flathub ones in Discover.
-if flatpak remotes --system --columns=name | grep -qx fedora; then
+if has_remote fedora; then
     flatpak remote-modify --system --disable fedora
 fi
 
 mapfile -t APPS < <(grep -Ev '^\s*(#|$)' "$LIST")
-flatpak install --system --noninteractive --or-update flathub "${APPS[@]}"
+missing=()
+for app in "${APPS[@]}"; do
+    flatpak info --system "$app" &>/dev/null || missing+=("$app")
+done
+if ((${#missing[@]})); then
+    echo "installing from Flathub: ${missing[*]}"
+    flatpak install --system --noninteractive flathub "${missing[@]}"
+else
+    echo "all ${#APPS[@]} default apps are installed"
+fi
 
 mkdir -p "$(dirname "$DONE")"
 touch "$DONE"

@@ -26,8 +26,11 @@ day one.
 | Windows apps | Wine (x86_64) / FEX-Emu + ARM64EC Wine (aarch64), plus `lucent-bridge` |
 | Moving in | "Move from Windows" wizard: files, bookmarks, Wi-Fi names |
 
-All apps are Flatpaks from Flathub, installed system-wide in the background
-on first boot (`lucent-flatpak-setup.service`, retried until online).
+All apps are Flatpaks from Flathub, installed system-wide. From the
+installer ISO they are **already there before the first login, without a
+network**: the ISO carries them (see [Apps offline](#apps-offline-from-the-installer)).
+On the online path (`bootc switch`), `lucent-flatpak-setup.service` downloads
+whatever is missing in the background, retried until online.
 
 ## Desktop: macOS-clean look, Windows habits
 
@@ -93,7 +96,9 @@ Starts once at first login if Windows disks are present
 (`/etc/xdg/autostart/org.lucent.Migrate.desktop`), and is in the launcher.
 
 1. Finds NTFS/BitLocker partitions with `lsblk -J`; mounts them
-   **read-only** through udisks (no root needed).
+   **read-only** through udisks (no root needed; see
+   [Windows disks](#windows-disks)). Errors are explained in plain language
+   (no permission, Windows hibernated / Fast Startup).
 2. Finds `Users\*` profiles (skips Public/Default…), including
    OneDrive-redirected Desktop/Documents/Pictures.
 3. Maps Documents, Pictures, Desktop, Downloads, Music, Videos to the XDG
@@ -140,15 +145,77 @@ Lucent recommends it.
 
 ## Windows apps: `lucent-bridge`
 
-The sibling project `lucent-bridge` (Wine on x86_64, FEX + Wine on aarch64)
-is being built in parallel. The image already layers Wine on x86_64 and,
-on aarch64, Fedora's `fex-emu` plus an ARM64EC-enabled Wine and FEX's
-ARM64EC/WoW64 DLLs (`fex-emu-wine`) from COPR `lacamar/wine-arm64ec` (until
-Fedora ships them). Wine is installed without `wine-systemd`, whose binfmt
-handler for Windows executables would compete with the one lucent-bridge
-ships. Its RPM is installed at the clearly marked
-**LUCENT-BRIDGE HOOK** in `build_files/build.sh` — drop
-`lucent-bridge-*.rpm` into `rpms/` until it has a package repository.
+[Lucent Bridge](https://github.com/sidun-av/lucent-bridge) runs a Windows
+`.exe`/`.msi` on double-click: Wine on x86_64, FEX + ARM64EC Wine on aarch64.
+Nothing to install or download first:
+
+- **The release RPM is in the image.** `build_files/build.sh` downloads
+  `lucent-bridge-<v>-1.fc45.<arch>.rpm`, checks it against the release's
+  `SHA256SUMS` and against the hash pinned in
+  `build_files/lucent-bridge.sha256`, and installs it with `dnf`.
+- **Wine is piecewise** (`wine-core wine-common wine-winefonts wine-mono` …,
+  Gecko, `wine-dxvk`; on aarch64 Fedora's `fex-emu` plus ARM64EC Wine and
+  `fex-emu-wine` from COPR `lacamar/wine-arm64ec`), never the `wine`
+  metapackage: it pulls `wine-systemd`, whose binfmt handler would compete
+  with lucent-bridge's (the RPM conflicts with it).
+- **DXVK is really on.** Fedora's `wine-dxvk` looks for a GPU when it is
+  installed; in an image build there is none and DXVK silently loses to
+  wined3d. The build switches the alternatives to DXVK
+  (`build_files/enable-dxvk.sh`, from lucent-bridge) and fails if it didn't.
+- **Double-click and `./setup.exe`**: `.exe`/`.msi` MIME types default to
+  lucent-bridge (merged into `/usr/share/applications/mimeapps.list`); its
+  binfmt entry handles executable `.exe` files.
+- **Fast first launch, light image.** A ready Wine prefix ("template") makes
+  a program's first launch ~1 s instead of ~8 s, but it is 1.7–2.4 GB, so it
+  is **not** in the image. `lucent-bridge-template.timer` builds it 3 min
+  after boot, at idle CPU/IO priority, into `/var/lib/lucent-bridge/` (and
+  again only after an update changes Wine or lucent-bridge).
+  `/usr/share/lucent-bridge/prefix-template`, where lucent-bridge looks, is
+  a link there. Until it exists, programs still start, via `wineboot`.
+- The build fails unless `lucent-bridge --version` works, the
+  `application/x-ms-dos-executable` default resolves to lucent-bridge, and
+  `wine-systemd` is absent. CI then starts a Windows program in the built
+  image, before and after the template exists (`build_files/smoke-test.sh`).
+
+## Apps offline, from the installer
+
+The ten default apps (with their runtimes ≈ 8.6 GB installed) are on the
+installer ISO, so a new system has them before its first boot, with no
+network and nothing to wait for:
+
+- `iso/build-app-bundle.sh` (CI, in a Fedora 45 container) installs the apps
+  from Flathub with Fedora's own flatpak and packs the resulting
+  `/var/lib/flatpak` (zstd, split into 1 GB parts, `SHA256SUMS`).
+  `iso/check-app-bundle.sh` unpacks it in the Lucent image with the network
+  off and checks that flatpak sees every app and runtime.
+- The ISO from bootc-image-builder gets the bundle as `/lucent-apps`
+  (`mkksiso -a`); its kickstart (`iso/lucent-apps.ks`, merged by
+  `iso/make-config.py`) unpacks it into the new system's `/var/lib/flatpak`
+  with the new system's tools, verifies it and relabels it for SELinux. The
+  installer stays interactive.
+- If anything fails, the install still completes and
+  `lucent-flatpak-setup.service` downloads the apps after first boot.
+- CI's `iso` workflow can install the ISO unattended in QEMU/KVM **with no
+  network** and check the apps on the installed disk.
+
+Why not the alternatives: bootc-image-builder has no Flatpak support for
+`anaconda-iso` (upstream only demos a `%post` that downloads from Flathub),
+and Anaconda's own Flatpak source covers only the old rpm-ostree
+(Silverblue) payload. Baking the apps into the image (`/usr` or a `/var`
+seed) would add ~3 GB to the image and to every atomic update, while a
+`/var` seed is applied only at install time anyway. On the ISO the cost is
+paid once, by the download of the installer.
+
+## Windows disks
+
+The "Move from Windows" assistant and Dolphin open the computer's own
+Windows partitions **read-only**, without a password for the administrator
+at the computer: `50-lucent-windows-disks.rules` (polkit) grants udisks'
+"mount a system device" action only to an active local session of a `wheel`
+member, for NTFS on a non-removable drive, and
+`99-lucent-windows-readonly.rules` (udev) makes udisks refuse `rw` for those
+partitions, so Windows' hibernated/Fast-Startup data can't be damaged. Other
+users get the normal password prompt. USB drives are not affected.
 
 ## Building
 
@@ -157,7 +224,7 @@ There is no local build requirement; CI does it all.
 | Workflow | What |
 | --- | --- |
 | `build` | pytest → `podman build` natively on `ubuntu-24.04` (amd64) and `ubuntu-24.04-arm` (arm64) → push `ghcr.io/sidun-av/lucent-os:latest-<arch>` → multi-arch `:latest` |
-| `iso` (manual) | bootc-image-builder `anaconda-iso` from `:latest`, uploaded as a workflow artifact |
+| `iso` (manual) | offline app bundle → bootc-image-builder `anaconda-iso` from `:latest` → bundle added to the ISO → optional unattended offline install test in QEMU/KVM; ISO uploaded as a workflow artifact, sizes in the run summary |
 | `vm` (after `build`, or manual) | **test-only** qcow2 (autologin user, SSH key) + fake Windows disk for `tools/vm/`; never a release artifact |
 
 Locally, on any Linux with podman:
@@ -176,12 +243,13 @@ sudo bootc switch ghcr.io/sidun-av/lucent-os:latest
 
 ```
 Containerfile                 image definition (FROM Kinoite 45)
-build_files/build.sh          declutter, packages, services, lucent-bridge hook
+build_files/build.sh          declutter, packages, lucent-bridge, DXVK, services
+build_files/smoke-test.sh     CI: start a Windows program in the built image
 system_files/                 copied to / : /etc/xdg defaults, look-and-feel,
                               colour schemes, systemd units, scripts, templates
 migration-wizard/             "Move from Windows" wizard (lucent_migrate, po/, tests)
 tools/vm/                     boot the real image in QEMU (test-only VM images from CI)
-iso/config.toml               installer ISO settings
+iso/                          installer ISO: offline app bundle, kickstart, config
 .github/workflows/            CI
 ```
 
@@ -189,8 +257,9 @@ iso/config.toml               installer ISO settings
 
 - Not booted on real hardware yet; Plasma layout and shortcut defaults are
   verified only by review, not by a running session.
-- First-boot apps arrive in the background after login (needs network);
-  there is no progress UI yet.
+- On the online path (`bootc switch`, or a disk image without the app
+  bundle) apps still arrive in the background after login, with no
+  progress UI; the installer ISO doesn't have this gap.
 - Discover's home page still shows Flathub's editorial picks.
 - Firefox's own telemetry settings are Mozilla's defaults (no enterprise
   policy shipped yet for the Flatpak).
@@ -209,8 +278,12 @@ iso/config.toml               installer ISO settings
 
 Предустановлены (Flatpak): ONLYOFFICE (вместо Word/Excel/PowerPoint), Okular и
 PDF Arranger (вместо Acrobat), GIMP 3, Krita, Inkscape, darktable, Kdenlive,
-Scribus, Firefox. При первом входе помощник **«Переезд с Windows»** переносит
-документы, фото, закладки браузеров и названия сетей Wi-Fi с диска Windows.
+Scribus, Firefox. При установке с ISO они ставятся с самого носителя, без сети,
+и есть уже при первом входе. Программы Windows (.exe, .msi) запускаются двойным
+щелчком через **Lucent Bridge** — ничего доустанавливать не нужно. При первом
+входе помощник **«Переезд с Windows»** переносит документы, фото, закладки
+браузеров и названия сетей Wi-Fi с диска Windows (диск открывается только для
+чтения, без пароля для администратора компьютера).
 
 **Статус: прототип.** Образ собирается в CI для x86_64 и ARM64, но на реальном
 железе ещё не проверялся. Поддержка ARM-ноутбуков зависит от поддержки

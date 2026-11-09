@@ -1,7 +1,9 @@
 name: iso
 
-# Builds an installable Anaconda ISO from the published image. Manual only:
-# it takes a while and produces a multi-GB artifact.
+# Builds an installable Anaconda ISO from the published image, with Lucent's
+# default apps on the media so they are installed offline, before the first
+# login (iso/lucent-apps.ks). Manual only: it takes a while and produces a
+# multi-GB artifact.
 on:
   workflow_dispatch:
     inputs:
@@ -10,6 +12,10 @@ on:
         type: choice
         options: [amd64, arm64]
         default: amd64
+      install_test:
+        description: "Unattended, offline install of the ISO in QEMU/KVM, then check the apps on the disk (amd64 only)"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -17,17 +23,20 @@ permissions:
 
 env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/lucent-os
+  FEDORA: quay.io/fedora/fedora:45
+  WORK: /mnt/lucent-iso
 
 jobs:
   iso:
     runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
-    timeout-minutes: 150
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost || true
-          df -h /
+          sudo mkdir -p "$WORK" && sudo chown "$USER" "$WORK"
+          df -h / /mnt
       - name: Install podman if missing
         run: command -v podman || (sudo apt-get update -qq && sudo apt-get install -y -qq podman)
       - name: Pull image
@@ -36,21 +45,62 @@ jobs:
           # The multi-arch :latest tag, so the installed system keeps
           # following :latest for its atomic updates.
           sudo podman pull "$IMAGE:latest"
+          sudo podman image inspect "$IMAGE:latest" --format '{{index .Labels "org.opencontainers.image.revision"}}' | tee image-revision.txt
+
+      - name: Offline app bundle (Flathub apps + runtimes as a ready /var/lib/flatpak)
+        run: |
+          sudo podman run --rm -v "$PWD:/src:ro" -v "$WORK:/out" "$FEDORA" /src/iso/build-app-bundle.sh /out
+      - name: Check the bundle offline in the Lucent image
+        run: |
+          sudo podman run --rm --network none -v "$PWD:/src:ro" -v "$WORK:/out:ro" "$IMAGE:latest" \
+            /src/iso/check-app-bundle.sh /out
+
       - name: bootc-image-builder (anaconda-iso)
         run: |
-          mkdir -p output
+          python3 iso/make-config.py config.toml
+          cat config.toml
+          mkdir -p "$WORK/output"
           sudo podman run --rm --privileged --pull=newer \
             --security-opt label=type:unconfined_t \
-            -v ./iso/config.toml:/config.toml:ro \
-            -v ./output:/output \
+            -v ./config.toml:/config.toml:ro \
+            -v "$WORK/output:/output" \
             -v /var/lib/containers/storage:/var/lib/containers/storage \
             quay.io/centos-bootc/bootc-image-builder:latest \
             --type anaconda-iso --rootfs btrfs \
             "$IMAGE:latest"
-          sudo find output -type f -exec ls -la {} +
-          sudo mv output/bootiso/install.iso "lucent-os-${{ inputs.arch }}.iso"
-          sudo chown "$USER" "lucent-os-${{ inputs.arch }}.iso"
-          sha256sum "lucent-os-${{ inputs.arch }}.iso" | tee "lucent-os-${{ inputs.arch }}.iso.sha256"
+          sudo find "$WORK/output" -type f -exec ls -la {} +
+      - name: Put the app bundle on the ISO
+        run: |
+          iso="lucent-os-${{ inputs.arch }}.iso"
+          # mkksiso replays the boot records and re-implants the media checksum;
+          # the boot configuration is unchanged, so no efiboot rebuild.
+          sudo podman run --rm -v "$WORK:/work" "$FEDORA" bash -euc '
+            dnf -y -q --setopt=install_weak_deps=False install lorax xorriso isomd5sum >/dev/null
+            mkksiso --skip-mkefiboot -a /work/lucent-apps /work/output/bootiso/install.iso /work/'"$iso"'
+            xorriso -indev /work/'"$iso"' -find /lucent-apps -exec lsdl 2>/dev/null'
+          base=$(sudo stat -c %s "$WORK/output/bootiso/install.iso")
+          sudo rm -rf "$WORK/output"
+          sudo mv "$WORK/$iso" "$iso"
+          sudo chown "$USER" "$iso"
+          sha256sum "$iso" | tee "$iso.sha256"
+          final=$(stat -c %s "$iso")
+          read -r _ installed < <(grep installed_bytes "$WORK/lucent-apps/sizes.txt")
+          read -r _ packed < <(grep packed_bytes "$WORK/lucent-apps/sizes.txt")
+          gb() { awk -v b="$1" 'BEGIN { printf "%.2f GB", b / 1e9 }'; }
+          {
+            echo "### ISO size (${{ inputs.arch }}, image $(cat image-revision.txt))"
+            echo "| | size |"
+            echo "|---|---|"
+            echo "| ISO from bootc-image-builder | $(gb "$base") |"
+            echo "| default apps installed (/var/lib/flatpak) | $(gb "$installed") |"
+            echo "| app bundle on the ISO (zstd) | $(gb "$packed") |"
+            echo "| **final ISO** | **$(gb "$final")** |"
+            echo
+            echo '```'
+            cat "$WORK/lucent-apps/apps.txt"
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/upload-artifact@v4
         with:
           name: lucent-os-${{ inputs.arch }}-iso
@@ -59,3 +109,85 @@ jobs:
             lucent-os-${{ inputs.arch }}.iso.sha256
           compression-level: 0
           retention-days: 14
+
+      # ---- Install test: the real Anaconda, no network, then look at the disk ----
+      - name: Install test - prepare an unattended copy of the ISO
+        if: inputs.install_test && inputs.arch == 'amd64'
+        run: |
+          sudo rm -rf "$WORK/lucent-apps"
+          sudo podman rmi -a -f >/dev/null || true
+          # Same media; the kickstart only adds what an unattended run needs
+          # and then %includes the ISO's own (which carries lucent-apps.ks).
+          cat > "$WORK/test.ks" <<'EOF'
+          %include /run/install/repo/osbuild.ks
+          text --non-interactive
+          lang en_US.UTF-8
+          keyboard us
+          timezone UTC --utc
+          zerombr
+          clearpart --all --initlabel --disklabel=gpt
+          autopart --noswap --type=plain --fstype=ext4
+          rootpw --lock
+          poweroff
+          EOF
+          sudo podman run --rm --privileged -v "$WORK:/work" -v "$PWD:/src:ro" "$FEDORA" bash -euc '
+            dnf -y -q --setopt=install_weak_deps=False install lorax xorriso isomd5sum dosfstools mtools >/dev/null
+            mkksiso --no-md5sum --ks /work/test.ks -c "console=ttyS0,115200 inst.notmux" \
+              /src/lucent-os-${{ inputs.arch }}.iso /work/test.iso'
+          df -h "$WORK"
+      - name: Install test - run Anaconda in QEMU (KVM, no network)
+        if: inputs.install_test && inputs.arch == 'amd64'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 ovmf e2fsprogs attr >/dev/null
+          sudo chmod 666 /dev/kvm
+          cp /usr/share/OVMF/OVMF_VARS_4M.fd "$WORK/vars.fd"
+          truncate -s 40G "$WORK/disk.raw"
+          start=$(date +%s)
+          timeout 75m qemu-system-x86_64 -enable-kvm -cpu host -machine q35 -smp 4 -m 6144 \
+            -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
+            -drive if=pflash,format=raw,file="$WORK/vars.fd" \
+            -drive file="$WORK/disk.raw",format=raw,if=virtio \
+            -drive file="$WORK/test.iso",media=cdrom,readonly=on \
+            -boot order=d -nic none -display none -no-reboot \
+            -serial file:"$WORK/serial.log"
+          echo "install took $(( $(date +%s) - start )) s" | tee -a "$GITHUB_STEP_SUMMARY"
+          tail -n 40 "$WORK/serial.log"
+      - name: Install test - check the apps on the installed disk
+        if: inputs.install_test && inputs.arch == 'amd64'
+        run: |
+          loop=$(sudo losetup -fP -r --show "$WORK/disk.raw")
+          sudo lsblk -o NAME,SIZE,FSTYPE "$loop"
+          sudo mkdir -p /mnt/inst
+          root=""
+          for p in "$loop"p*; do
+            sudo mount -o ro "$p" /mnt/inst 2>/dev/null || continue
+            if sudo test -d /mnt/inst/ostree/deploy; then root=$p; break; fi
+            sudo umount /mnt/inst
+          done
+          [ -n "$root" ] || { echo "no ostree root on the installed disk"; exit 1; }
+          var=$(sudo find /mnt/inst/ostree/deploy -mindepth 2 -maxdepth 2 -name var -type d | head -n1)
+          echo "stateroot var: $var"
+          sudo cat "$var/log/lucent/apps-install.log" || true
+          fail=0
+          while read -r app; do
+            if sudo test -d "$var/lib/flatpak/app/$app"; then echo "ok      $app"; else echo "MISSING $app"; fail=1; fi
+          done < <(grep -Ev '^\s*(#|$)' system_files/usr/share/lucent/flatpaks.list)
+          sudo ls "$var/lib/flatpak/runtime"
+          # Unpacked files must carry real SELinux labels, not unlabeled_t.
+          f=$(sudo find "$var/lib/flatpak/app" -type f -name metadata | head -n1)
+          label=$(sudo getfattr --only-values -n security.selinux "$f" 2>/dev/null | tr -d '\0' || true)
+          echo "SELinux label of $f: ${label:-none}"
+          case "$label" in ""|*unlabeled_t*) echo "not labelled"; fail=1 ;; esac
+          { echo "### Install test"; echo "apps on disk: $(sudo ls "$var/lib/flatpak/app" | wc -l), label: ${label:-none}"; } >> "$GITHUB_STEP_SUMMARY"
+          sudo umount /mnt/inst
+          sudo losetup -d "$loop"
+          exit $fail
+      - name: Install test - logs
+        if: always() && inputs.install_test && inputs.arch == 'amd64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-test-serial-log
+          path: ${{ env.WORK }}/serial.log
+          if-no-files-found: ignore
+          retention-days: 7
