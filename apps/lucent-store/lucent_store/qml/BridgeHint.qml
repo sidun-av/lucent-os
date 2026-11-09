@@ -3,14 +3,10 @@
 import QtQuick
 import QtQuick.Layouts
 
-Rectangle {
+Well {                         // sunken, so it reads as a note, not another app card
     id: h
     property bool large: false
-    readonly property var tk: store.t
     radius: large ? tk.radiusCard : tk.radiusRow
-    color: tk.card2
-    border.width: 1
-    border.color: tk.line
     implicitHeight: lay.implicitHeight + (large ? 36 : 20)
     RowLayout {
         id: lay

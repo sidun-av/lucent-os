@@ -37,30 +37,33 @@ Item {
             else if (a.state_ === "installed" || a.state_ === "system") a.open()
         }
     }
-    Rectangle {
+    Column {                 // "Installing 45%" over a recessed progress track (pebble .prog)
         id: bar
         visible: a.busy
-        anchors.fill: parent
-        radius: store.t.radiusButton
-        color: a.tk.field
-        border.width: 1
-        border.color: a.tk.line
-        clip: true
-        Rectangle {
-            width: Math.max(parent.radius * 2, parent.width * a.progress)
-            height: parent.height
-            radius: parent.radius
-            color: a.tk.accentSoft
-            Behavior on width { NumberAnimation { duration: 180 } }
-        }
+        anchors.verticalCenter: parent.verticalCenter
+        width: parent.width
+        spacing: 6
         Text {
-            anchors.centerIn: parent
-            font.pointSize: store.t.fontCaption
+            font.pointSize: store.t.fontMeta
             font.weight: Font.DemiBold
-            color: a.tk.accent
+            color: a.tk.accentText
             text: (a.state_ === "removing" ? l10n.text("Removing…")
                  : a.state_ === "updating" ? l10n.text("Updating…") : l10n.text("Installing…"))
                   + (a.progress > 0 && a.state_ !== "removing" ? "  " + Math.round(a.progress * 100) + "%" : "")
+        }
+        Well {
+            width: parent.width
+            height: 10
+            radius: 6
+            strong: true
+            Rectangle {
+                width: Math.max(10, parent.width * (a.state_ === "removing" ? 1 : a.progress))
+                height: parent.height
+                radius: parent.radius
+                color: a.tk.accent
+                opacity: a.state_ === "removing" ? 0.45 : 1
+                Behavior on width { NumberAnimation { duration: 180 } }
+            }
         }
     }
 }

@@ -36,7 +36,7 @@ Column {
                 visible: s.pill !== ""
                 anchors.verticalCenter: parent.verticalCenter
                 height: 26
-                radius: height / 2
+                radius: store.t.radiusChip
                 width: pr.implicitWidth + 20
                 color: s.tk.warnSoft
                 Row {

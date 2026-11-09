@@ -8,13 +8,10 @@ ScrollPage {
     readonly property var tk: store.t
 
     Item { width: 1; height: 10 }
-    Rectangle {
+    Raised {
         width: parent.width
         height: 84
-        radius: store.t.radiusRow
-        color: page.tk.card
-        border.width: 1
-        border.color: page.tk.line
+        radius: store.t.radiusCard
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 22
@@ -70,13 +67,10 @@ ScrollPage {
         }
     }
     Item { width: 1; height: 28 }
-    Rectangle {
+    Well {
         width: parent.width
         height: 76
-        radius: store.t.radiusRow
-        color: page.tk.card2
-        border.width: 1
-        border.color: page.tk.line
+        radius: store.t.radiusCard
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 22

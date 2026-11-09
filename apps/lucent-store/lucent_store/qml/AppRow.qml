@@ -2,7 +2,7 @@
 import QtQuick
 import QtQuick.Layouts
 
-Rectangle {
+Raised {
     id: r
     property var app
     property string meta: ""              // extra line (size, version, ...)
@@ -10,9 +10,7 @@ Rectangle {
     property bool showUpdate: false
     readonly property var tk: store.t
     radius: store.t.radiusRow
-    color: tk.card
-    border.width: 1
-    border.color: area.containsMouse ? tk.lineStrong : tk.line
+    lifted: area.containsMouse
     implicitHeight: Math.max(92, lay.implicitHeight + 32)
 
     MouseArea { id: area; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor

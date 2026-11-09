@@ -14,7 +14,7 @@ Popup {
     modal: true
     padding: 26
     Overlay.modal: Rectangle { color: p.tk.scrim }
-    background: Rectangle { radius: store.t.radiusRow; color: p.tk.winBg; border.width: 1; border.color: p.tk.line }
+    background: Raised { radius: store.t.radiusPanel; lifted: true; fillTop: p.tk.winBg; fillBottom: p.tk.winBg }
     contentItem: Column {
         spacing: 10
         Text { width: parent.width; text: l10n.text("Remove {name}?").replace("{name}", p.appName)

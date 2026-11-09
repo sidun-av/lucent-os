@@ -38,12 +38,22 @@ ApplicationWindow {
         else page = startPage
     }
 
+    Image {                  // fine grain over the matte surface (pebble .matte::before)
+        anchors.fill: parent
+        source: "../icons/" + tk.grain
+        fillMode: Image.Tile
+        opacity: tk.grainOpacity
+        smooth: false
+    }
     RowLayout {
         anchors.fill: parent
         spacing: 0
         Sidebar {
             Layout.fillHeight: true
             Layout.preferredWidth: store.t.sidebarWidth
+            Layout.leftMargin: store.t.sideInset
+            Layout.topMargin: store.t.sideInset
+            Layout.bottomMargin: store.t.sideInset
         }
         ColumnLayout {
             Layout.fillWidth: true

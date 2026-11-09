@@ -49,9 +49,17 @@ Item {
         width: Math.min(store.t.searchWidth, h.width * 0.42)
         height: store.t.searchHeight
         radius: store.t.radiusField
-        color: h.tk.field
-        border.width: input.activeFocus ? 2 : 0
-        border.color: h.tk.accentSoft
+        color: input.activeFocus ? h.tk.raised : h.tk.well
+        border.width: input.activeFocus ? 2 : 1
+        border.color: input.activeFocus ? h.tk.accent : h.tk.wellRing
+        Rectangle {          // focus halo (0 0 0 6px accent-soft)
+            visible: input.activeFocus
+            anchors.fill: parent; anchors.margins: -5
+            radius: parent.radius + 5
+            color: "transparent"
+            border.width: 4
+            border.color: h.tk.accentSoft
+        }
         Sym { id: lens; name: "search"; size: 18; tint: h.tk.text3; x: 13; anchors.verticalCenter: parent.verticalCenter }
         TextField {
             id: input

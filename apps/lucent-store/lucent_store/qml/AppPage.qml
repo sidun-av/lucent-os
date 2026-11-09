@@ -34,7 +34,7 @@ ScrollPage {
                 Rectangle {
                     visible: page.d.verified
                     anchors.verticalCenter: parent.verticalCenter
-                    height: 26; radius: height / 2; width: vr.implicitWidth + 20
+                    height: 26; radius: store.t.radiusChip; width: vr.implicitWidth + 20
                     color: page.tk.accentSoft
                     Row { id: vr; anchors.centerIn: parent; spacing: 6
                         Sym { name: "shield"; size: 15; tint: page.tk.accent; anchors.verticalCenter: parent.verticalCenter }
@@ -91,8 +91,8 @@ ScrollPage {
             ].filter(function (x) { return x })
             Rectangle {
                 required property var modelData
-                height: 32; radius: store.t.radiusItem; width: ft.implicitWidth + 24
-                color: page.tk.field
+                height: 30; radius: store.t.radiusChip; width: ft.implicitWidth + 22
+                color: page.tk.wellStrong
                 Text { id: ft; anchors.centerIn: parent; text: modelData; font.pointSize: store.t.fontCaption; color: page.tk.text2 }
             }
         }
@@ -131,7 +131,7 @@ ScrollPage {
             height: 360
             width: img.status === Image.Ready ? Math.min(height * img.sourceSize.width / Math.max(1, img.sourceSize.height), 900) : 600
             radius: store.t.radiusShot
-            color: page.tk.field
+            color: page.tk.well
             clip: true
             Image {
                 id: img
@@ -179,15 +179,12 @@ ScrollPage {
             color: page.tk.text
             text: page.d.description || ("<p>" + (page.d.summary || "") + "</p>")
         }
-        Rectangle {
+        Raised {
             visible: !page.d.system
             Layout.preferredWidth: 420
             Layout.alignment: Qt.AlignTop
             implicitHeight: permCol.implicitHeight + 36
-            radius: store.t.radiusRow
-            color: page.tk.card
-            border.width: 1
-            border.color: page.tk.line
+            radius: store.t.radiusCard
             Column {
                 id: permCol
                 x: 20; y: 18

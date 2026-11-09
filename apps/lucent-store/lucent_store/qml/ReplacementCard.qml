@@ -2,14 +2,12 @@
 import QtQuick
 import QtQuick.Layouts
 
-Rectangle {
+Raised {
     id: c
     property var card
     readonly property var tk: store.t
     radius: store.t.radiusCard
-    color: tk.card
-    border.width: 1
-    border.color: area.containsMouse ? tk.lineStrong : tk.line
+    lifted: area.containsMouse
     implicitHeight: col.implicitHeight + 2 * tk.cardPadY
     implicitWidth: 400
 
@@ -32,7 +30,7 @@ Rectangle {
             Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 radius: store.t.radiusChip
-                color: c.tk.field
+                color: c.tk.wellStrong
                 width: wn.implicitWidth + 20
                 height: wn.implicitHeight + 6
                 Text { id: wn; anchors.centerIn: parent; text: c.card.windows; font.pointSize: store.t.fontSmall

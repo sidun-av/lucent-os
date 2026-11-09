@@ -2,14 +2,12 @@
 import QtQuick
 import QtQuick.Layouts
 
-Rectangle {
+Raised {
     id: c
     property var app
     readonly property var tk: store.t
     radius: store.t.radiusRow
-    color: tk.card
-    border.width: 1
-    border.color: area.containsMouse ? tk.lineStrong : tk.line
+    lifted: area.containsMouse
     implicitHeight: 92
     MouseArea { id: area; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                 onClicked: win.openApp(c.app.id) }

@@ -1,18 +1,16 @@
-// Left column: catalogue categories and "My apps" (lucent.css .side, .si).
+// Left column: catalogue categories and "My apps", a recessed well
+// (pebble.css .side) with raised selection (.si.sel).
 import QtQuick
 
-Rectangle {
+Well {
     id: side
-    readonly property var tk: store.t
-    color: tk.side
-    Rectangle { anchors.right: parent.right; width: 1; height: parent.height; color: side.tk.line }
 
     Column {
         anchors.fill: parent
-        anchors.topMargin: 14
-        anchors.leftMargin: 12
-        anchors.rightMargin: 13
-        spacing: 2
+        anchors.topMargin: 12
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
+        spacing: 1
 
         SideHeading { text: l10n.text("Catalog"); first: true }
         SideItem { icon: "star"; text: l10n.text("Home"); target: "home"

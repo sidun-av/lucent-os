@@ -1,7 +1,7 @@
 // A short message at the bottom: an app finished installing, or what went wrong.
 import QtQuick
 
-Rectangle {
+Raised {
     id: t
     property string kind: "done"
     property string title
@@ -13,10 +13,8 @@ Rectangle {
     y: parent.height - height - 28
     width: Math.min(620, Math.max(360, col.implicitWidth + 90))
     height: col.implicitHeight + 28
-    radius: store.t.radiusShot
-    color: tk.card
-    border.width: 1
-    border.color: tk.lineStrong
+    radius: store.t.radiusCard
+    lifted: true
     opacity: 0
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: 200 } }
