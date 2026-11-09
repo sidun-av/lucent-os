@@ -31,15 +31,19 @@ install -m 0644 "$P/guest/kwin.py" "$BIN/kwin.py"
 restorecon -R "$BIN" 2>/dev/null || true
 FAILED=0
 
-exec 3<>/dev/virtio-ports/org.lucent.acceptance
+PORT=/dev/virtio-ports/org.lucent.acceptance
 
 up() { cut -d' ' -f1 /proc/uptime; }
 log() { printf '[%8s] %s\n' "$(up)" "$*" >> "$LOGS/acceptance.log"; }
 oneline() { tr '\n\t' '  ' | cut -c1-700; }
 ctl() {
-    printf '%s\n' "$*" >&3
+    # The port is opened per request, so no program the test starts inherits
+    # it (one in another SELinux domain would log an AVC for it).
     local reply=""
+    exec 3<>"$PORT"
+    printf '%s\n' "$*" >&3
     IFS= read -r -t 180 reply <&3 || reply=TIMEOUT
+    exec 3>&-
     local req="$*"
     log "ctl: ${req:0:160} -> $reply"
     printf '%s' "$reply"
@@ -444,8 +448,10 @@ ls -la "$APPDIR" > "$LOGS/applications.txt" 2>&1
 # template's (/var/lib/lucent-bridge: var_lib_t).
 prefix=$(ls -d "$HOMEDIR"/.local/share/lucent-bridge/prefixes/notepadplusplus-* 2>/dev/null | head -n1)
 if [ -n "$prefix" ]; then
-    restorecon -R -n -v "$prefix" > "$LOGS/prefix-relabel.txt" 2>&1
-    find "$prefix" -maxdepth 3 -printf '%Z\n' 2>/dev/null | cut -d: -f3 | sort | uniq -c > "$LOGS/prefix-labels.txt"
+    # matchpathcon runs in our own domain (restorecon would switch to
+    # setfiles_t, which may not write our log files: an AVC of the test's own).
+    find "$prefix" -print0 | xargs -0 matchpathcon -V 2>&1 | grep -v ' verified\.$' > "$LOGS/prefix-relabel.txt"
+    find "$prefix" -printf '%Z\n' 2>/dev/null | cut -d: -f3 | sort | uniq -c > "$LOGS/prefix-labels.txt"
     n=$(grep -c . "$LOGS/prefix-relabel.txt")
     if ((n == 0)); then
         record prefix.selinux-labels PASS "$prefix: labels as policy expects ($(oneline < "$LOGS/prefix-labels.txt"))"
