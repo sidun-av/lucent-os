@@ -1,5 +1,99 @@
-# Firmware files that kernel drivers of the core classes (Wi-Fi, Ethernet,
-# Bluetooth, audio, GPU) may request but that NO Fedora package ships.
-# The hardware audit (hw_audit.py) fails if a core firmware file is missing
-# and is not listed here, or if it is listed here but Fedora now ships it.
-# Format: <glob on the name modinfo prints> <reason>
+# Firmware files that drivers of the core classes (Wi-Fi, Ethernet,
+# Bluetooth, audio, GPU) may request but that are NOT in the image, and why.
+# The hardware audit (hw_audit.py, CI: hardware-audit.yml) fails when a core
+# firmware file is missing and is not listed here, or is listed as "absent"
+# but a Fedora package ships it after all.
+#
+# Format: <glob on the name `modinfo -F firmware` prints> <kind> <reason>
+#   absent    no Fedora 45 package ships it (checked with dnf repoquery on
+#             the full Fedora + updates file lists, 2026-11-09)
+#   excluded  Fedora ships it, Lucent leaves it out on purpose
+# Versions a driver can do without (it tries several firmware API versions
+# and one is installed) are not listed: hw_audit.py's ALTERNATIVES handle them.
+
+# --- Wi-Fi -------------------------------------------------------------------
+b43/*                       absent  Broadcom b43 (2005-2012 chips): firmware must be cut from Broadcom's proprietary driver with b43-fwcutter; not redistributable (docs/hardware.md)
+b43legacy/*                 absent  as b43: Broadcom's proprietary firmware, not redistributable
+brcm/brcmfmac4355*          absent  Apple-only Broadcom chips (T2 Macs): firmware ships only with macOS
+brcm/brcmfmac4364*          absent  Apple-only Broadcom chips (T2 Macs): firmware ships only with macOS
+brcm/brcmfmac4377*          absent  Apple-only Broadcom chips (T2 Macs): firmware ships only with macOS
+brcm/brcmfmac4378*          absent  Apple-only Broadcom chips (T2/Apple silicon Macs): firmware ships only with macOS
+brcm/brcmfmac4387*          absent  Apple-only Broadcom chips (Apple silicon Macs): firmware ships only with macOS
+brcm/brcmfmac*-pcie.*.clm_blob  absent  per-board regulatory blobs the driver looks for first (by board name); the generic file is used when absent
+brcm/brcmfmac*-pcie.*.txcap_blob absent  per-board transmit-power blobs, Apple machines only; optional
+brcm/brcmfmac*-pcie.txt     absent  per-board NVRAM; the driver uses the board's EFI/ACPI copy on PCs
+brcm/brcmfmac*-sdio.*.bin   absent  per-board SDIO firmware for single-board computers; not PC hardware
+brcm/brcmfmac43430b0-sdio.bin absent  SDIO module on ARM boards, firmware not in linux-firmware
+brcm/brcmfmac43439-sdio.*   absent  Raspberry Pi Pico W / ARM boards; firmware ships with the board vendor's images
+brcm/brcmfmac43439-sdio.bin absent  Raspberry Pi Pico W / ARM boards; firmware ships with the board vendor's images
+brcm/brcmfmac43456-sdio.bin absent  Raspberry Pi 4 style SDIO module; firmware ships with the board vendor's images
+brcm/brcmfmac4359-*         absent  4359 (rare, mostly ARM boards): firmware not in linux-firmware
+brcm/brcmfmac4359c-pcie.bin absent  4359 (rare, mostly ARM boards): firmware not in linux-firmware
+brcm/brcmfmac4365b-pcie.bin absent  router chip (4365 B0): firmware not in linux-firmware
+brcm/brcmfmac4365c-pcie.bin absent  router chip (4365 C0): firmware not in linux-firmware
+brcm/brcmfmac43752-*        absent  rare BCM43752 module: firmware not in linux-firmware
+ath6k/*                     absent  Atheros AR6003/AR6004 SDIO/USB (2010-2013 phones and boards): board data and RAM firmware never released for these revisions
+fw.ram.bin                  absent  ath6kl_usb (AR6004 USB): firmware never released
+ath10k/QCA6174/hw2.1/firmware-4.bin absent  QCA6174 hw2.1 (early revision): no firmware in linux-firmware; hw3.0, the common retail card, is present
+wil6210*                    absent  Qualcomm 60 GHz (WiGig) Wi-Fi: firmware never released for redistribution
+wil6436*                    absent  Qualcomm 60 GHz (WiGig) Wi-Fi: firmware never released for redistribution
+wlan/prima/*                absent  Qualcomm phone SoCs (wcn36xx): per-device calibration data from the phone's own partition
+mrvl/pcie8766_uapsta.bin    absent  Marvell 8766 (2012): firmware not in linux-firmware
+mrvl/pcie8897_uapsta_a0.bin absent  Marvell 8897 A0 stepping: firmware not in linux-firmware
+mrvl/sd8786_uapsta.bin      absent  Marvell 8786 SDIO (2010): firmware never released
+mrvl/sd8987_uapsta.bin      absent  NXP 8987 SDIO (ARM boards): firmware ships from NXP's own repository
+mrvl/sdiouart8997_combo_v4.bin absent  Marvell 8997 SDIO+UART variant (ARM boards): firmware not in linux-firmware
+mt7603_e*.bin               absent  MediaTek MT7603 (router SoC Wi-Fi), not PC hardware; firmware not in linux-firmware
+mt7628_e*.bin               absent  MediaTek MT7628 (router SoC Wi-Fi), not PC hardware; firmware not in linux-firmware
+mwl8k/*_8363.fw             absent  Marvell 88W8363 (2008): firmware never released
+rs9113_wlan_qspi.rps        absent  Redpine RS9113 (industrial modules): firmware not in linux-firmware
+zd1211/*                    absent  ZyDAS ZD1211 USB (2005); Fedora dropped zd1211-firmware
+rtlwifi/rtl8723bu_bt.bin    absent  optional Bluetooth coexistence patch for RTL8723BU; the Wi-Fi part works without it
+# Intel: pre-production steppings and chips not released yet. Retail
+# AX201/AX211/AX411/BE200/BE201 firmware is present (the audit checks that).
+iwlwifi-bz-a0-*  absent  Intel has published no firmware for this chip or stepping in linux-firmware (pre-production or not released yet); retail AX2xx/BE2xx firmware is present and checked
+iwlwifi-ma-a0-*  absent  Intel has published no firmware for this chip or stepping in linux-firmware (pre-production or not released yet); retail AX2xx/BE2xx firmware is present and checked
+iwlwifi-sc-a0-*  absent  Intel has published no firmware for this chip or stepping in linux-firmware (pre-production or not released yet); retail AX2xx/BE2xx firmware is present and checked
+iwlwifi-sc2-a0-*  absent  Intel has published no firmware for this chip or stepping in linux-firmware (pre-production or not released yet); retail AX2xx/BE2xx firmware is present and checked
+iwlwifi-dr-a0-*  absent  Intel has published no firmware for this chip or stepping in linux-firmware (pre-production or not released yet); retail AX2xx/BE2xx firmware is present and checked
+iwlwifi-gl-b0-*  absent  Intel has published no firmware for this chip or stepping in linux-firmware (pre-production or not released yet); retail AX2xx/BE2xx firmware is present and checked
+
+# --- Bluetooth -----------------------------------------------------------------
+BCM2033-*                   absent  Broadcom BCM2033 USB dongles (2001): firmware never redistributable
+bfubase.frm                 absent  AVM BlueFRITZ! USB (2002): firmware never redistributable
+brcm/brcmbt43*              absent  Apple-only Broadcom Bluetooth (T2/Apple silicon Macs): firmware ships only with macOS
+mediatek/mt7927/*           absent  MediaTek MT7927 (Wi-Fi 7, 2025) Bluetooth: firmware not in linux-firmware yet
+rtl_bt/rtl8723cs_*          absent  RTL8723CS: UART module on ARM boards; firmware not in linux-firmware
+rtl_bt/rtl8723ds_*          absent  RTL8723DS: SDIO/UART module on ARM boards; firmware not in linux-firmware
+rtl_bt/rtl8852bs_*          absent  RTL8852BS: SDIO module on ARM boards; firmware not in linux-firmware
+
+# --- Ethernet --------------------------------------------------------------------
+rtl_nic/rtl8157-1.fw        absent  Realtek RTL8157 (5 GbE USB, 2025): optional firmware patch not in linux-firmware yet; r8152 runs the chip without it
+rtl_nic/rtl8159-1.fw        absent  Realtek RTL8159 (10 GbE USB, 2025): optional firmware patch not in linux-firmware yet; r8152 runs the chip without it
+sun/cassini.bin             absent  Sun Cassini (2003 server NIC): firmware not in linux-firmware
+tehuti/aqr105-tn40xx.cld    absent  Tehuti TN40xx 10 GbE PHY firmware: not redistributable
+mellanox/*                  excluded  Mellanox Spectrum data-centre switch ASICs (107 MB): not PC hardware
+netronome/*                 excluded  Netronome Agilio data-centre SmartNICs: not PC hardware
+qed/*                       excluded  QLogic/Marvell FastLinQ 25-100 GbE server adapters (10 MB): not PC hardware
+
+# --- Audio ------------------------------------------------------------------------
+6fire/*                     absent  TerraTec DMX 6Fire USB (2009): firmware must be extracted from the Windows driver
+riptide.hex                 absent  Conexant Riptide (1999 PCI): firmware never redistributable
+rt5677_elf_vad              absent  Chromebook hot-word DSP firmware; ships only in ChromeOS
+intel/avs/*                 absent  Intel AVS driver firmware for 2019+ platforms is not public; these laptops use SOF (alsa-sof-firmware), which Fedora's kernel picks by default
+intel/fcl/dsp_basefw.bin    absent  Intel AVS (see intel/avs/*); not public, SOF is used instead
+
+# --- GPU (amdgpu) -------------------------------------------------------------------
+amdgpu/*_cap.bin            absent  SR-IOV virtualisation firmware for data-centre GPUs (Instinct, Radeon Pro V); not needed on desktops
+amdgpu/ip_discovery.bin     absent  debug override for the GPU's built-in IP discovery table; never shipped
+amdgpu/cyan_skillfish_gpu_info.bin absent  Cyan Skillfish (embedded APU): IP discovery replaces this file
+amdgpu/gc_11_0_0_toc.bin    absent  optional table-of-contents blob for early RDNA3 firmware; the shipped firmware works without it
+amdgpu/gc_11_0_3_mes.bin    absent  old MES name for RDNA3 Navi 32; the driver loads gc_11_0_3_mes_2.bin (present)
+amdgpu/gc_11_5_[4-9]_*      absent  new or unreleased APU: AMD has not published this firmware in linux-firmware yet
+amdgpu/gc_12_1_*            absent  new or unreleased GPU: AMD has not published this firmware in linux-firmware yet
+amdgpu/psp_15_0_[5-9]_*     absent  security processor of new or unreleased APUs: not in linux-firmware yet
+amdgpu/sdma_6_4_*           absent  DMA engine of new or unreleased APUs: not in linux-firmware yet
+amdgpu/sdma_7_1_*           absent  DMA engine of a new or unreleased GPU: not in linux-firmware yet
+amdgpu/vcn_5_0_2.bin        absent  video engine of a new or unreleased GPU: not in linux-firmware yet
+amdgpu/vpe_2_2_*            absent  video processing engine of a new or unreleased APU: not in linux-firmware yet
+amdgpu/dcn_4_2_1_dmcub.bin  absent  display engine of a new or unreleased APU: not in linux-firmware yet

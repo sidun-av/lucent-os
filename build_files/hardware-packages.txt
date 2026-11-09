@@ -10,6 +10,9 @@
 linux-firmware              any     firmware for most Wi-Fi, Bluetooth, Ethernet, GPU and audio chips
 wireless-regdb              any     Wi-Fi regulatory database (which channels are allowed where)
 alsa-sof-firmware           any     audio DSP firmware for most Intel (2019+) and many AMD laptops
+alsa-firmware               any     firmware for older and pro sound cards (AudioScience, Echo, Digigram, ...)
+dvb-firmware                any     USB TV tuner sticks (DVB-T/C/S)
+b43-openfwwf                any     open firmware for the oldest Broadcom Wi-Fi (BCM4306/4311/4318, 802.11g)
 alsa-ucm                    any     audio profiles (speakers/headset/HDMI routing) for laptop sound cards
 intel-vsc-firmware          x86_64  Intel Visual Sensing Controller firmware: the MIPI webcam on many 2022+ laptops
 amd-ucode-firmware          x86_64  AMD CPU microcode (security and stability fixes)
@@ -26,22 +29,26 @@ NetworkManager-openvpn      any     OpenVPN (common company VPN)
 plasma-nm-openvpn           any     OpenVPN in the network settings
 NetworkManager-openconnect  any     Cisco AnyConnect / GlobalProtect / Pulse / Fortinet compatible VPN
 plasma-nm-openconnect       any     OpenConnect in the network settings
-NetworkManager-vpnc         any     Cisco IPsec VPN
-plasma-nm-vpnc              any     Cisco IPsec VPN in the network settings
+NetworkManager-l2tp         any     L2TP/IPsec VPN (the one built into Windows)
+plasma-nm-l2tp              any     L2TP/IPsec in the network settings
+NetworkManager-sstp         any     Microsoft SSTP VPN
+plasma-nm-sstp              any     SSTP in the network settings
+NetworkManager-libreswan    any     IPsec/IKEv2 VPN (also used by L2TP/IPsec)
+plasma-nm-openswan          any     IPsec/IKEv2 in the network settings
 wireguard-tools             any     WireGuard VPN (NetworkManager imports .conf files natively)
 
 # --- Bluetooth -------------------------------------------------------------
 bluez                       any     Bluetooth
 bluez-obexd                 any     send and receive files over Bluetooth
+bluez-hid2hci               any     Bluetooth dongles that start in keyboard/mouse-only mode (some Dell, Logitech)
 
 # --- Sound -----------------------------------------------------------------
 pipewire-pulseaudio         any     sound server (PulseAudio-compatible)
 wireplumber                 any     picks the right speakers/headset/HDMI output automatically
 
 # --- Graphics and hardware video decode ------------------------------------
-mesa-dri-drivers            any     OpenGL for Intel, AMD and NVIDIA (nouveau)
+mesa-dri-drivers            any     OpenGL, and VA-API video decode on AMD and NVIDIA (nouveau); Fedora 45 merged mesa-va-drivers into it
 mesa-vulkan-drivers         any     Vulkan for Intel (ANV), AMD (RADV) and NVIDIA (NVK)
-mesa-va-drivers             any     VA-API video decode on AMD and NVIDIA (nouveau)
 libva-intel-media-driver    x86_64  VA-API video decode on Intel GPUs (Broadwell, 2014, and newer)
 switcheroo-control          any     laptops with two GPUs: "run on discrete GPU" in the app menu
 
@@ -61,7 +68,7 @@ fprintd                     any     fingerprint readers (libfprint-supported)
 fprintd-pam                 any     log in and unlock with a fingerprint
 upower                      any     battery level, keyboard backlight
 thermald                    x86_64  Intel thermal management (avoids overheating/throttling on Intel laptops)
-game-devices-udev           any     game controllers (Xbox, PlayStation, Switch, 8BitDo) usable without root
+steam-devices               any     game controllers (Steam, PlayStation, Switch, 8BitDo) and VR headsets usable without root
 
 # --- Printers and scanners ---------------------------------------------------
 cups                        any     printing
@@ -69,12 +76,23 @@ cups-filters                any     printing filters
 ipp-usb                     any     USB printers and scanners that speak IPP-over-USB (driverless)
 hplip                       any     HP printers
 gutenprint-cups             any     Canon, Epson and many other inkjets
-epson-inkjet-printer-escpr  any     Epson inkjets (ESC/P-R)
-epson-inkjet-printer-escpr2 any     newer Epson inkjets (ESC/P-R 2)
-foomatic                    any     printer driver database (older lasers and inkjets)
-foomatic-db-ppds            any     printer descriptions for foomatic
+cups-pk-helper              any     add and change printers from the desktop without a terminal
+foomatic                    any     printer driver engine for older lasers and inkjets
+foomatic-db                 any     foomatic's printer database (PPDs are generated from it on demand)
 splix                       any     Samsung and Xerox SPL lasers
 printer-driver-brlaser      any     Brother lasers
 ptouch-driver               any     Brother P-touch label printers
 sane-airscan                any     network and IPP-over-USB scanners (driverless)
 sane-backends-drivers-scanners any  USB scanners (Canon, Epson, HP and others)
+
+# Deliberately NOT here:
+# - foomatic-db-ppds (86 MB): pre-generated PPDs for old printers;
+#   foomatic-db above generates the same PPD when such a printer is added.
+# - epson-inkjet-printer-escpr/escpr2: not in Fedora (Epson's licence/RPM
+#   Fusion); Epson inkjets since ~2015 print driverless (IPP Everywhere),
+#   older ones through gutenprint.
+# - mlxsw_spectrum/netronome/qed/liquidio/mrvlprestera firmware
+#   (~200 MB): data-centre switches and server NICs, not PC hardware
+#   (tests/hardware/firmware-allowlist.txt, "excluded").
+# - intel-vpl-gpu-rt (12 MB): Intel Quick Sync *encode* runtime for apps
+#   like OBS; video playback decodes through VA-API (libva-intel-media-driver).

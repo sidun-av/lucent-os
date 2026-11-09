@@ -74,6 +74,125 @@ ALTERNATIVES = [
     (re.compile(r"^(ath1[01]k/.+/)board-2\.bin$"), r"\1board*.bin"),
 ]
 
+# Files that must exist for a device class to work: drivers, firmware and
+# user-space pieces that a package rename or a base-image change could drop
+# without any firmware reference noticing. (name, arch, [globs]; any match).
+M = "/usr/lib/modules/*/kernel/"
+
+
+@dataclasses.dataclass
+class Capability:
+    name: str
+    arch: str      # any | x86_64 | aarch64
+    globs: list
+
+
+CAPABILITIES = [Capability(*c) for c in [
+    # Wi-Fi drivers for the common laptop and desktop chips
+    ("Wi-Fi: Intel (iwlwifi)", "any", [M + "drivers/net/wireless/intel/iwlwifi/iwlwifi.ko*"]),
+    ("Wi-Fi: Realtek (rtw88/rtw89)", "any", [M + "drivers/net/wireless/realtek/rtw89/rtw89_8852be.ko*"]),
+    ("Wi-Fi: MediaTek (mt7921/mt7925)", "any", [M + "drivers/net/wireless/mediatek/mt76/mt7921/mt7921e.ko*"]),
+    ("Wi-Fi: Qualcomm (ath11k/ath12k)", "any", [M + "drivers/net/wireless/ath/ath12k/ath12k*.ko*"]),
+    ("Wi-Fi: Broadcom (brcmfmac)", "any", [M + "drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko*"]),
+    ("Wi-Fi regulatory database", "any", ["/usr/lib/firmware/regulatory.db*"]),
+    ("Wi-Fi in NetworkManager", "any", ["/usr/lib64/NetworkManager/*/libnm-device-plugin-wifi.so"]),
+    # Ethernet: onboard, USB and USB-C docks
+    ("Ethernet: Realtek onboard (r8169)", "any", [M + "drivers/net/ethernet/realtek/r8169.ko*"]),
+    ("Ethernet: Intel onboard (e1000e/igc)", "any", [M + "drivers/net/ethernet/intel/igc/igc.ko*"]),
+    ("Ethernet: Realtek USB/dock (r8152)", "any", [M + "drivers/net/usb/r8152.ko*"]),
+    ("Ethernet: ASIX/AX88179 USB/dock", "any", [M + "drivers/net/usb/ax88179_178a.ko*"]),
+    ("Ethernet: USB CDC (phones, docks)", "any", [M + "drivers/net/usb/cdc_ncm.ko*"]),
+    ("Mobile broadband: MBIM/QMI modems", "any", [M + "drivers/net/usb/cdc_mbim.ko*"]),
+    ("Mobile broadband: PCIe 5G modems (MHI)", "any", [M + "drivers/net/wwan/mhi_wwan_mbim.ko*"]),
+    # Bluetooth
+    ("Bluetooth: USB adapters (btusb)", "any", [M + "drivers/bluetooth/btusb.ko*"]),
+    ("Bluetooth: Intel firmware", "any", ["/usr/lib/firmware/intel/ibt-*"]),
+    ("Bluetooth: Realtek firmware", "any", ["/usr/lib/firmware/rtl_bt/*"]),
+    ("Bluetooth: MediaTek firmware", "any", ["/usr/lib/firmware/mediatek/BT_RAM_CODE_*"]),
+    # Sound
+    ("Sound: HD Audio (snd-hda-intel)", "any", [M + "sound/hda/controllers/snd-hda-intel.ko*",
+                                                M + "sound/pci/hda/snd-hda-intel.ko*"]),
+    ("Sound: Intel SOF laptops", "x86_64", [M + "sound/soc/sof/intel/snd-sof-pci-intel-tgl.ko*"]),
+    ("Sound: Intel SOF firmware", "any", ["/usr/lib/firmware/intel/sof*/*"]),
+    ("Sound: AMD ACP (SOF firmware)", "any", ["/usr/lib/firmware/amd/sof/*"]),
+    ("Sound: Cirrus smart amplifiers", "any", ["/usr/lib/firmware/cirrus/*"]),
+    ("Sound: TI smart amplifiers (tas2781)", "any", [M + "sound/hda/codecs/side-codecs/snd-hda-scodec-tas2781*.ko*",
+                                                     M + "sound/pci/hda/snd-hda-scodec-tas2781*.ko*"]),
+    ("Sound: USB headsets and interfaces", "any", [M + "sound/usb/snd-usb-audio.ko*"]),
+    ("Sound: UCM profiles (speaker/headset/HDMI routing)", "any", ["/usr/share/alsa/ucm2/ucm.conf"]),
+    ("Sound: PipeWire with PulseAudio compatibility", "any", ["/usr/bin/pipewire-pulse"]),
+    # Graphics and hardware video decode
+    ("GPU: Intel kernel drivers (i915/xe)", "x86_64", [M + "drivers/gpu/drm/xe/xe.ko*"]),
+    ("GPU: AMD kernel driver (amdgpu)", "any", [M + "drivers/gpu/drm/amd/amdgpu/amdgpu.ko*"]),
+    ("GPU: NVIDIA kernel driver (nouveau)", "any", [M + "drivers/gpu/drm/nouveau/nouveau.ko*"]),
+    ("GPU: NVIDIA GSP firmware (Turing and newer)", "any", ["/usr/lib/firmware/nvidia/*/gsp/*"]),
+    ("OpenGL: Intel (iris)", "x86_64", ["/usr/lib64/dri/iris_dri.so"]),
+    ("OpenGL: AMD (radeonsi)", "any", ["/usr/lib64/dri/radeonsi_dri.so"]),
+    ("OpenGL: NVIDIA (nouveau)", "any", ["/usr/lib64/dri/nouveau_dri.so"]),
+    ("Vulkan: Intel (ANV)", "x86_64", ["/usr/share/vulkan/icd.d/intel_icd.*.json"]),
+    ("Vulkan: AMD (RADV)", "any", ["/usr/share/vulkan/icd.d/radeon_icd.*.json"]),
+    ("Vulkan: NVIDIA (NVK)", "any", ["/usr/share/vulkan/icd.d/nouveau_icd.*.json"]),
+    ("Vulkan: Qualcomm Adreno (Turnip)", "aarch64", ["/usr/share/vulkan/icd.d/freedreno_icd.*.json"]),
+    ("Video decode: Intel (VA-API iHD)", "x86_64", ["/usr/lib64/dri/iHD_drv_video.so"]),
+    ("Video decode: AMD (VA-API radeonsi)", "any", ["/usr/lib64/dri/radeonsi_drv_video.so"]),
+    ("Video decode: NVIDIA (VA-API nouveau)", "any", ["/usr/lib64/dri/nouveau_drv_video.so"]),
+    # Webcams
+    ("Webcam: USB (UVC)", "any", [M + "drivers/media/usb/uvc/uvcvideo.ko*"]),
+    ("Webcam: Intel IPU6 driver", "x86_64", [M + "drivers/media/pci/intel/ipu6/intel-ipu6.ko*"]),
+    ("Webcam: Intel IPU6 firmware", "x86_64", ["/usr/lib/firmware/intel/ipu/ipu6*_fw.bin*"]),
+    ("Webcam: Intel IPU7 firmware", "x86_64", ["/usr/lib/firmware/intel/ipu/ipu7*_fw.bin*"]),
+    ("Webcam: Intel VSC firmware", "x86_64", ["/usr/lib/firmware/intel/vsc/ivsc_fw.bin*"]),
+    ("Webcam: libcamera software ISP", "any", ["/usr/lib64/libcamera/ipa/ipa_soft_simple.so"]),
+    ("Webcam: libcamera in PipeWire", "any", ["/usr/lib64/spa-0.2/libcamera/libspa-libcamera.so"]),
+    # USB, Thunderbolt, card readers
+    ("USB storage (UAS)", "any", [M + "drivers/usb/storage/uas.ko*"]),
+    ("Thunderbolt/USB4", "any", [M + "drivers/thunderbolt/thunderbolt.ko*"]),
+    ("Thunderbolt device authorisation (boltd)", "any", ["/usr/libexec/boltd"]),
+    ("Card reader: Realtek PCIe (rtsx)", "any", [M + "drivers/mmc/host/rtsx_pci_sdmmc.ko*"]),
+    ("Card reader: Realtek USB (rtsx_usb)", "any", [M + "drivers/mmc/host/rtsx_usb_sdmmc.ko*"]),
+    # Input, sensors, fingerprint, laptop controls
+    ("Touchpads and touchscreens (I2C HID)", "any", [M + "drivers/hid/i2c-hid/i2c-hid*.ko*"]),
+    ("Touchscreens and pens (hid-multitouch)", "any", [M + "drivers/hid/hid-multitouch.ko*"]),
+    ("Pens and tablets (libwacom data)", "any", ["/usr/share/libwacom/*.tablet"]),
+    ("Sensors: Intel ISH (auto-rotate, lid)", "x86_64", [M + "drivers/hid/intel-ish-hid/intel-ish-ipc.ko*"]),
+    ("Sensors: iio-sensor-proxy", "any", ["/usr/libexec/iio-sensor-proxy"]),
+    ("Fingerprint readers (fprintd)", "any", ["/usr/libexec/fprintd"]),
+    ("Laptop keys/brightness: ThinkPad", "x86_64", [M + "drivers/platform/x86/lenovo/thinkpad_acpi.ko*",
+                                                    M + "drivers/platform/x86/thinkpad_acpi.ko*"]),
+    ("Laptop keys/brightness: ASUS", "x86_64", [M + "drivers/platform/x86/asus-wmi.ko*",
+                                                M + "drivers/platform/x86/asus/asus-wmi.ko*"]),
+    ("Laptop keys/brightness: Dell", "x86_64", [M + "drivers/platform/x86/dell/dell-wmi.ko*"]),
+    ("Laptop keys/brightness: HP", "x86_64", [M + "drivers/platform/x86/hp/hp-wmi.ko*"]),
+    ("Laptop keys/brightness: Acer", "x86_64", [M + "drivers/platform/x86/acer-wmi.ko*"]),
+    ("Laptop: Intel ME (needed by some sensors and webcams)", "x86_64", [M + "drivers/misc/mei/mei-me.ko*"]),
+    ("Battery and keyboard backlight (UPower)", "any", ["/usr/libexec/upowerd"]),
+    ("Hybrid graphics (switcheroo-control)", "any", ["/usr/libexec/switcheroo-control"]),
+    ("Game controllers: Xbox wired (xpad)", "any", [M + "drivers/input/joystick/xpad.ko*"]),
+    ("Game controllers: PlayStation (hid-playstation)", "any", [M + "drivers/hid/hid-playstation.ko*"]),
+    ("Game controllers: udev access (steam-devices)", "any", ["/usr/lib/udev/rules.d/*steam*"]),
+    # Printers and scanners
+    ("Printing: CUPS driverless (ipp backend)", "any", ["/usr/lib/cups/backend/ipp"]),
+    ("Printing: USB driverless (ipp-usb)", "any", ["/usr/sbin/ipp-usb"]),
+    ("Scanning: driverless (sane-airscan)", "any", ["/usr/lib64/sane/libsane-airscan.so*"]),
+]]
+
+
+def check_capabilities(caps, arch, root="/"):
+    """[(capability, ok, first matching path or None)] for caps that apply to arch."""
+    res = []
+    for c in caps:
+        if c.arch not in ("any", arch):
+            continue
+        hit = None
+        for g in c.globs:
+            ms = sorted(m for m in glob.glob(os.path.join(root, g.lstrip("/"))) if os.path.exists(m))
+            if ms:
+                hit = "/" + os.path.relpath(ms[0], root)
+                break
+        res.append((c, hit is not None, hit))
+    return res
+
+
 # Fedora comps groups compared with the image (report only).
 GROUPS = ["hardware-support", "printing", "networkmanager-submodules", "multimedia"]
 
@@ -401,6 +520,8 @@ def audit(args):
         for m in missing:
             m.provider = fedora_provider(idx, m.fw)
     fails = gate(missing, online)
+    caps = check_capabilities(CAPABILITIES, arch)
+    cap_fails = [c.name for c, ok, _ in caps if not ok]
 
     inst = installed_names()
     pkg_rows = [{"name": p.name, "reason": p.reason, "installed": p.name in inst} for p in pkgs]
@@ -431,6 +552,8 @@ def audit(args):
         "groups": {gid: {kind: [{"name": n, "installed": n in inst, "available": n in sizes or n in inst,
                                  "mb": round(sizes.get(n, 0) / 1e6, 1)} for n in names]
                          for kind, names in g.items()} for gid, g in groups.items()},
+        "capabilities": [{"name": c.name, "ok": ok, "found": hit, "wanted": c.globs} for c, ok, hit in caps],
+        "capability_failures": cap_fails,
         "allowlist_unused": allow.unused(),
         "sizes_mb": {n: round(b / 1e6, 1) for n, b in sorted(sizes.items())},
     }
@@ -441,7 +564,7 @@ def audit(args):
     with open(os.path.join(args.out, "hardware-audit.md"), "w") as f:
         f.write(md)
     print(md)
-    return 1 if (fails or pkg_fails) else 0
+    return 1 if (fails or pkg_fails or cap_fails) else 0
 
 
 def render(r):
@@ -456,7 +579,9 @@ def render(r):
     miss = r["missing"]
     add = [m for m in miss if m["provider"]]
     L += ["", f"Missing files: {len(miss)}; shipped by a Fedora package: {len(add)}; "
-          f"core-class gate failures: {len(r['gate_failures'])}.", ""]
+          f"core-class gate failures: {len(r['gate_failures'])}; "
+          f"device-class files missing: {len(r['capability_failures'])}; "
+          f"required packages missing: {len(r['package_failures'])}.", ""]
     if r["gate_failures"]:
         L += ["## GATE FAILED: core firmware missing", ""]
         for m in miss:
@@ -475,7 +600,11 @@ def render(r):
         mods = ", ".join(x.rsplit("/", 1)[-1] for x in m["modules"][:4]) + (" ..." if len(m["modules"]) > 4 else "")
         L.append(f"| `{m['fw']}` | {m['cls']}{'' if m['core'] else ' (non-core)'} | {mods} | "
                  f"{m['provider'] or '-'} | {(m['allow_kind'] + ': ' + m['allow_reason']) if m['allow_kind'] else '-'} |")
-    L += ["", "</details>", "", "## Required hardware packages (build_files/hardware-packages.txt)", ""]
+    L += ["", "</details>", "", "## Device classes: files that must exist", ""]
+    for c in r["capabilities"]:
+        L.append(f"- [{'x' if c['ok'] else ' '}] {c['name']}: " +
+                 (f"`{c['found']}`" if c["ok"] else f"MISSING (`{'` or `'.join(c['wanted'])}`)"))
+    L += ["", "## Required hardware packages (build_files/hardware-packages.txt)", ""]
     for p in r["packages"]:
         if p["installed"]:
             state = "x"

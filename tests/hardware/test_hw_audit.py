@@ -222,3 +222,49 @@ thermald            x86_64   Intel thermal daemon
 def test_parse_package_list_rejects_bad_arch():
     with pytest.raises(ValueError):
         A.parse_package_list("foo  ppc64le  reason\n")
+
+
+# --- the repository's own data files parse -----------------------------------
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def test_repo_allowlist_parses_and_has_no_duplicates():
+    al = A.parse_allowlist(open(os.path.join(HERE, "firmware-allowlist.txt")).read())
+    pats = [p for p, _, _ in al.entries]
+    assert len(pats) == len(set(pats))
+    assert len(pats) > 10
+
+
+def test_repo_package_list_parses():
+    pk = A.parse_package_list(open(os.path.join(HERE, "../../build_files/hardware-packages.txt")).read())
+    names = [p.name for p in pk]
+    assert len(names) == len(set(names))
+    assert "linux-firmware" in names
+
+
+# --- capability checks (files that must exist) -------------------------------
+
+def test_capabilities(tmp_path):
+    touch(tmp_path, "usr/lib64/dri/radeonsi_drv_video.so")
+    touch(tmp_path, "usr/share/vulkan/icd.d/radeon_icd.x86_64.json")
+    caps = [A.Capability("VA-API AMD", "any", ["/usr/lib64/dri/radeonsi_drv_video.so"]),
+            A.Capability("Vulkan AMD", "any", ["/usr/share/vulkan/icd.d/radeon_icd.*.json"]),
+            A.Capability("Vulkan Intel", "x86_64", ["/usr/share/vulkan/icd.d/intel_icd.*.json"]),
+            A.Capability("Vulkan Adreno", "aarch64", ["/usr/share/vulkan/icd.d/freedreno_icd.*.json"])]
+    res = A.check_capabilities(caps, "x86_64", root=str(tmp_path))
+    assert [(c.name, ok) for c, ok, _ in res] == [("VA-API AMD", True), ("Vulkan AMD", True), ("Vulkan Intel", False)]
+    assert res[1][2] == "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
+
+
+def test_capability_any_of_several_globs(tmp_path):
+    touch(tmp_path, "usr/lib/modules/7.2.0/kernel/drivers/net/wireless/intel/iwlwifi/iwlwifi.ko.xz")
+    caps = [A.Capability("iwlwifi", "any", ["/usr/lib/modules/*/kernel/drivers/net/wireless/intel/iwlwifi/iwlwifi.ko*",
+                                            "/nowhere"])]
+    assert A.check_capabilities(caps, "aarch64", root=str(tmp_path))[0][1] is True
+
+
+def test_builtin_capability_table_is_sane():
+    names = [c.name for c in A.CAPABILITIES]
+    assert len(names) == len(set(names))
+    assert all(c.arch in ("any", "x86_64", "aarch64") and c.globs for c in A.CAPABILITIES)

@@ -175,6 +175,7 @@ done
 # ---------------------------------------------------------------------------
 # 4. Lucent components and services
 # ---------------------------------------------------------------------------
+/ctx/build_files/hardware.sh              # drivers/firmware for Windows PCs out of the box (docs/hardware.md)
 /ctx/build_files/lucent-chrome.sh         # one-row window header for Settings and the Store
 /ctx/build_files/lucent-store.sh          # the Store (replaces Discover in the launcher)
 /ctx/build_files/lucent-settings.sh       # Settings (replaces System Settings in the launcher)
