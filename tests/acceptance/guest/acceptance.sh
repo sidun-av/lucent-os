@@ -199,6 +199,10 @@ boot_numbers() {
     metric "${pre}graphical_target" "$(grep -o 'graphical.target reached after .*' <<<"$sa")"
     systemd-analyze blame --no-pager > "$LOGS/systemd-analyze-blame.txt" 2>&1
     systemd-analyze critical-chain --no-pager > "$LOGS/systemd-analyze-critical-chain.txt" 2>&1
+    # The path that matters to a user: to the login screen, then to the panel.
+    systemd-analyze critical-chain --no-pager display-manager.service > "$LOGS/systemd-analyze-critical-chain-login.txt" 2>&1
+    as_user systemd-analyze --user critical-chain --no-pager plasma-plasmashell.service 2>/dev/null |
+        cat > "$LOGS/systemd-analyze-user-critical-chain-plasmashell.txt"
     systemd-analyze plot > "$LOGS/systemd-analyze-plot.svg" 2>/dev/null
     as_user systemd-analyze --user blame --no-pager 2>/dev/null | cat > "$LOGS/systemd-analyze-user-blame.txt"
     as_user systemd-analyze --user critical-chain --no-pager 2>/dev/null | cat > "$LOGS/systemd-analyze-user-critical-chain.txt"
