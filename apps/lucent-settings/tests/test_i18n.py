@@ -46,12 +46,12 @@ def ru(tmp_path):
 
 def test_english_is_the_source_language():
     i18n.setup(["en"])
-    assert i18n._("Wi-Fi & Network") == "Wi-Fi & Network"
+    assert i18n._("Network & internet") == "Network & internet"
     assert i18n.language() == "en"
 
 
 def test_russian_catalog_loads(ru):
-    assert i18n._("Wi-Fi & Network") == "Wi-Fi и сеть"
+    assert i18n._("Network & internet") == "Сеть и интернет"
     assert i18n._("Appearance") == "Оформление"
     assert i18n._("Like Windows") == "Как в Windows"
     assert i18n.language() == "ru"
