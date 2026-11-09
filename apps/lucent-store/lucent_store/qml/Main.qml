@@ -29,6 +29,9 @@ ApplicationWindow {
         if (p === page) return
         history = history.concat([page])
         page = p
+        // Leaving the search for another section (not an app from the results)
+        // empties the search field, as in Windows' Store.
+        if (p !== "search" && p.indexOf("app:") !== 0) query = ""
     }
     function back() {
         if (history.length === 0) { page = "home"; return }

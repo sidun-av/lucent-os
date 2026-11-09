@@ -94,5 +94,9 @@ Item {
                         onClicked: { input.text = ""; win.query = ""; if (win.page === "search") win.back() } }
         }
     }
+    Connections {            // the clear button assigns the text, which ends its binding
+        target: win
+        function onQueryChanged() { if (input.text !== win.query) input.text = win.query }
+    }
     Shortcut { sequences: [StandardKey.Find, "Ctrl+F"]; onActivated: input.forceActiveFocus() }
 }

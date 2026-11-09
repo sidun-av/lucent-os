@@ -13,7 +13,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("QT_QUICK_BACKEND", "software")
 os.environ["LUCENT_STORE_THEME"] = "light"
 
-from PySide6.QtCore import QtMsgType, qInstallMessageHandler  # noqa: E402
+from PySide6.QtCore import QObject, QtMsgType, qInstallMessageHandler  # noqa: E402
 from PySide6.QtGui import QGuiApplication  # noqa: E402
 from PySide6.QtQuickControls2 import QQuickStyle  # noqa: E402
 
@@ -138,6 +138,22 @@ def test_search_and_details(ui):
     wait_until(lambda: "org.gimp.GIMP" in backend.metadata)
     d = store.details("org.gimp.GIMP", 0)
     assert "Can read and change all your files" in [p["text"] for p in d["permissions"]]
+
+
+def test_leaving_search_empties_the_field(ui):
+    win, _store, _backend, problems = ui
+    field = win.findChild(QObject, "searchField")
+    win.setProperty("query", "gimp")
+    win.go("search")
+    spin()
+    assert field.property("text") == "gimp"
+    win.go("app:org.gimp.GIMP")          # an app from the results keeps it (Back returns to them)
+    spin()
+    assert field.property("text") == "gimp"
+    win.go("home")                       # another section empties it
+    spin()
+    assert win.property("query") == "" and field.property("text") == ""
+    assert problems == []
 
 
 def test_system_updates_link(ui):
