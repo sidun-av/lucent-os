@@ -114,7 +114,9 @@ CAPABILITIES = [Capability(*c) for c in [
                                                 M + "sound/pci/hda/snd-hda-intel.ko*"]),
     ("Sound: Intel SOF laptops", "x86_64", [M + "sound/soc/sof/intel/snd-sof-pci-intel-tgl.ko*"]),
     ("Sound: Intel SOF firmware", "any", ["/usr/lib/firmware/intel/sof*/*"]),
-    ("Sound: AMD ACP (SOF firmware)", "any", ["/usr/lib/firmware/amd/sof/*"]),
+    # AMD laptops: speakers/headset on HD Audio, built-in microphones on the
+    # ACP (snd-pci-acp6x, -ps, ...). SOF on AMD is Chromebook-only.
+    ("Sound: AMD laptop microphones (ACP)", "x86_64", [M + "sound/soc/amd/*/snd-pci-*.ko*"]),
     ("Sound: Cirrus smart amplifiers", "any", ["/usr/lib/firmware/cirrus/*"]),
     ("Sound: TI smart amplifiers (tas2781)", "any", [M + "sound/hda/codecs/side-codecs/snd-hda-scodec-tas2781*.ko*",
                                                      M + "sound/pci/hda/snd-hda-scodec-tas2781*.ko*"]),
@@ -146,7 +148,8 @@ CAPABILITIES = [Capability(*c) for c in [
     ("Webcam: libcamera in PipeWire", "any", ["/usr/lib64/spa-0.2/libcamera/libspa-libcamera.so"]),
     # USB, Thunderbolt, card readers
     ("USB storage (UAS)", "any", [M + "drivers/usb/storage/uas.ko*"]),
-    ("Thunderbolt/USB4", "any", [M + "drivers/thunderbolt/thunderbolt.ko*"]),
+    ("Thunderbolt/USB4", "any", [M + "drivers/thunderbolt/thunderbolt.ko*",
+                                 "builtin:drivers/thunderbolt/thunderbolt.ko"]),
     ("Thunderbolt device authorisation (boltd)", "any", ["/usr/libexec/boltd"]),
     ("Card reader: Realtek PCIe (rtsx)", "any", [M + "drivers/mmc/host/rtsx_pci_sdmmc.ko*"]),
     ("Card reader: Realtek USB (rtsx_usb)", "any", [M + "drivers/mmc/host/rtsx_usb_sdmmc.ko*"]),
@@ -185,6 +188,14 @@ def check_capabilities(caps, arch, root="/"):
             continue
         hit = None
         for g in c.globs:
+            if g.startswith("builtin:"):     # compiled into the kernel, not a module
+                want = "kernel/" + g[len("builtin:"):]
+                for mb in glob.glob(os.path.join(root, "usr/lib/modules/*/modules.builtin")):
+                    if want in open(mb).read().split():
+                        hit = "built into the kernel: " + g[len("builtin:"):]
+                if hit:
+                    break
+                continue
             ms = sorted(m for m in glob.glob(os.path.join(root, g.lstrip("/"))) if os.path.exists(m))
             if ms:
                 hit = "/" + os.path.relpath(ms[0], root)

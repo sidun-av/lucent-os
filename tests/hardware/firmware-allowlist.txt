@@ -25,7 +25,6 @@ brcm/brcmfmac*-pcie.txt     absent  per-board NVRAM; the driver uses the board's
 brcm/brcmfmac*-sdio.*.bin   absent  per-board SDIO firmware for single-board computers; not PC hardware
 brcm/brcmfmac43430b0-sdio.bin absent  SDIO module on ARM boards, firmware not in linux-firmware
 brcm/brcmfmac43439-sdio.*   absent  Raspberry Pi Pico W / ARM boards; firmware ships with the board vendor's images
-brcm/brcmfmac43439-sdio.bin absent  Raspberry Pi Pico W / ARM boards; firmware ships with the board vendor's images
 brcm/brcmfmac43456-sdio.bin absent  Raspberry Pi 4 style SDIO module; firmware ships with the board vendor's images
 brcm/brcmfmac4359-*         absent  4359 (rare, mostly ARM boards): firmware not in linux-firmware
 brcm/brcmfmac4359c-pcie.bin absent  4359 (rare, mostly ARM boards): firmware not in linux-firmware
@@ -34,7 +33,6 @@ brcm/brcmfmac4365c-pcie.bin absent  router chip (4365 C0): firmware not in linux
 brcm/brcmfmac43752-*        absent  rare BCM43752 module: firmware not in linux-firmware
 ath6k/*                     absent  Atheros AR6003/AR6004 SDIO/USB (2010-2013 phones and boards): board data and RAM firmware never released for these revisions
 fw.ram.bin                  absent  ath6kl_usb (AR6004 USB): firmware never released
-ath10k/QCA6174/hw2.1/firmware-4.bin absent  QCA6174 hw2.1 (early revision): no firmware in linux-firmware; hw3.0, the common retail card, is present
 wil6210*                    absent  Qualcomm 60 GHz (WiGig) Wi-Fi: firmware never released for redistribution
 wil6436*                    absent  Qualcomm 60 GHz (WiGig) Wi-Fi: firmware never released for redistribution
 wlan/prima/*                absent  Qualcomm phone SoCs (wcn36xx): per-device calibration data from the phone's own partition

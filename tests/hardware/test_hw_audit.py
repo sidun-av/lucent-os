@@ -268,3 +268,15 @@ def test_builtin_capability_table_is_sane():
     names = [c.name for c in A.CAPABILITIES]
     assert len(names) == len(set(names))
     assert all(c.arch in ("any", "x86_64", "aarch64") and c.globs for c in A.CAPABILITIES)
+
+
+def test_capability_builtin_module(tmp_path):
+    d = tmp_path / "usr/lib/modules/7.2.0"
+    d.mkdir(parents=True)
+    (d / "modules.builtin").write_text("kernel/drivers/thunderbolt/thunderbolt.ko\nkernel/fs/ext4/ext4.ko\n")
+    caps = [A.Capability("TB", "any", [A.M + "drivers/thunderbolt/thunderbolt.ko*",
+                                       "builtin:drivers/thunderbolt/thunderbolt.ko"]),
+            A.Capability("nope", "any", ["builtin:drivers/nope.ko"])]
+    res = A.check_capabilities(caps, "aarch64", root=str(tmp_path))
+    assert [(c.name, ok) for c, ok, _ in res] == [("TB", True), ("nope", False)]
+    assert res[0][2] == "built into the kernel: drivers/thunderbolt/thunderbolt.ko"

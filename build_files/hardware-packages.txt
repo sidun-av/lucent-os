@@ -9,7 +9,7 @@
 #     by the audit; these are the packages outside it) --------------------
 linux-firmware              any     firmware for most Wi-Fi, Bluetooth, Ethernet, GPU and audio chips
 wireless-regdb              any     Wi-Fi regulatory database (which channels are allowed where)
-alsa-sof-firmware           any     audio DSP firmware for most Intel (2019+) and many AMD laptops
+alsa-sof-firmware           any     audio DSP firmware (Sound Open Firmware) for most Intel laptops since 2019
 alsa-firmware               any     firmware for older and pro sound cards (AudioScience, Echo, Digigram, ...)
 dvb-firmware                any     USB TV tuner sticks (DVB-T/C/S)
 b43-openfwwf                any     open firmware for the oldest Broadcom Wi-Fi (BCM4306/4311/4318, 802.11g)

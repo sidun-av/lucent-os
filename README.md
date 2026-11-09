@@ -25,6 +25,7 @@ day one.
 | Web | Firefox |
 | Windows apps | Wine (x86_64) / FEX-Emu + ARM64EC Wine (aarch64), plus `lucent-bridge` |
 | Moving in | "Move from Windows" wizard: files, bookmarks, Wi-Fi names |
+| Hardware | Drivers and firmware built in, nothing to download: Wi-Fi, Ethernet, Bluetooth, sound, USB and docks, graphics, webcams, printers. What works and what doesn't: [docs/hardware.md](docs/hardware.md) |
 
 All apps are Flatpaks from Flathub, installed system-wide. From the
 installer ISO they are **already there before the first login, without a
@@ -459,6 +460,7 @@ There is no local build requirement; CI does it all.
 | `release` (tag `vX.Y.Z`, or manual dry run) | image `:X.Y.Z` + `:stable` → both ISOs → a **draft** GitHub release: each ISO in parts under 2 GiB, `SHA256SUMS` signed with Sigstore, join scripts ([docs/distribution.md](docs/distribution.md), [docs/install-usb.md](docs/install-usb.md)) |
 | `release-tools` | the join scripts' tests on Windows (PowerShell 5.1 and 7, cmd), Linux and macOS |
 | `acceptance` (after `iso`, or manual) | installs the amd64 ISO in QEMU/KVM with no network and checks the Windows double-click flow in the real Plasma session; screenshots, numbers ([above](#acceptance-test-x86_64)) |
+| `hardware-audit` (after `build`, or manual) | inside the published image, both arches: firmware every Wi-Fi/Ethernet/Bluetooth/audio/GPU/webcam/USB driver can request vs `/usr/lib/firmware` and the Fedora repos, device-class files, `build_files/hardware-packages.txt`; fails when core firmware goes missing ([docs/hardware.md](docs/hardware.md#how-this-is-checked-for-developers)) |
 | `vm` (after `build`, or manual) | **test-only** qcow2 (autologin user, SSH key) + fake Windows disk for `tools/vm/`; never a release artifact |
 
 Locally, on any Linux with podman:
