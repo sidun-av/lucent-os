@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWizardPage,
 )
 
-from . import browsers, copying, drive_letters, firstrun, volumes, wifi, windows, xdg
+from . import browsers, copying, drive_letters, firstrun, style, volumes, wifi, windows, xdg
 from .i18n import N_, _, ngettext
 
 FOLDER_TITLES = {
@@ -359,6 +359,7 @@ class MigrationWizard(QWizard):
         self.setButtonText(QWizard.WizardButton.BackButton, _("Back"))
         self.setButtonText(QWizard.WizardButton.CancelButton, _("Cancel"))
         self.setButtonText(QWizard.WizardButton.FinishButton, _("Finish"))
+        self.sidebar = style.apply(self)  # Lucent look: step sidebar, headings, cards
 
     def reject(self):
         page = self.currentPage()

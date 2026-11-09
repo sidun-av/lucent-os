@@ -187,3 +187,21 @@ msgstr[2] "{n} файлов"
 msgctxt "decimal separator"
 msgid "."
 msgstr ","
+
+msgid "Welcome"
+msgstr "Начало"
+
+msgid "Windows account"
+msgstr "Учётная запись Windows"
+
+msgid "Folders"
+msgstr "Папки"
+
+msgid "Copying"
+msgstr "Копирование"
+
+msgid "Windows stays as it is"
+msgstr "Windows останется как есть"
+
+msgid "We only copy. Nothing on the Windows disk is deleted or changed."
+msgstr "Мы только копируем. На диске Windows ничего не удаляется и не меняется."

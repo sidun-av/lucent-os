@@ -22,10 +22,12 @@ tools/vm/ssh.sh              # shell as lucent;  ssh.sh --session qdbus6 ...  in
 tools/vm/shot.sh out.png     # QMP screendump
 tools/vm/keys.sh meta        # Win key alone; also meta-e, alt-tab, alt-shift, esc, alt-f4
 tools/vm/keys.sh --type 'text'
+tools/vm/click.sh 640 400 right   # pointer click at pixel X Y (left/right/middle)
 tools/vm/run.sh --stop       # ACPI power-down, then kill
 ```
 
-The VM is aarch64 with HVF (`-cpu host`, 4 vCPU, 6 GB, 1920x1080
+The VM is aarch64 with HVF (`-cpu host`, 4 vCPU, 6 GB, 1920x1080 or
+`LUCENT_VM_RES=2560x1440` to compare with `docs/mockups/`,
 virtio-gpu, no virgl → KWin renders in software). VNC: `127.0.0.1:5901`
 (macOS Screen Sharing: `open vnc://127.0.0.1:5901`). `run.sh` writes to an
 overlay (`run-arm64.qcow2`) on top of the pristine CI image, so `--fresh`

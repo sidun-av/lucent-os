@@ -77,6 +77,18 @@ def main():
             for k in reversed(keys):
                 q.cmd("input-send-event", events=[{"type": "key", "data": {"down": False, "key": {"type": "qcode", "data": k}}}])
             time.sleep(0.08)
+    elif what in ("click", "move"):
+        # click X Y WIDTH HEIGHT [left|right|middle]: absolute pointer via usb-tablet
+        x, y, w, h = (int(v) for v in rest[:4])
+        button = rest[4] if len(rest) > 4 else "left"
+        pos = [{"type": "abs", "data": {"axis": "x", "value": x * 32767 // (w - 1)}},
+               {"type": "abs", "data": {"axis": "y", "value": y * 32767 // (h - 1)}}]
+        q.cmd("input-send-event", events=pos)
+        time.sleep(0.15)
+        if what == "click":
+            for down in (True, False):
+                q.cmd("input-send-event", events=[{"type": "btn", "data": {"down": down, "button": button}}])
+                time.sleep(0.08)
     else:
         args = json.loads(rest[0]) if rest else {}
         print(json.dumps(q.cmd(what, **args), indent=1))

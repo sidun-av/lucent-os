@@ -55,3 +55,19 @@ def test_wizard_walkthrough(windows_root, tmp_path, monkeypatch):
     assert (home / ".config" / "lucent" / "migration-done").exists()
     wiz.close()
     qapp.processEvents()
+
+
+def test_lucent_style_sidebar_follows_pages(windows_root, monkeypatch):
+    monkeypatch.setattr(volumes, "mount_readonly", lambda v: str(windows_root))
+    qapp = QApplication.instance() or QApplication([])
+    wiz = app.MigrationWizard([Volume(path="/dev/sda3", fstype="ntfs", size=10**11, uuid="U", label="OS")])
+    wiz.show()
+    dots = [dot for dot, _label in wiz.sidebar.rows]
+    assert len(dots) == len(wiz.pageIds())
+    assert dots[0].property("state") == "current"
+    wiz.next()
+    assert dots[0].property("state") == "done" and dots[1].property("state") == "current"
+    assert wiz.button(wiz.WizardButton.NextButton).property("lucentRole") == "primary"
+    assert wiz.currentPage().title() == ""  # shown as the page's own large heading
+    wiz.close()
+    qapp.processEvents()
