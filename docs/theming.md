@@ -85,8 +85,13 @@ lucent-theme accents [--json]
   - `--accent`: a swatch id or name (case-insensitive), or any `#rrggbb`,
     which snaps to the nearest swatch. Sets KDE's accent (Indigo: removes
     the override and re-applies the global theme so its own colours come
-    back), switches Kvantum to that accent's theme and tells running Qt
-    apps to reload their style (`org.kde.KGlobalSettings.notifyChange`).
+    back), switches Kvantum to that accent's theme and announces a style
+    change (`org.kde.KGlobalSettings.notifyChange`). Plasma, Kirigami apps
+    and the launcher show the new accent at once; a Qt widget app that is
+    already running keeps its Kvantum colours until it starts again
+    (checked in the VM: Files kept Indigo after a switch to Azure).
+    Light/dark switches native apps live (the widget style itself
+    changes); a running Flatpak app keeps the mode it started with.
   - Always: Flatpak Qt apps are synced, and a desktop showing one image of
     a wallpaper package (`/usr/share/wallpapers/<name>/contents/images…`)
     is put back on the package, so Plasma shows its day or night image.
