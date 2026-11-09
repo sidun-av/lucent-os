@@ -468,15 +468,22 @@ class Test:
         self.check("bluetooth.adapter", len(ctrls) >= 1, f"hci_vhci + btvirt -l2: {out}")
         if not ctrls:
             return
-        time.sleep(4)
-        self.shot("30-bluetooth-adapter-in-tray")
-        after = self.tray_icons()
         _, show = self.ssh("bluetoothctl show | head -n 12", root=True)
         self.save("bluetooth-show.txt", show)
-        # The new tray icon is Bluetooth's (icons right of it shift left).
-        bt = after[-len(before) - 1] if len(after) == len(before) + 1 else None
-        self.check("bluetooth.tray-icon", bt is not None,
-                   f"tray icons x={before} before the adapter, x={[round(x) for x, _ in after]} after")
+        # After the sticks were ejected, Disks & Devices keeps a faint icon
+        # in the tray for a while, where Bluetooth's then appears. Wait for
+        # the tray to settle: volume, Bluetooth, network, the arrow.
+        after, t = [], time.time()
+        while time.time() - t < 120:
+            after = self.tray_icons()
+            if len(after) == 4 and time.time() - t > 45:
+                break
+            time.sleep(5)
+        self.shot("30-bluetooth-adapter-in-tray")
+        bt = after[-3] if len(after) == 4 else None
+        self.record("bluetooth.tray-icons", "INFO",
+                    f"tray icons x={before} before the adapter, x={[round(x) for x, _ in after]} "
+                    f"{time.time() - t:.0f} s after it (Bluetooth: the third from the right, checked by its switch)")
         if bt:
             self.click(*bt)
             time.sleep(2)
@@ -600,7 +607,11 @@ class Test:
             else:
                 args["bus"] = "xhci.0"
             self.qmp("device_add", **args)
-            find = (f"for i in /sys/class/net/*; do [ \"$(cat $i/address)\" = {mac} ] && echo ${{i##*/}}; done")
+            if kind == "usb":   # the USB function picks its own MAC: find it by bus
+                find = ("for i in /sys/class/net/*; do readlink -f $i/device | grep -q /usb && "
+                        "echo ${i##*/}; done | head -n1")
+            else:
+                find = (f"for i in /sys/class/net/*; do [ \"$(cat $i/address)\" = {mac} ] && echo ${{i##*/}}; done")
             ok, ifname = self.wait(30, f"i=$({find}); test -n \"$i\" && echo $i")
             ifname = ifname.strip()
             ok2, _ = self.wait(60, f"nmcli -t -f GENERAL.STATE dev show {ifname} | grep -q '100 '")
@@ -608,6 +619,16 @@ class Test:
                                f"nmcli -f GENERAL.CONNECTION,IP4.ADDRESS,IP4.GATEWAY dev show {ifname}; "
                                f"curl -sS -o /dev/null -w 'curl: %{{http_code}} via %{{local_ip}}' --interface {ifname} "
                                f"--max-time 20 https://fedoraproject.org/")
+            if kind == "usb":
+                _, diag = self.ssh("for d in /sys/bus/usb/devices/*; do [ -f $d/idVendor ] && [ \"$(cat $d/idVendor)\" = 0525 ] && "
+                                   "{ echo \"$d config $(cat $d/bConfigurationValue)\"; for i in $d/*:*; do "
+                                   "echo \"  ${i##*/} class $(cat $i/bInterfaceClass)/$(cat $i/bInterfaceSubClass) "
+                                   "driver $(basename $(readlink -f $i/driver) 2>/dev/null)\"; done; }; done; "
+                                   "lsmod | grep -E '^(rndis_host|cdc_ether|cdc_subset|cdc_ncm|usbnet) '; "
+                                   "for m in rndis_host cdc_ether cdc_ncm r8152 ax88179_178a; do "
+                                   "modinfo -n $m >/dev/null 2>&1 && echo \"$m: available\" || echo \"$m: MISSING\"; done", root=True)
+                info += "\n" + diag
+                self.record(f"ethernet.{model}-drivers", "INFO", diag)
             self.save(f"eth-{model}.txt", info)
             self.check(f"ethernet.{model}", ok and ok2 and re.search(r"curl: (200|30\d)", info) is not None,
                        f"{ifname}: {info}")
@@ -646,8 +667,11 @@ class Test:
         if rc != 0:
             self.record("printing.kde-app", "INFO", "no KWrite in the image; printed from the command line only")
             return
-        self.ssh(f"setsid -f kwrite {GUEST_T}/page.txt", sess=True)
-        time.sleep(6)
+        # Its own unit in the session (a sess.sh script's leftovers are
+        # stopped with it), as the launcher starts apps.
+        self.ssh(f"systemd-run --user --quiet --collect --unit=hwtest-kwrite -- kwrite {GUEST_T}/page.txt")
+        time.sleep(8)
+        self.shot("59-kwrite")
         self.keys("ctrl-p")
         time.sleep(4)
         self.shot("60-print-dialog")

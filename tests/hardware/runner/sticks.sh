@@ -19,6 +19,7 @@ for s in "${STICKS[@]}"; do
         truncate -s 512M "$img"
         echo "type=$type" | sfdisk -q -X dos "$img"
         loop=$(losetup -fP --show "$img")
+        for _ in $(seq 50); do [ -b "${loop}p1" ] && break; udevadm settle; sleep 0.1; done
         case $fs in
             fat32) mkfs.vfat -F 32 -n "$label" "${loop}p1" > /dev/null ;;
             exfat) mkfs.exfat -L "$label" "${loop}p1" > /dev/null ;;
@@ -32,6 +33,7 @@ for s in "${STICKS[@]}"; do
         echo "$fs: $img ($label)"
     else
         loop=$(losetup -fP --show "$img")
+        for _ in $(seq 50); do [ -b "${loop}p1" ] && break; udevadm settle; sleep 0.1; done
         case $fs in
             fat32) clean=$(fsck.vfat -n "${loop}p1" 2>&1) ;;
             exfat) clean=$(fsck.exfat -n "${loop}p1" 2>&1) ;;
