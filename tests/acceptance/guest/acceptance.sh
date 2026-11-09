@@ -450,5 +450,8 @@ else
     record binfmt.mz FAIL "MZ binfmt handlers: '${mz:-none}'"
 fi
 
+failed_units=$(systemctl list-units --failed --plain --no-legend | awk '{print $1}' | tr '\n' ' ')
+record system.failed-units INFO "${failed_units:-none}"
+
 log "acceptance test done, failed=$FAILED"
 exit 0
