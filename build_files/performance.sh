@@ -34,22 +34,7 @@ for p in tuned tuned-ppd; do
 done
 
 # ---------------------------------------------------------------------------
-# 2. KDE Connect's daemon only once a phone is paired.
-# Fedora autostarts kdeconnectd in every session: memory, and the computer
-# announced on the local network although most people never pair a phone.
-# lucent-kdeconnect.service (user unit) starts it at login when
-# ~/.config/kdeconnect/trusted_devices exists; before that, opening KDE
-# Connect starts it over D-Bus, so pairing works as before.
-# ---------------------------------------------------------------------------
-kdc=/etc/xdg/autostart/org.kde.kdeconnect.daemon.desktop
-test -f "$kdc"
-test -f /usr/share/dbus-1/services/org.kde.kdeconnect.service
-grep -q '^Exec=/usr/bin/kdeconnectd$' "$kdc"
-grep -q '^Hidden=true' "$kdc" || sed -i '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nHidden=true/' "$kdc"
-systemctl --global enable lucent-kdeconnect.service
-
-# ---------------------------------------------------------------------------
-# 3. No Xwayland Video Bridge in every session.
+# 2. No Xwayland Video Bridge in every session.
 # It lets X11-only apps (Webex and the like) screen-share Wayland windows,
 # runs from login to logout either way, and was the third-largest process of
 # an idle desktop (58 MiB PSS, after plasmashell and KWin). KDE has archived
@@ -64,14 +49,17 @@ if [ -f "$xvb" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 4. Cache rebuilds Fedora runs at every boot, 5 minutes after boot instead.
-# fedora-atomic-desktop-mandb-update (`mandb -q`) and -appstream-cache-refresh
-# (`appstreamcli refresh --force`) are oneshots in multi-user.target: on the
-# first boot mandb alone held graphical.target for 7 s, and on every boot
-# both compete with the login for CPU and disk. lucent-after-boot.timer
-# starts them (through lucent-after-boot.target) when the desktop is idle.
+# 3. Housekeeping Fedora runs at every boot, 5 minutes after boot instead.
+# fedora-atomic-desktop-mandb-update (`mandb -q`), -appstream-cache-refresh
+# (`appstreamcli refresh --force`) and fedora-third-party-refresh are
+# oneshots in multi-user.target: on the first boot mandb alone held
+# graphical.target for 7 s; with TuneD gone, third-party-refresh (0.8 s) was
+# the last thing graphical.target waited for on every boot; and all of them
+# compete with the login for CPU and disk. lucent-after-boot.timer starts
+# them (through lucent-after-boot.target) when the desktop is idle.
 # ---------------------------------------------------------------------------
-for unit in fedora-atomic-desktop-mandb-update.service fedora-atomic-desktop-appstream-cache-refresh.service; do
+for unit in fedora-atomic-desktop-mandb-update.service fedora-atomic-desktop-appstream-cache-refresh.service \
+            fedora-third-party-refresh.service; do
     if systemctl cat "$unit" &>/dev/null; then systemctl disable "$unit"; fi
 done
 systemctl enable lucent-after-boot.timer

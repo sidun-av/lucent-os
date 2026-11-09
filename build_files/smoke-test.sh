@@ -91,9 +91,6 @@ rm /tmp/fstab.test
 rpm -q power-profiles-daemon
 systemctl is-enabled power-profiles-daemon.service
 for p in tuned tuned-ppd; do if rpm -q "$p"; then exit 1; fi; done
-# KDE Connect: the daemon starts at login only after pairing (user unit).
-grep -q '^Hidden=true' /etc/xdg/autostart/org.kde.kdeconnect.daemon.desktop
-test "$(systemctl --global is-enabled lucent-kdeconnect.service)" = enabled
 # Initramfs without nouveau and its NVIDIA GSP firmware (105 MB on x86_64);
 # Tegra SoC firmware (USB, video) on aarch64 is not nouveau's and stays.
 initramfs=$(ls /usr/lib/modules/*/initramfs.img | head -n1)
@@ -108,12 +105,13 @@ rm /tmp/initramfs.list
 # A hung app is killed after 10 s at logout/shutdown (no SIGABRT + second timeout).
 grep -qx 'TimeoutStopFailureMode=kill' /usr/lib/systemd/user/service.d/50-lucent-stop-kill.conf
 grep -qx 'DefaultTimeoutStopSec=10s' /usr/lib/systemd/user.conf.d/50-lucent-timeouts.conf
-# Xwayland Video Bridge not autostarted; man-db/AppStream caches after the login.
+# Xwayland Video Bridge not autostarted; boot-time housekeeping after the login.
 xvb=/etc/xdg/autostart/org.kde.xwaylandvideobridge.desktop
 if [ -f "$xvb" ]; then grep -q '^Hidden=true' "$xvb"; fi
 systemd-analyze verify /usr/lib/systemd/system/lucent-after-boot.timer /usr/lib/systemd/system/lucent-after-boot.target
 systemctl is-enabled lucent-after-boot.timer
-for unit in fedora-atomic-desktop-mandb-update.service fedora-atomic-desktop-appstream-cache-refresh.service; do
+for unit in fedora-atomic-desktop-mandb-update.service fedora-atomic-desktop-appstream-cache-refresh.service \
+            fedora-third-party-refresh.service; do
     if systemctl cat "$unit" >/dev/null 2>&1; then test "$(systemctl is-enabled "$unit")" = disabled; fi
 done
 

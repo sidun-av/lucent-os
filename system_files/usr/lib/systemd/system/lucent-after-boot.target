@@ -1,7 +1,9 @@
 [Unit]
-Description=Lucent OS: cache rebuilds Fedora runs at boot (man pages, AppStream), after the login
+Description=Lucent OS: housekeeping Fedora runs at boot (man-page and AppStream caches, third-party repositories), after the login
 Documentation=https://github.com/sidun-av/lucent-os/blob/main/docs/performance.md
 # Started by lucent-after-boot.timer instead of multi-user.target
-# (build_files/performance.sh): the same oneshots, at their own idle
-# priority (Nice=19, IOWeight=10), out of the way of the boot and the login.
+# (build_files/performance.sh): the same oneshots (the two cache rebuilds
+# at their own idle priority, Nice=19 and IOWeight=10), out of the way of the
+# boot and the login.
 Wants=fedora-atomic-desktop-mandb-update.service fedora-atomic-desktop-appstream-cache-refresh.service
+Wants=fedora-third-party-refresh.service

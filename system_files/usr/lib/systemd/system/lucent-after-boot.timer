@@ -1,5 +1,5 @@
 [Unit]
-Description=Lucent OS: rebuild the man-page and AppStream caches after the login
+Description=Lucent OS: boot-time housekeeping (caches, third-party repositories) after the login
 Documentation=https://github.com/sidun-av/lucent-os/blob/main/docs/performance.md
 
 [Timer]

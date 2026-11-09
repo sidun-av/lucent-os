@@ -1,7 +1,8 @@
 # Boot time and idle memory (build_files/performance.sh, docs/performance.md),
 # kept as built also after `systemctl preset-all` (Fedora's own presets
-# enable tuned-ppd and these two cache rebuilds at every boot).
+# enable tuned-ppd, and these three oneshots at every boot).
 enable power-profiles-daemon.service
 enable lucent-after-boot.timer
 disable fedora-atomic-desktop-mandb-update.service
 disable fedora-atomic-desktop-appstream-cache-refresh.service
+disable fedora-third-party-refresh.service
