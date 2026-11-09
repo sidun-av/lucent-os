@@ -18,7 +18,7 @@ from collections import OrderedDict
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QProcess, QProcessEnvironment, Signal
+from PySide6.QtCore import QFileSystemWatcher, QObject, QProcess, QProcessEnvironment, QTimer, Signal
 
 from . import appstream, flatpak, nextgen
 from .appstream import AppInfo
@@ -27,6 +27,22 @@ from .flatpak import Installed, Updates
 from .i18n import _, language
 
 APPSTREAM_MAX_AGE = 24 * 3600     # refresh Flathub's catalogue at most once a day
+
+# The flatpak installations the store shows (system: Flathub apps; user: ArtCraft).
+INSTALL_DIRS = [Path("/var/lib/flatpak"), Path.home() / ".local/share/flatpak"]
+WATCH_DELAY_MS = 1500             # one `flatpak list` for a burst of changes
+
+
+def watch_paths(roots: list[Path]) -> list[str]:
+    """Directories that change when an app is installed or removed outside
+    the store (first-boot setup, a terminal): the installation, its app/
+    folder and its exported launchers. Missing ones are skipped."""
+    out = []
+    for root in roots:
+        for p in (root, root / "app", root / "exports/share/applications"):
+            if p.is_dir():
+                out.append(str(p))
+    return out
 
 
 @dataclass
@@ -177,6 +193,25 @@ class FlatpakBackend(Backend):
         for k, v in flatpak.cli_env(dict(os.environ)).items():
             self._env.insert(k, v)
         self.appstream_path: Path | None = None
+        self._watcher: QFileSystemWatcher | None = None
+        self._watch_timer = QTimer(self, singleShot=True)
+        self._watch_timer.timeout.connect(self._installations_changed)
+
+    def watch_installations(self) -> None:
+        """Follow installs and removals made outside the store: on the online
+        path lucent-flatpak-setup installs the default apps after the first
+        login, and a store opened meanwhile showed "Install" for them for
+        good."""
+        self._watch_timer.setInterval(WATCH_DELAY_MS)
+        self._watcher = QFileSystemWatcher(watch_paths(INSTALL_DIRS), self)
+        self._watcher.directoryChanged.connect(lambda _p: self._watch_timer.start())
+
+    def _installations_changed(self) -> None:
+        if self._watcher is not None:     # folders created since (app/, exports/...)
+            new = [p for p in watch_paths(INSTALL_DIRS) if p not in self._watcher.directories()]
+            if new:
+                self._watcher.addPaths(new)
+        self.refresh_installed()
 
     # small helper: run a command, call back with (exit code, stdout, stderr)
     def _call(self, cmd: list[str], done, on_output=None) -> QProcess | None:
@@ -216,6 +251,7 @@ class FlatpakBackend(Backend):
 
     def start(self) -> None:
         self.refresh_installed()
+        self.watch_installations()
         self.appstream_path = appstream.find_file(appstream.SYSTEM_DIRS, flatpak.REMOTE, self.arch)
         if self.appstream_path is not None:
             self.icon_dirs = appstream.icon_dirs(self.appstream_path)
