@@ -1,0 +1,15 @@
+[Unit]
+Description=Lucent OS: SELinux labels for the apps installed from the installer media
+Documentation=https://github.com/sidun-av/lucent-os
+# Only when the installer could not label them itself (iso/lucent-apps.ks).
+ConditionPathExists=/var/lib/lucent/relabel-flatpak
+After=local-fs.target
+Before=lucent-flatpak-setup.service display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/restorecon -RF /var/lib/flatpak
+ExecStartPost=/usr/bin/rm -f /var/lib/lucent/relabel-flatpak
+
+[Install]
+WantedBy=multi-user.target

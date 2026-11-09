@@ -6,7 +6,8 @@
 # The bundle is a ready /var/lib/flatpak (Flathub remote, the apps from
 # /usr/share/lucent/flatpaks.list and their runtimes), built by Fedora's own
 # flatpak. It is unpacked with the *new system's* tools (chroot), checked
-# against its SHA256SUMS, and relabelled for SELinux. Any failure leaves an
+# against its SHA256SUMS, and relabelled for SELinux (at the latest on first
+# boot, by lucent-flatpak-relabel.service). Any failure leaves an
 # empty /var/lib/flatpak and the install continues: lucent-flatpak-setup
 # then downloads the apps after first boot, as on the online path.
 %post --nochroot --interpreter=/usr/bin/bash --log=/tmp/lucent-apps.log
@@ -45,8 +46,17 @@ chroot "$root" /usr/bin/bash -euo pipefail -c '
     cd /var/tmp/lucent-apps
     sha256sum --quiet -c SHA256SUMS
     cat flatpak.tar.zst.* | zstd -dc | tar -x --numeric-owner -C /var/lib/flatpak
+    # Label with the policy of the new system (-c: validate against its
+    # binary policy, not the one the installer runs, which lacks some types).
+    # If that is refused, lucent-flatpak-relabel.service does it at first boot.
     policy=$(sed -n "s/^SELINUXTYPE=//p" /etc/selinux/config)
-    setfiles -F "/etc/selinux/${policy:-targeted}/contexts/files/file_contexts" /var/lib/flatpak
+    sel=/etc/selinux/${policy:-targeted}
+    bin=$(ls "$sel"/policy/policy.* 2>/dev/null | sort -V | tail -n1)
+    if ! setfiles -F -c "$bin" "$sel/contexts/files/file_contexts" /var/lib/flatpak; then
+        echo "SELinux labels deferred to first boot"
+        mkdir -p /var/lib/lucent
+        touch /var/lib/lucent/relabel-flatpak
+    fi
 '
 rc=$?
 umount "$root/var/tmp/lucent-apps" "$root/var/lib/flatpak"

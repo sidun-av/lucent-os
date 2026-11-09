@@ -52,8 +52,9 @@ systemd-analyze verify \
     /usr/lib/systemd/system/lucent-bridge-template.service \
     /usr/lib/systemd/system/lucent-bridge-template.timer \
     /usr/lib/systemd/system/lucent-flatpak-setup.service \
+    /usr/lib/systemd/system/lucent-flatpak-relabel.service \
     /usr/lib/systemd/system/lucent-drive-letters.service
-systemctl is-enabled lucent-bridge-template.timer lucent-flatpak-setup.service
+systemctl is-enabled lucent-bridge-template.timer lucent-flatpak-setup.service lucent-flatpak-relabel.service
 
 step "udev and polkit rules"
 udevadm verify /usr/lib/udev/rules.d/99-lucent-windows-readonly.rules

@@ -184,7 +184,11 @@ jobs:
           f=$(sudo find "$var/lib/flatpak/app" -type f -name metadata | head -n1)
           label=$(sudo getfattr --only-values -n security.selinux "$f" 2>/dev/null | tr -d '\0' || true)
           echo "SELinux label of $f: ${label:-none}"
-          case "$label" in ""|*unlabeled_t*) echo "not labelled"; fail=1 ;; esac
+          if sudo test -e "$var/lib/lucent/relabel-flatpak"; then
+            label="deferred to first boot (lucent-flatpak-relabel.service)"
+          else
+            case "$label" in ""|*unlabeled_t*) echo "not labelled"; fail=1 ;; esac
+          fi
           { echo "### Install test"; echo "apps on disk: $(sudo ls "$var/lib/flatpak/app" | wc -l), label: ${label:-none}"; } >> "$GITHUB_STEP_SUMMARY"
           sudo umount /mnt/inst
           sudo losetup -d "$loop"

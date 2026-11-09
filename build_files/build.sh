@@ -183,7 +183,7 @@ PYTHONPATH=/usr/lib/lucent python3 -P -m lucent_migrate.i18n /ctx/migration-wiza
 /ctx/build_files/design.sh
 gtk-update-icon-cache -f /usr/share/icons/hicolor 2>/dev/null || true
 
-systemctl enable lucent-flatpak-setup.service lucent-drive-letters.service lucent-bridge-template.timer
+systemctl enable lucent-flatpak-setup.service lucent-flatpak-relabel.service lucent-drive-letters.service lucent-bridge-template.timer
 
 # Privacy: Fedora's "countme" sends a weekly anonymous ping used to count
 # installations. Lucent promises no telemetry, so it is masked.
