@@ -94,6 +94,24 @@ for p in tuned tuned-ppd; do if rpm -q "$p"; then exit 1; fi; done
 # KDE Connect: the daemon starts at login only after pairing (user unit).
 grep -q '^Hidden=true' /etc/xdg/autostart/org.kde.kdeconnect.daemon.desktop
 test "$(systemctl --global is-enabled lucent-kdeconnect.service)" = enabled
+# Initramfs without nouveau and its 105 MB of NVIDIA firmware.
+initramfs=$(ls /usr/lib/modules/*/initramfs.img | head -n1)
+lsinitrd "$initramfs" > /tmp/initramfs.list
+if grep -E 'drm/nouveau/|firmware/nvidia/' /tmp/initramfs.list; then echo "nouveau is in the initramfs"; exit 1; fi
+if [ "$(uname -m)" = x86_64 ]; then   # the other GPU drivers stay
+    grep -q 'drm/amd/amdgpu/amdgpu.ko' /tmp/initramfs.list
+    grep -q 'drm/i915/i915.ko' /tmp/initramfs.list
+fi
+echo "initramfs: $(( $(stat -c %s "$initramfs") / 1048576 )) MB"
+rm /tmp/initramfs.list
+# Xwayland Video Bridge not autostarted; man-db/AppStream caches after the login.
+xvb=/etc/xdg/autostart/org.kde.xwaylandvideobridge.desktop
+if [ -f "$xvb" ]; then grep -q '^Hidden=true' "$xvb"; fi
+systemd-analyze verify /usr/lib/systemd/system/lucent-after-boot.timer /usr/lib/systemd/system/lucent-after-boot.target
+systemctl is-enabled lucent-after-boot.timer
+for unit in fedora-atomic-desktop-mandb-update.service fedora-atomic-desktop-appstream-cache-refresh.service; do
+    if systemctl cat "$unit" >/dev/null 2>&1; then test "$(systemctl is-enabled "$unit")" = disabled; fi
+done
 
 step "udev and polkit rules"
 udevadm verify /usr/lib/udev/rules.d/99-lucent-windows-readonly.rules
