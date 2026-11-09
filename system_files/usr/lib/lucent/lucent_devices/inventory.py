@@ -329,7 +329,8 @@ def _describe(it, events, hard_blocked, firmware_dirs, hwdb, log_known):
         vendor = _clean(p["ID_VENDOR"].replace("_", " "))
     ids = _ids(it)
     if not name:
-        kind = {"usb": "USB device", "pci": "PCI device"}.get(it.bus, "Device")
+        kind = (_clean(p.get("ID_PCI_SUBCLASS_FROM_DATABASE")) or _clean(p.get("ID_PCI_CLASS_FROM_DATABASE"))
+                or {"usb": "USB device", "pci": "PCI device"}.get(it.bus, "Device"))
         name = f"{kind} {ids['vendor']}:{ids['device']}" if ids["vendor"] else kind
 
     drivers = _drivers(it)

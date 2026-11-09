@@ -99,6 +99,15 @@ def test_runner_all_working_and_grouped():
     assert by_name(r, "HID-compliant Mouse")["group"] == "input"
 
 
+def test_runner_with_nic_unknown_to_hwdb_gets_a_class_name():
+    # A second real runner: Microsoft MANA NIC, whose model the hwdb doesn't know.
+    r = load("ci-runner-azure-mana")
+    nic = [d for d in r["devices"] if d["ids"] == {"vendor": "1414", "device": "00ba"}][0]
+    assert nic["name"] == "Ethernet controller 1414:00ba"
+    assert nic["group"] == "ethernet" and nic["status"] == "working" and nic["driver"] == "mana"
+    assert r["summary"]["problem"] == 0
+
+
 def test_runner_regulatory_db_noise_is_not_pinned_on_a_device():
     r = load("ci-runner-azure")
     for d in r["devices"]:
