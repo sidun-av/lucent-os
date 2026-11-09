@@ -22,7 +22,7 @@ import re
 LIGHT = {
     "accent": "#4257e8", "accentHover": "#3549d6",           # --accent, --accent-hover
     "accentSoft": "rgba(66,87,232,.12)", "accentText": "#3346cf", "onAccent": "#ffffff",
-    "text": "#171a2b", "text2": "#474d66", "text3": "#5c637c",  # --text-primary/secondary/tertiary
+    "text": "#171a2b", "text2": "#474d66", "text3": "#525972",  # --text-primary/secondary/tertiary
     "line": "rgba(40,50,110,.10)", "lineStrong": "rgba(40,50,110,.17)",
     "winBg": "#f2f3fa",                                        # --surface-window-solid
     "raised": "#fdfdff", "raised2": "#f3f4fb",                 # --surface-raised(-2)
