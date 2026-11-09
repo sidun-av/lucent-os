@@ -278,6 +278,9 @@ iso/                          installer ISO: offline app bundle, kickstart, conf
   policy shipped yet for the Flatpak).
 - Bookmarks are exported as HTML for a one-click manual import, not injected
   into a Firefox profile.
+- Look: where the real desktop still differs from `docs/mockups/` (menus are
+  Breeze, Dolphin has no "This PC" page yet, the lock screen's password view
+  is stock, ...) is listed in `docs/screenshots/real/v2/README.md`.
 
 ## Кратко (по-русски)
 
