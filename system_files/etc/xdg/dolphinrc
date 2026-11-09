@@ -4,6 +4,14 @@
 Version=202
 # Explorer habits: no surprise restore of old tabs.
 RememberOpenedTabs=false
+# Files opens on "This PC" (user folders, drives with free space, recent
+# files; kio_thispc, docs/this-pc.md), like Explorer. Also what Home/New Tab
+# open.
+HomeUrl=thispc:/
+# Each folder remembers its own view, as in Explorer. It is also the only way
+# Dolphin keeps a separate view for This PC (grouped into sections; seeded
+# by design-defaults) instead of one style for every folder.
+GlobalViewProps=false
 # A plain full-width status bar under the files (docs/mockups/01-desktop)
 # instead of the boxed label. Its free-space part would describe the
 # read-only system image (Solid maps every local path to "/"), so the Lucent

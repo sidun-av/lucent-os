@@ -7,11 +7,16 @@ user doesn't have yet, so their own choices always win.
 - Dolphin and System Settings window sizes and a 278 px places panel
   (docs/mockups/01-desktop),
   and its toolbar: back, forward, up, path, view modes, split, search.
-- The places list like the mockup's sidebar: Desktop, Documents, Downloads,
-  Pictures, Music, Videos, Home, Trash; the Remote, Recent, Search and Tags
-  groups hidden; and the operating system's own volumes hidden from
+- The places list like the mockup's sidebar: This PC, Desktop, Documents,
+  Downloads, Pictures, Music, Videos, Home, Trash; the Remote, Recent, Search
+  and Tags groups hidden; and the operating system's own volumes hidden from
   "Devices" (the read-only composefs root and /usr, and the partition that
   holds the OS), so Devices shows the user's disks: "Local Disk (C:)", USB.
+  Sidebars made before This PC existed get it added once, at the top.
+- How Files shows This PC (thispc:/, docs/this-pc.md): grouped into
+  Folders / Drives and devices / Recent files, large icons with one grey
+  detail line ("212 items", "410 GB free of 512 GB"). Dolphin keeps one set
+  of view properties for all non-local locations, so this is where it goes.
 - Flatpak Qt apps get the Lucent Kvantum theme (kvantum-flatpak-sync).
 - A picture for the account if it has none: the user's initial on the
   launcher's peach-pink gradient, set through AccountsService so the login
@@ -29,9 +34,12 @@ HOME = Path.home()
 STATE = Path(os.environ.get("XDG_STATE_HOME") or HOME / ".local/state")
 DATA = Path(os.environ.get("XDG_DATA_HOME") or HOME / ".local/share")
 
-# (path or URL, title, icon); titles are translated by KIO. Icons: the
-# mockup sidebar's accent line glyphs (Lucent icon theme, lucent-place-*).
+# (path or URL, title, icon); titles are translated by KIO, except This PC's
+# (Lucent's own catalog, see this_pc_title). Icons: the mockup sidebar's
+# accent line glyphs (Lucent icon theme, lucent-place-*).
+THIS_PC = ("thispc:/", "This PC", "lucent-place-pc")
 PLACES = [
+    THIS_PC,
     ("Desktop", "Desktop", "lucent-place-desktop"),
     ("Documents", "Documents", "lucent-place-documents"),
     ("Downloads", "Downloads", "lucent-place-downloads"),
@@ -92,17 +100,73 @@ def places_xbel() -> str:
            '  </metadata>\n </info>\n']
     for i, (target, title, icon) in enumerate(PLACES):
         href = target if ":/" in target else (HOME / target).as_uri() if target else HOME.as_uri()
-        out.append(f' <bookmark href="{escape(href)}">\n  <title>{escape(title)}</title>\n'
-                   f'  <info>\n   <metadata owner="http://freedesktop.org">\n'
-                   f'    <bookmark:icon name="{icon}"/>\n   </metadata>\n'
-                   f'   <metadata owner="http://www.kde.org">\n    <ID>{stamp}/{i}</ID>\n'
-                   f'    <isSystemItem>true</isSystemItem>\n   </metadata>\n  </info>\n </bookmark>\n')
+        if (target, title, icon) == THIS_PC:
+            title = this_pc_title()
+        out.append(bookmark(href, title, icon, f"{stamp}/{i}"))
     for udi in ALWAYS_HIDDEN_UDIS + system_volume_udis():
         out.append(f' <separator>\n  <info>\n   <metadata owner="http://www.kde.org">\n'
                    f'    <UDI>{escape(udi)}</UDI>\n    <isSystemItem>true</isSystemItem>\n'
                    f'    <IsHidden>true</IsHidden>\n   </metadata>\n  </info>\n </separator>\n')
     out.append('</xbel>\n')
     return "".join(out)
+
+
+def bookmark(href: str, title: str, icon: str, ident: str) -> str:
+    return (f' <bookmark href="{escape(href)}">\n  <title>{escape(title)}</title>\n'
+            f'  <info>\n   <metadata owner="http://freedesktop.org">\n'
+            f'    <bookmark:icon name="{icon}"/>\n   </metadata>\n'
+            f'   <metadata owner="http://www.kde.org">\n    <ID>{ident}</ID>\n'
+            f'    <isSystemItem>true</isSystemItem>\n   </metadata>\n  </info>\n </bookmark>\n')
+
+
+def _thispc_catalog():
+    import gettext
+    return gettext.translation("lucent-thispc", fallback=True)
+
+
+def this_pc_title() -> str:
+    """"This PC" in the user's language (the worker's catalog, po/ru.po)."""
+    return _thispc_catalog().pgettext("@title the overview page of Files", "This PC")
+
+
+def add_this_pc(xbel: str, title: str) -> str:
+    """Put This PC at the top of a sidebar that doesn't have it yet."""
+    if f'href="{THIS_PC[0]}"' in xbel:
+        return xbel
+    entry = bookmark(THIS_PC[0], title, THIS_PC[2], f"{int(time.time())}/thispc")
+    info = re.search(r"<xbel[^>]*>\s*<info>.*?</info>\n?", xbel, re.S)
+    head = info or re.search(r"<xbel[^>]*>\n?", xbel)
+    if not head:
+        return xbel
+    return xbel[:head.end()] + entry + xbel[head.end():]
+
+
+# thispc:/ as the page is meant to look. Dolphin keeps one set of view
+# properties for every non-local location (remote/), used only when "one
+# view style for all folders" is off (/etc/xdg/dolphinrc GlobalViewProps).
+# Grouped by "Type" (the section), the grey line is "Owner" (the detail);
+# both are what kio_thispc puts there. No previews: they'd cover the ring
+# icons of the drives.
+THISPC_VIEW = """[Dolphin]
+GroupedSorting=true
+GroupRole=type
+PreviewsShown=false
+SortFoldersFirst=true
+SortRole=text
+Version=4
+ViewMode=0
+VisibleRoles=Icons_text,Icons_owner,Compact_text,Compact_owner,Details_text,Details_owner,Details_modificationtime
+"""
+
+
+def seed_thispc_view(data: Path) -> None:
+    props = data / "dolphin/view_properties/remote/.directory"
+    if props.exists():
+        return
+    props.parent.mkdir(parents=True, exist_ok=True)
+    t = time.localtime()
+    stamp = ",".join(str(n) for n in (t.tm_year, t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec))
+    props.write_text(THISPC_VIEW + f"Timestamp={stamp}\n")
 
 
 def account_picture() -> None:
@@ -157,9 +221,16 @@ def main() -> int:
         toolbar.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy("/usr/share/lucent/design/dolphinui.rc", toolbar)
     places = DATA / "user-places.xbel"
+    thispc_marker = DATA / "lucent/thispc-place-v1"
     if not places.exists():
         places.parent.mkdir(parents=True, exist_ok=True)
         places.write_text(places_xbel(), encoding="utf-8")
+    elif not thispc_marker.exists():
+        # once: a user who later removes This PC from the sidebar keeps it removed
+        places.write_text(add_this_pc(places.read_text(encoding="utf-8"), this_pc_title()), encoding="utf-8")
+    thispc_marker.parent.mkdir(parents=True, exist_ok=True)
+    thispc_marker.touch()
+    seed_thispc_view(DATA)
     marker = DATA / "lucent/account-picture.png"
     if not marker.exists():
         account_picture()

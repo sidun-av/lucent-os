@@ -158,6 +158,8 @@ SIDEBAR = {
     "trash": '<path d="M4.5 7h15M9.5 7V5h5v2M6.5 7l1 12.5h9l1-12.5"/>',
     "network": '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c-3 3-3 14 0 17M12 3.5c3 3 3 14 0 17"/>',
     "recent": '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+    # This PC (kio_thispc, docs/this-pc.md): lucent.js S.pc
+    "pc": '<rect x="3.5" y="4.5" width="17" height="11.5" rx="2"/><path d="M8 20h8M12 16v4"/>',
 }
 
 
