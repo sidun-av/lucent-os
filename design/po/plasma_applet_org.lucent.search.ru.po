@@ -1,0 +1,8 @@
+# Russian translation of the Lucent taskbar search field (org.lucent.search).
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ru\n"
+
+msgid "Search"
+msgstr "Поиск"

@@ -1,0 +1,46 @@
+# Russian translation of the Lucent launcher (org.lucent.launcher).
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "Search apps, files and settings"
+msgstr "Поиск программ, файлов и настроек"
+
+msgid "All apps"
+msgstr "Все программы"
+
+msgid "open or close this menu"
+msgstr "открыть или закрыть это меню"
+
+msgid "Just start typing — search is ready"
+msgstr "Просто начните печатать — поиск уже ждёт"
+
+msgid "close"
+msgstr "закрыть"
+
+msgid "Nothing found"
+msgstr "Ничего не найдено"
+
+msgid "Power"
+msgstr "Выключение"
+
+msgid "Files"
+msgstr "Файлы"
+
+msgid "Terminal"
+msgstr "Терминал"
+
+msgid "Store"
+msgstr "Магазин"
+
+msgid "Settings"
+msgstr "Настройки"
+
+msgid "Move from Windows"
+msgstr "Переезд с Windows"
+
+msgctxt "@action:inmenu"
+msgid "Edit Applications…"
+msgstr "Изменить меню программ…"

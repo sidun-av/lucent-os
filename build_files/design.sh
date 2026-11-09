@@ -57,3 +57,15 @@ DRACUT_NO_XATTR=1 dracut --no-hostonly --kver "$kver" --reproducible --zstd -v -
 lsinitrd "/usr/lib/modules/$kver/initramfs.img" > /tmp/initramfs.list
 grep "plymouth/themes/lucent/lucent.plymouth" /tmp/initramfs.list
 rm /tmp/initramfs.list
+
+# Translations of the Lucent plasmoids (design/po/<domain>.<lang>.po), compiled
+# with the wizard's own .mo writer, so the build needs no gettext tools.
+for po in /ctx/design/po/*.po; do
+    base=${po##*/}
+    domain=${base%.*.po}
+    lang=${base%.po}
+    lang=${lang##*.}
+    PYTHONPATH=/usr/lib/lucent python3 -P -c \
+        'import sys; from pathlib import Path; from lucent_migrate.i18n import compile_po; compile_po(Path(sys.argv[1]), Path(sys.argv[2]))' \
+        "$po" "/usr/share/locale/$lang/LC_MESSAGES/$domain.mo"
+done
