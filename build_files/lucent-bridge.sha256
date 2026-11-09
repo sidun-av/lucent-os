@@ -3,6 +3,6 @@
 # release's SHA256SUMS *and* against these pinned hashes, then installs it
 # with dnf. To update: bump the version, paste the two RPM lines from the
 # new release's SHA256SUMS.
-version 0.1.0
-e59694783d27cca39cda0b887a72d54920a22bbebe79c06af11fa562ed8d1ab3  lucent-bridge-0.1.0-1.fc45.aarch64.rpm
-215f521fb7db7daee9f6c3c7bdaca554148df85e2e712234a784d40f3eb3faf7  lucent-bridge-0.1.0-1.fc45.x86_64.rpm
+version 0.1.1
+3c72088fc0357bc28e1bc6c1bb71671ed0201984221979e15f3d928542db60e3  lucent-bridge-0.1.1-1.fc45.aarch64.rpm
+1fc6bb7595e92b55493e5c3b52b4346d965417ce67d2a5e6d136bfc8491b49d9  lucent-bridge-0.1.1-1.fc45.x86_64.rpm

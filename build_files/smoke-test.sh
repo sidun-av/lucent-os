@@ -32,9 +32,12 @@ as_anna lucent-bridge run -- "$exe"
 echo "first launch without template: $(( ($(date +%s%N) - t0) / 1000000 )) ms"
 
 step "build the prefix template the way lucent-bridge-template.service does"
-/usr/libexec/lucent/bridge-template
+# A system service's environment: no HOME, no XDG variables (a real boot
+# showed lucent-bridge 0.1.0 refusing to build there).
+as_service() { env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin LANG=C.UTF-8 "$@"; }
+as_service /usr/libexec/lucent/bridge-template
 test -f /usr/share/lucent-bridge/prefix-template/system.reg
-/usr/libexec/lucent/bridge-template | tee /tmp/second-run
+as_service /usr/libexec/lucent/bridge-template | tee /tmp/second-run
 grep -q 'is current' /tmp/second-run   # no rebuild when nothing changed
 
 step "launch from the template (new prefix for a different user)"
@@ -55,6 +58,9 @@ systemd-analyze verify \
     /usr/lib/systemd/system/lucent-flatpak-relabel.service \
     /usr/lib/systemd/system/lucent-drive-letters.service
 systemctl is-enabled lucent-bridge-template.timer lucent-flatpak-setup.service lucent-flatpak-relabel.service
+if systemctl cat mcelog.service >/dev/null 2>&1; then
+    systemctl cat mcelog.service | grep -q 'ExecCondition=.*GenuineIntel'
+fi
 
 step "udev and polkit rules"
 udevadm verify /usr/lib/udev/rules.d/99-lucent-windows-readonly.rules
