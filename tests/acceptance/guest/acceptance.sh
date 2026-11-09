@@ -70,7 +70,7 @@ finish() {
     log "collecting system logs"
     journalctl -b --no-pager -o short-monotonic > "$LOGS/journal.txt" 2>&1
     systemctl list-units --failed --no-pager > "$LOGS/failed-units.txt" 2>&1
-    as_user journalctl --user -b --no-pager -o short-monotonic 2>&1 | cat > "$LOGS/journal-user.txt"
+    as_user journalctl --user -b --no-pager -o short-monotonic 2>/dev/null | cat > "$LOGS/journal-user.txt"
     ls -la "$BIN" "${HOMEDIR:-/nonexistent}/.local/share/applications" > "$LOGS/files.txt" 2>&1
     sync
     ctl "DONE $FAILED" >/dev/null
@@ -82,9 +82,9 @@ trap finish EXIT
 as_user() { # run inside the Plasma session (the user's systemd manager)
     # --pipe hands our stdio to the unit over D-Bus, and the bus may not
     # touch files on the payload disk (an AVC): stdout always goes through a
-    # pipe, and callers never point stderr at a file (2>&1 | cat > file).
-    # stdin stays the service's (an explicit </dev/null made systemd-run fail
-    # with "Bad message").
+    # pipe, and callers send stderr only to /dev/null or leave it alone (the
+    # journal). systemd-run fails with "Bad message" when stderr is the same
+    # pipe as stdout (2>&1) or stdin is redirected.
     systemd-run --quiet --user --machine="$U@.host" --wait --pipe --collect \
         -p RuntimeMaxSec=600 -- "$@" | cat
     return "${PIPESTATUS[0]}"
@@ -126,7 +126,7 @@ else
     shot 00-no-session
     exit 1
 fi
-as_user systemctl --user show-environment 2>&1 | cat > "$LOGS/session-environment.txt"
+as_user systemctl --user show-environment 2>/dev/null | cat > "$LOGS/session-environment.txt"
 # A test sits idle for minutes (waiting for the template): keep the screen
 # on and unlocked, as a user working at the machine would.
 if systemd-run --quiet --user --machine="$U@.host" --unit=lucent-acceptance-inhibit --collect \
@@ -269,9 +269,9 @@ done
 # What a double-click in Dolphin does: KIO's OpenUrlJob for the file.
 log "opening $DL/$NPP with ${opener:-gio open}"
 if [ -n "$opener" ]; then
-    as_user "$opener" exec "$DL/$NPP" 2>&1 | cat > "$LOGS/open.txt"
+    as_user "$opener" exec "$DL/$NPP" 2>/dev/null | cat > "$LOGS/open.txt"
 else
-    as_user gio open "$DL/$NPP" 2>&1 | cat > "$LOGS/open.txt"
+    as_user gio open "$DL/$NPP" 2>/dev/null | cat > "$LOGS/open.txt"
 fi
 bridge_pid() { user_pids "lucent-bridge run .*${NPP//./\\.}" | head -n1; }
 if wait_until 60 bridge_pid; then
@@ -454,7 +454,7 @@ if [ -n "$prefix" ]; then
     fi
     metric prefix_size "$(du -sh "$prefix" | cut -f1) (apparent; btrfs reflinks share data with the template)"
 fi
-as_user lucent-bridge list 2>&1 | cat > "$LOGS/bridge-list.txt"
+as_user lucent-bridge list 2>/dev/null | cat > "$LOGS/bridge-list.txt"
 
 # ---------------------------------------------------------------------------
 # 6. SELinux, wine-systemd, binfmt
