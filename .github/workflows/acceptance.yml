@@ -1,0 +1,162 @@
+name: acceptance
+
+# End-to-end acceptance test of the x86_64 installer ISO, for the promise
+# "install the OS, log in, double-click a Windows installer, and the app just
+# works with nothing else to install":
+#   1. install the amd64 ISO from the `iso` workflow unattended in QEMU/KVM,
+#      with no network (test-only kickstart: user, autologin, test runner);
+#   2. boot it (still no network) and, inside the Plasma session: the ten
+#      offline apps in favorites and launcher, the prefix template service,
+#      Notepad++'s real installer double-clicked from ~/Downloads, its GUI
+#      clicked through, its launcher entry started, its window found;
+#      SELinux, wine-systemd, boot/RAM/services/disk numbers; screenshots.
+# Test code: tests/acceptance/. Fails on any failed check.
+on:
+  workflow_run:
+    workflows: [iso]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      iso_run_id:
+        description: "ID of an `iso` run with an amd64 ISO artifact (empty: the newest)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  WORK: /mnt/lucent-acceptance
+  FEDORA: quay.io/fedora/fedora:45
+  # The same installer, URL and hash as lucent-bridge's E2E (ci/e2e/apps.tsv).
+  NPP: npp.8.9.9.Installer.x64.exe
+  NPP_URL: https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.9.9/npp.8.9.9.Installer.x64.exe
+  NPP_SHA256: a18cfb33d616c8eecda0059604d40bdb9d607fbc4ede857c8be6e41986464367
+
+concurrency:
+  group: acceptance
+  cancel-in-progress: false
+
+jobs:
+  acceptance:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 200
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests (verdict, screenshot conversion)
+        run: |
+          pip install -q pytest
+          python3 -m pytest -q tests/acceptance
+
+      - name: Find the ISO
+        id: iso
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          has_iso() {
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$1/artifacts" \
+              -q '[.artifacts[] | select(.name == "lucent-os-amd64-iso" and (.expired | not))] | length'
+          }
+          id="${{ github.event.workflow_run.id || inputs.iso_run_id }}"
+          if [ -z "$id" ]; then
+            for r in $(gh run list -R "$GITHUB_REPOSITORY" -w iso -s success -L 30 --json databaseId -q '.[].databaseId'); do
+              if [ "$(has_iso "$r")" != 0 ]; then id=$r; break; fi
+            done
+          fi
+          if [ -z "$id" ] || [ "$(has_iso "$id")" = 0 ]; then
+            echo "::notice::iso run ${id:-?} has no amd64 ISO artifact; nothing to test"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id" -q .head_sha)
+          echo "run_id=$id" >> "$GITHUB_OUTPUT"
+          echo "Testing the amd64 ISO of iso run [$id]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$id) (commit ${sha:0:7})" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Enable KVM
+        if: steps.iso.outputs.skip != 'true'
+        run: |
+          # GitHub's documented way: a udev rule that opens /dev/kvm to the runner user.
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+      - name: Disk space and tools
+        if: steps.iso.outputs.skip != 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost || true
+          sudo mkdir -p "$WORK" && sudo chown "$USER" "$WORK"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 ovmf e2fsprogs >/dev/null
+          command -v podman || sudo apt-get install -y -qq podman
+          qemu-system-x86_64 --version
+          df -h / /mnt
+
+      - name: Download the ISO
+        if: steps.iso.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download "${{ steps.iso.outputs.run_id }}" -R "$GITHUB_REPOSITORY" -n lucent-os-amd64-iso -D "$WORK/iso"
+          cd "$WORK/iso" && sha256sum -c lucent-os-amd64.iso.sha256
+      - name: Payload disk (test runner + the Windows installer)
+        if: steps.iso.outputs.skip != 'true'
+        run: |
+          p="$WORK/payload"
+          mkdir -p "$p/guest"
+          cp tests/acceptance/guest/* "$p/guest/"
+          cp system_files/usr/share/lucent/flatpaks.list "$p/"
+          curl -fsSL --retry 5 --retry-all-errors -o "$p/$NPP" "$NPP_URL"
+          echo "$NPP_SHA256  $p/$NPP" | sha256sum -c
+          truncate -s 1G "$WORK/payload.img"
+          mkfs.ext4 -q -L LUCENTTEST -E root_owner=0:0 -d "$p" "$WORK/payload.img"
+      - name: Unattended copy of the ISO (test-only kickstart)
+        if: steps.iso.outputs.skip != 'true'
+        run: |
+          cp tests/acceptance/test.ks "$WORK/test.ks"
+          sudo podman run --rm --privileged -v "$WORK:/work" "$FEDORA" bash -euc '
+            dnf -y -q --setopt=install_weak_deps=False install lorax xorriso isomd5sum dosfstools mtools >/dev/null
+            mkksiso --no-md5sum --ks /work/test.ks -c "console=ttyS0,115200 inst.notmux" \
+              /work/iso/lucent-os-amd64.iso /work/test.iso'
+          sudo chown "$USER" "$WORK/test.iso"
+          rm -rf "$WORK/iso"
+          df -h "$WORK"
+
+      - name: Install (Anaconda in QEMU/KVM, no network)
+        if: steps.iso.outputs.skip != 'true'
+        run: |
+          mkdir -p "$WORK/out"
+          cp /usr/share/OVMF/OVMF_VARS_4M.fd "$WORK/vars.fd"
+          truncate -s 64G "$WORK/disk.raw"
+          python3 tests/acceptance/harness.py install --iso "$WORK/test.iso" --disk "$WORK/disk.raw" \
+            --vars "$WORK/vars.fd" --log "$WORK/out/serial-install.log" | tee "$WORK/out/install.txt"
+          rm -f "$WORK/test.iso"
+      - name: Boot and test (no network)
+        if: steps.iso.outputs.skip != 'true'
+        run: |
+          python3 tests/acceptance/harness.py run --disk "$WORK/disk.raw" --vars "$WORK/vars.fd" \
+            --payload "$WORK/payload.img" --out "$WORK/out"
+      - name: Results
+        if: always() && steps.iso.outputs.skip != 'true'
+        run: |
+          sudo mkdir -p /mnt/payload
+          if sudo mount -o ro,noload,loop "$WORK/payload.img" /mnt/payload; then
+            sudo cp -r /mnt/payload/results "$WORK/out/" || true
+            sudo umount /mnt/payload
+          fi
+          sudo chown -R "$USER" "$WORK/out"
+          rm -f "$WORK/out/"*.sock "$WORK/out/.size.png"
+          echo "iso run: ${{ steps.iso.outputs.run_id }}" > "$WORK/out/iso-run.txt"
+          rc=0
+          python3 tests/acceptance/summarize.py "$WORK/out" > /dev/null || rc=$?
+          cat "$WORK/out/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.iso.outputs.skip != 'true'
+        with:
+          name: acceptance-x86_64
+          path: ${{ env.WORK }}/out
+          if-no-files-found: ignore
+          retention-days: 14
