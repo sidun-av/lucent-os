@@ -74,6 +74,7 @@ jobs:
           # installed system compares against when it first updates.
           index=$(sudo skopeo inspect --raw "docker://$IMAGE_REF")
           arch_digest=$(jq -r --arg a "${{ inputs.arch }}" '.manifests[] | select(.platform.architecture == $a) | .digest' <<<"$index")
+          # shellcheck disable=SC2024 # $WORK is ours; only skopeo needs root's login
           sudo skopeo inspect --raw "docker://$IMAGE@$arch_digest" > "$WORK/registry-manifest.json"
           if [ "$(jq -r .config.digest "$WORK/registry-manifest.json")" != "sha256:$(sudo podman image inspect "$IMAGE_REF" --format '{{.Id}}')" ]; then
             echo "::warning::$IMAGE_REF moved since the pull; no first-update estimate"
@@ -85,12 +86,10 @@ jobs:
           fi
 
       - name: Offline app bundle (Flathub apps + runtimes as a ready /var/lib/flatpak)
-        env:
-          LUCENT_BUNDLE_COMPARE: "1"
         run: |
           # --privileged: flatpak runs its install triggers (icon/desktop caches) in bwrap.
           start=$(date +%s)
-          sudo podman run --rm --privileged -e LUCENT_BUNDLE_COMPARE -v "$PWD:/src:ro" -v "$WORK:/out" "$FEDORA" /src/iso/build-app-bundle.sh /out
+          sudo podman run --rm --privileged -v "$PWD:/src:ro" -v "$WORK:/out" "$FEDORA" /src/iso/build-app-bundle.sh /out
           echo "bundle took $(( $(date +%s) - start )) s"
       - name: Check the bundle offline in the Lucent image
         run: |
@@ -163,10 +162,6 @@ jobs:
             echo "| system image, recompressed (zstd -19) | $(gb "$(cat "$WORK/container-zstd.txt")") |"
             echo "| default apps installed (/var/lib/flatpak) | $(gb "$installed") |"
             echo "| app bundle on the ISO (zstd -19, sorted) | $(gb "$packed") |"
-            if [ -f "$WORK/bundle-compare.txt" ]; then
-              read -r _ previous < "$WORK/bundle-compare.txt"
-              echo "| app bundle, previous packing (zstd -12, plain order) | $(gb "$previous") |"
-            fi
             echo "| **final ISO** | **$(gb "$final")** |"
             echo
             for v in gzip zstd; do

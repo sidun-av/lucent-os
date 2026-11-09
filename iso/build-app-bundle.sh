@@ -45,11 +45,6 @@ python3 /src/iso/bundle-members.py /var/lib/flatpak > /tmp/members
 tar -C /var/lib/flatpak --numeric-owner --no-recursion --null -T /tmp/members -cf - \
     | zstd -T0 -19 --long=27 -q \
     | split -b 1024M -d -a 2 - "$out/flatpak.tar.zst."
-if [ -n "${LUCENT_BUNDLE_COMPARE:-}" ]; then
-    # Measurement only: the previous packing (plain order, zstd -12).
-    old=$(tar -C /var/lib/flatpak --numeric-owner -cf - . | zstd -T0 -12 --long=27 -q | wc -c)
-    echo "previous_packing_bytes $old" | tee "$1/bundle-compare.txt"
-fi
 (cd "$out" && sha256sum flatpak.tar.zst.* > SHA256SUMS)
 cp /tmp/apps.txt "$out/apps.txt"
 packed=$(cat "$out"/flatpak.tar.zst.* | wc -c)
