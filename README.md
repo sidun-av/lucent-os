@@ -278,7 +278,19 @@ Nothing to install or download first:
 - The build fails unless `lucent-bridge --version` works, the
   `application/x-ms-dos-executable` default resolves to lucent-bridge, and
   `wine-systemd` is absent. CI then starts a Windows program in the built
-  image, before and after the template exists (`build_files/smoke-test.sh`).
+  image, before and after the template exists (`build_files/smoke-test.sh`),
+  the template build with a system service's environment (no `HOME`).
+- **SELinux and composefs.** `/usr` is a composefs mount made in the
+  initrd, and Linux also checks `mmap`/`mprotect` on its files with the
+  *mounter's* credentials (`kernel_t`). Relocating a 32-bit Windows DLL from
+  `/usr/lib64/wine/i386-windows` needs `execmod`, which `kernel_t` lacked:
+  every 32-bit program (most installers, Wine Mono's own helper) died, and
+  Wine offered to *download* Mono. A small CIL module
+  (`/usr/share/selinux/packages/lucent/lucent_composefs_execmod.cil`, loaded
+  at build time) allows exactly that; the program's own domain is still
+  checked. Containers don't use composefs, so only a real install shows it.
+- **Proven end to end** on the installed ISO by the
+  [acceptance test](#acceptance-test-x86_64).
 
 ## Apps offline, from the installer
 
@@ -316,6 +328,43 @@ seed) would add ~3 GB to the image and to every atomic update, while a
 `/var` seed is applied only at install time anyway. On the ISO the cost is
 paid once, by the download of the installer.
 
+## Acceptance test (x86_64)
+
+The owner's promise, checked on a real install: *install the OS, log in,
+double-click a Windows installer, and the app just works with nothing else
+to install.* `.github/workflows/acceptance.yml` (after every `iso` run, or
+manual) on a GitHub `ubuntu-24.04` runner with KVM:
+
+1. installs the amd64 ISO unattended in QEMU/KVM **with no network**
+   (`tests/acceptance/test.ks`, on a throw-away copy of the ISO: user
+   `anna`, autologin, the test runner; none of it is in a release);
+2. boots the installed disk, still with no network, and from inside the
+   Plasma session (`tests/acceptance/guest/acceptance.sh`) checks the ten
+   offline apps in the launcher's favorites and menu, waits for
+   `lucent-bridge-template.service`, copies Notepad++'s official installer
+   into `~/Downloads` (the same file and SHA-256 as lucent-bridge's E2E) and
+   opens it **the way a double-click in Dolphin does** (`kioclient exec`; the
+   process must run in `lucent-bridge.desktop`'s unit), clicks through the
+   installer's own pages with real key presses (QEMU input through KWin),
+   waits for the launcher entry, starts Notepad++ **from the launcher** (Win,
+   type, Enter) and finds its window (KWin scripting);
+3. checks SELinux (enforcing, no AVC denial during the flow, the new Wine
+   prefix labelled as policy expects), that `wine-systemd` is absent and
+   lucent-bridge is the only `.exe` binfmt handler, and that Wine never
+   asks to download anything;
+4. records `systemd-analyze`, RAM 2 min after login, running services and
+   disk usage, takes QMP screenshots, uploads them with `summary.md`/`.json`,
+   and fails on any failed check (`tests/acceptance/summarize.py`).
+
+Latest run: [42657634944](https://github.com/sidun-av/lucent-os/actions/runs/42657634944); screenshots and numbers in
+[`docs/screenshots/real/x86-acceptance/`](docs/screenshots/real/x86-acceptance/README.md).
+Its first runs found five real bugs, all fixed: the template service never
+built the template (no `HOME`; lucent-bridge 0.1.1), launcher entries
+appeared only after the program an installer starts was closed (0.1.1),
+32-bit Windows programs couldn't run at all on composefs (SELinux, above),
+the copied prefix kept the template's `var_lib_t` labels (0.1.2), and
+`mcelog.service` failed on every boot on AMD CPUs (now skipped there).
+
 ## Windows disks
 
 The "Move from Windows" assistant and Dolphin open the computer's own
@@ -335,6 +384,7 @@ There is no local build requirement; CI does it all.
 | --- | --- |
 | `build` | pytest → `podman build` natively on `ubuntu-24.04` (amd64) and `ubuntu-24.04-arm` (arm64) → push `ghcr.io/sidun-av/lucent-os:latest-<arch>` → multi-arch `:latest` |
 | `iso` (manual) | offline app bundle → bootc-image-builder `anaconda-iso` from `:latest` → bundle added to the ISO → optional unattended offline install test in QEMU/KVM; ISO uploaded as a workflow artifact, sizes in the run summary |
+| `acceptance` (after `iso`, or manual) | installs the amd64 ISO in QEMU/KVM with no network and checks the Windows double-click flow in the real Plasma session; screenshots, numbers ([above](#acceptance-test-x86_64)) |
 | `vm` (after `build`, or manual) | **test-only** qcow2 (autologin user, SSH key) + fake Windows disk for `tools/vm/`; never a release artifact |
 
 Locally, on any Linux with podman:
@@ -364,6 +414,7 @@ apps/lucent-store/            the Store (lucent_store, catalog.toml, po/, tests)
 apps/lucent-settings/         Settings (lucent_settings: backends/, qml/, po/, tests)
 tools/vm/                     boot the real image in QEMU (test-only VM images from CI)
 iso/                          installer ISO: offline app bundle, kickstart, config
+tests/acceptance/             CI: install the ISO, double-click a Windows installer
 .github/workflows/            CI
 ```
 
