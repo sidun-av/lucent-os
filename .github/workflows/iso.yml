@@ -35,6 +35,10 @@ on:
       image_tag:
         type: string
         default: latest
+      expect_revision:
+        description: "Fail unless the image was built from this commit (releases: the tag's)"
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -66,6 +70,10 @@ jobs:
           # for its atomic updates.
           sudo podman pull "$IMAGE_REF"
           sudo podman image inspect "$IMAGE_REF" --format '{{index .Labels "org.opencontainers.image.revision"}}' | tee image-revision.txt
+          want="${{ inputs.expect_revision }}"
+          if [ -n "$want" ] && [ "$(cat image-revision.txt)" != "$want" ]; then
+            echo "::error::$IMAGE_REF is $(cat image-revision.txt), not $want (another build moved the tag?)"; exit 1
+          fi
 
       - name: Offline app bundle (Flathub apps + runtimes as a ready /var/lib/flatpak)
         env:
@@ -82,7 +90,7 @@ jobs:
 
       - name: bootc-image-builder (anaconda-iso)
         run: |
-          python3 iso/make-config.py config.toml
+          LUCENT_IMAGE_REF="$IMAGE_REF" python3 iso/make-config.py config.toml
           cat config.toml
           mkdir -p "$WORK/output"
           sudo podman run --rm --privileged --pull=newer \
@@ -238,7 +246,23 @@ jobs:
           else
             case "$label" in ""|*unlabeled_t*) echo "not labelled"; fail=1 ;; esac
           fi
-          { echo "### Install test"; echo "apps on disk: $(sudo ls "$var/lib/flatpak/app" | wc -l), label: ${label:-none}"; } >> "$GITHUB_STEP_SUMMARY"
+          # Updates: the new system follows the image tag this ISO was built
+          # from, with signature checks if the image requires them.
+          origin=$(sudo sh -c 'cat /mnt/inst/ostree/deploy/*/deploy/*.origin' | grep '^container-image-reference=' | head -n1)
+          echo "update origin: ${origin:-none}"
+          case "$origin" in
+            *"docker://$IMAGE_REF"|*":$IMAGE_REF") ;;
+            *) echo "the installed system does not follow $IMAGE_REF"; fail=1 ;;
+          esac
+          if sudo sh -c 'ls /mnt/inst/ostree/deploy/*/deploy/*/etc/pki/containers/lucent-os.pub' >/dev/null 2>&1; then
+            case "$origin" in *ostree-image-signed:*) ;; *) echo "the image has a signing key but updates are not signature-checked"; fail=1 ;; esac
+          fi
+          sudo grep -h 'lucent-updates' /mnt/inst/ostree/deploy/*/var/log/anaconda/*.log 2>/dev/null | tail -n 3 || true
+          {
+            echo "### Install test"
+            echo "apps on disk: $(sudo ls "$var/lib/flatpak/app" | wc -l), label: ${label:-none}"
+            echo "updates follow: \`${origin#container-image-reference=}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
           sudo umount /mnt/inst
           sudo losetup -d "$loop"
           exit $fail

@@ -1,0 +1,6 @@
+# Lucent OS images carry sigstore signatures next to them in the registry
+# (cosign-style attachments). containers/image looks for them only where this
+# is on; /etc/containers/policy.json decides whether one is required.
+docker:
+  ghcr.io/sidun-av/lucent-os:
+    use-sigstore-attachments: true

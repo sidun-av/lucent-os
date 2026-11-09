@@ -1,18 +1,25 @@
 #!/usr/bin/python3
 """Write the bootc-image-builder config for the installer ISO.
 
-Usage: make-config.py OUT.toml [EXTRA.ks]
+Usage: [LUCENT_IMAGE_REF=registry/image:tag] make-config.py OUT.toml [EXTRA.ks]
 
 The ISO stays interactive (Anaconda asks for language, keyboard and the
-first user); its kickstart only carries iso/lucent-apps.ks. EXTRA.ks is for
-CI's unattended install test (disk layout, user, poweroff).
+first user); its kickstart only carries iso/lucent-apps.ks (the offline
+apps) and iso/lucent-updates.ks (signed updates, for the image reference in
+LUCENT_IMAGE_REF: the one the ISO is built from). EXTRA.ks is for CI's
+unattended install test (disk layout, user, poweroff).
 """
+import os
+import re
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 
-ks = (HERE / "lucent-apps.ks").read_text()
+ref = os.environ.get("LUCENT_IMAGE_REF", "")
+if ref and not re.fullmatch(r"[A-Za-z0-9._/:@-]+", ref):
+    sys.exit(f"not an image reference: {ref!r}")
+ks = (HERE / "lucent-apps.ks").read_text() + "\n" + (HERE / "lucent-updates.ks").read_text().replace("@IMAGE_REF@", ref)
 if len(sys.argv) > 2:
     ks = Path(sys.argv[2]).read_text() + "\n" + ks
 if "'''" in ks:
