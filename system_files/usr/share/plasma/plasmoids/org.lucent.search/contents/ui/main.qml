@@ -82,7 +82,7 @@ PlasmoidItem {
                     text: i18n("Search")
                     color: root.text2           // --text-secondary
                     font.family: Kirigami.Theme.defaultFont.family
-                    font.pixelSize: 15.5        // --type-body
+                    font.pointSize: 11.625        // --type-body: 15.5 px
                     elide: Text.ElideRight
                 }
             }

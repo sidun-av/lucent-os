@@ -196,7 +196,8 @@ for (const d of desktops()) {
 def _wallpaper_follows_mode(r) -> None:
     """Desktops showing one image of a wallpaper package go back to the
     package, so Plasma picks its day or night image for the mode."""
-    r.run(["qdbus6", "org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell.evaluateScript", WALLPAPER_JS])
+    r.run(["dbus-send", "--session", "--print-reply", "--dest=org.kde.plasmashell", "/PlasmaShell",
+           "org.kde.PlasmaShell.evaluateScript", "string:" + WALLPAPER_JS])
 
 
 def _set_kvantum(r, accent_id: str) -> bool:
@@ -227,7 +228,7 @@ def _apply_global_theme(r, pkg: str, errors: list[str]) -> None:
                             or read("kwinrc", "org.kde.kdecoration2", "ButtonsOnRight", "") != right):
         kwrite(r, "kwinrc", "org.kde.kdecoration2", "ButtonsOnLeft", left)
         kwrite(r, "kwinrc", "org.kde.kdecoration2", "ButtonsOnRight", right)
-        r.run(["qdbus6", "org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure"])
+        r.run(["dbus-send", "--session", "--type=method_call", "--dest=org.kde.KWin", "/KWin", "org.kde.KWin.reconfigure"])
 
 
 def _accent_in_kde() -> str:

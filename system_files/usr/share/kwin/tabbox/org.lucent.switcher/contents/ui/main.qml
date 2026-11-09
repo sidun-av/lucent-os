@@ -158,7 +158,7 @@ KWin.TabBoxSwitcher {
                                 Layout.fillWidth: true
                                 text: item.model.caption
                                 color: dialogMainItem.text1
-                                font.pixelSize: 15.5                     // --type-body
+                                font.pointSize: 11.625                     // --type-body: 15.5 px
                                 font.weight: item.current ? Font.DemiBold : Font.Normal
                                 elide: Text.ElideRight
                                 textFormat: Text.PlainText

@@ -22,7 +22,7 @@ Rectangle {
 
     // Drift night tokens (pebble-drift.css .dark)
     readonly property color accent: config.accent || "#7088ff"       // --accent
-    readonly property color onAccent: "#0e1230"                        // --text-on-accent
+    readonly property color inkOnAccent: "#0e1230"                        // --text-on-accent
     readonly property color text1: "#eef0fa"                           // --text-primary
     readonly property color text2: "#bcc1d6"                           // --text-secondary
     readonly property color surface: Qt.rgba(29 / 255, 31 / 255, 46 / 255, 0.72)   // --surface-window, see-through
@@ -205,7 +205,7 @@ Rectangle {
                 passwordMaskDelay: 0
                 color: root.text1
                 selectionColor: root.accent
-                selectedTextColor: root.onAccent
+                selectedTextColor: root.inkOnAccent
                 font.family: root.uiFont
                 font.pixelSize: 17 * root.s
                 font.letterSpacing: text.length > 0 ? 2 : 0
@@ -259,7 +259,7 @@ Rectangle {
                         onPaint: {
                             const c = getContext("2d");
                             c.reset();
-                            c.strokeStyle = password.text.length > 0 || go.hovered ? root.onAccent : root.text1;
+                            c.strokeStyle = password.text.length > 0 || go.hovered ? root.inkOnAccent : root.text1;
                             c.lineWidth = 2;
                             c.lineCap = "round";
                             c.lineJoin = "round";

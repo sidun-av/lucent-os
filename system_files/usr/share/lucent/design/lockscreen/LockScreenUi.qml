@@ -46,7 +46,7 @@ Item {
     // Lucent tokens (docs/mockups/lucent.css), on a dark scrim in both modes
     // Drift night tokens (pebble-drift.css .dark)
     readonly property color accent: "#7088ff"                          // --accent
-    readonly property color onAccent: "#0e1230"                        // --text-on-accent
+    readonly property color inkOnAccent: "#0e1230"                        // --text-on-accent
     readonly property color text1: "#eef0fa"                           // --text-primary
     readonly property color text2: "#bcc1d6"                           // --text-secondary
     readonly property color surface: Qt.rgba(29 / 255, 31 / 255, 46 / 255, 0.72)   // --surface-window, see-through
@@ -404,7 +404,7 @@ Item {
                     passwordMaskDelay: 0
                     color: lockScreenUi.text1
                     selectionColor: lockScreenUi.accent
-                    selectedTextColor: lockScreenUi.onAccent
+                    selectedTextColor: lockScreenUi.inkOnAccent
                     font.family: lockScreenUi.uiFont
                     font.pixelSize: 17
                     font.letterSpacing: text.length > 0 ? 2 : 0
@@ -458,7 +458,7 @@ Item {
                             onPaint: {
                                 const c = getContext("2d");
                                 c.reset();
-                                c.strokeStyle = passwordBox.text.length > 0 || unlockButton.hovered ? lockScreenUi.onAccent : lockScreenUi.text1;
+                                c.strokeStyle = passwordBox.text.length > 0 || unlockButton.hovered ? lockScreenUi.inkOnAccent : lockScreenUi.text1;
                                 c.lineWidth = 2;
                                 c.lineCap = "round";
                                 c.lineJoin = "round";
@@ -489,7 +489,7 @@ Item {
                 background: Rectangle { radius: 11; color: lockScreenUi.accent }
                 contentItem: Text {
                     text: i18ndc("plasma_shell_org.kde.plasma.desktop", "@action:button", "Unlock")
-                    color: lockScreenUi.onAccent
+                    color: lockScreenUi.inkOnAccent
                     font.family: lockScreenUi.uiFont
                     font.pixelSize: 16
                     font.weight: Font.DemiBold

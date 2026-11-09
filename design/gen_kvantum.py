@@ -527,7 +527,8 @@ def build(t):
     box(svg, "itemview", "focused", 10, t["hover"], ix=4, iy=1)
     IV = (4, 1, 4, 1)
     lbox(svg, "itemview", "pressed", 10, [("shape", t["selected"], 0, 0), ("band", t["accent_ring"], 0, 1.5)], IV)
-    lbox(svg, "itemview", "toggled", 10, [("shape", t["selected"], 0, 0), ("band", t["line_strong"], 0, 1)], IV)
+    # selected in a view without focus (Files' current place, .si.sel): a raised pillow
+    lbox(svg, "itemview", "toggled", 10, raised, IV)
     # menus (popups): --surface-popover, radius 12, hairline, long soft shadow
     popup(svg, "menu", 14, 12, t["popup"], t["popup_line"], t["shadow"])
     popup(svg, "tooltip", 8, 10, t["tooltip"], t["popup_line"], t["shadow"])
@@ -587,13 +588,16 @@ def build(t):
     frame(svg, "progress-pattern-disabled", 3, 3, t["disabled"])
     frame(svg, "expand-progress-pattern-disabled", 5, 5, t["disabled"])
     # toolbars, docks, title bars, status bar: flat (window colour, one-row header)
-    for el in ("toolbar-normal", "dock-normal", "dock-focused", "titlebar-normal", "titlebar-focused"):
+    for el in ("toolbar-normal", "titlebar-normal", "titlebar-focused"):
+        empty_frame(svg, el)
+    for el in ("dock-normal", "dock-focused"):
         empty_frame(svg, el)
     empty(svg, "toolbar-handle", 8, 8)
     svg.add("toolbar-separator", 13, 26, f'<rect x="6" y="0" width="1" height="26" {paint(t["line_strong"])}/>')
     # splitters: a hairline
     for st in ("normal", "focused", "pressed"):
-        svg.add(f"splitter-{st}", 8, 8, f'<rect x="0" width="8" height="8" {paint(t["line"] if st == "normal" else t["accent_ring"])}/>')
+        # no hairline between the sidebar well and the view; hover/drag shows the accent
+        svg.add(f"splitter-{st}", 8, 8, "" if st == "normal" else f'<rect x="0" width="8" height="8" {paint(t["accent_ring"])}/>')
         empty(svg, f"splitter-grip-{st}", 16, 16)
     # focus rectangle: none (focus shows as field rings)
     for pos in ("top", "bottom", "left", "right", "topleft", "topright", "bottomleft", "bottomright"):
@@ -1037,7 +1041,7 @@ text.margin.right=4
 text.normal.color={tx}
 text.focus.color={tx}
 text.press.color={tx}
-text.toggle.color={tx}
+text.toggle.color={t['accent_ink']}
 min_width=0
 min_height=+0.6font
 

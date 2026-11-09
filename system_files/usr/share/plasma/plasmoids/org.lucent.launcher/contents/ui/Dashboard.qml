@@ -44,7 +44,7 @@ Kicker.DashboardWindow {
     readonly property bool indigo: Qt.colorEqual(accent, dark ? "#7088ff" : "#4257e8")
     readonly property color accentText: indigo ? (dark ? "#9aabff" : "#3346cf")
                                                : (dark ? Qt.lighter(accent, 1.35) : Qt.darker(accent, 1.15))
-    readonly property color onAccent: indigo && dark ? "#0e1230" : "#ffffff"
+    readonly property color inkOnAccent: indigo && dark ? "#0e1230" : "#ffffff"
     readonly property color textColor: dark ? "#eef0fa" : "#171a2b"          // --text-primary
     readonly property color text2: dark ? "#bcc1d6" : "#474d66"              // --text-secondary
     readonly property color text3: dark ? "#9ca2bb" : "#525972"              // --text-tertiary
@@ -503,7 +503,7 @@ Kicker.DashboardWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             text: chip.label
                             color: chip.on ? root.textColor : root.text2
-                            font.pixelSize: 15.5                // --type-body
+                            font.pointSize: 11.625                // --type-body: 15.5 px
                             font.weight: Font.DemiBold
                         }
                     }
@@ -651,7 +651,7 @@ Kicker.DashboardWindow {
                     horizontalAlignment: Text.AlignHCenter
                     text: cell.modelData.name
                     color: root.textColor
-                    font.pixelSize: 15.5                        // --type-body
+                    font.pointSize: 11.625                        // --type-body: 15.5 px
                     font.weight: Font.DemiBold
                     lineHeight: 1.3
                     wrapMode: Text.Wrap

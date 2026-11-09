@@ -45,7 +45,7 @@ OUT = ROOT / "system_files/usr/share/plasma/desktoptheme"
 # 12) centred; icons are 48 px (Lucent's app icons keep their tile on an
 # 80 % grid, so the tile shows at ~38 px, the mockup's .tb-app svg).
 PANEL_H = 68
-PANEL_PAD = (14, 6, 14, 6)
+PANEL_PAD = (14, 10, 14, 10)
 FLOAT_GAP = (8, 8, 8, 8)
 TASK_W = TASK_H = 68
 TASK_TILE = (8, 8, 52, 52)
