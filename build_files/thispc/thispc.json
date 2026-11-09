@@ -1,0 +1,29 @@
+{
+    "KDE-KIO-Protocols": {
+        "thispc": {
+            "Class": ":local",
+            "ExtraNames": [],
+            "Icon": "lucent-place-pc",
+            "deleting": false,
+            "input": "none",
+            "linking": false,
+            "listing": [
+                "Name",
+                "Type",
+                "Size",
+                "Date",
+                "Access",
+                "Owner",
+                "MimeType",
+                "URL"
+            ],
+            "makedir": false,
+            "maxInstances": 4,
+            "moving": false,
+            "output": "filesystem",
+            "protocol": "thispc",
+            "reading": true,
+            "writing": false
+        }
+    }
+}

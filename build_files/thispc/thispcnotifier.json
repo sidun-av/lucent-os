@@ -1,0 +1,11 @@
+{
+    "KPlugin": {
+        "Description": "Refreshes the This PC page in Files when drives are plugged in, removed, mounted or unmounted",
+        "Description[ru]": "Обновляет страницу «Этот компьютер» в «Файлах», когда диски подключают, отключают, монтируют или отмонтируют",
+        "Name": "This PC",
+        "Name[ru]": "Этот компьютер"
+    },
+    "X-KDE-Kded-autoload": true,
+    "X-KDE-Kded-load-on-demand": false,
+    "X-KDE-Kded-phase": 2
+}

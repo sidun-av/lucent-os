@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Service
+# Removable drives on Files' "This PC" page (kio_thispc gives them this type;
+# /usr/share/mime/packages/lucent-thispc.xml). docs/this-pc.md
+MimeType=inode/x-lucent-removable-drive;
+X-KDE-Protocols=thispc
+X-KDE-Priority=TopLevel
+X-KDE-RequiredNumberOfUrls=1
+Actions=eject;
+
+[Desktop Action eject]
+Name=Eject
+Name[ru]=Извлечь
+Icon=media-eject
+Exec=/usr/libexec/lucent/thispc-eject %u

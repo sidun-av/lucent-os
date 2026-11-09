@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A USB drive (or SD card, external disk) on Files' "This PC" page:
+     a folder that also has "Eject" (kio/servicemenus/lucent-thispc-eject.desktop). -->
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="inode/x-lucent-removable-drive">
+    <comment>Removable drive</comment>
+    <comment xml:lang="ru">Съёмный диск</comment>
+    <sub-class-of type="inode/directory"/>
+    <generic-icon name="drive-removable-media"/>
+  </mime-type>
+</mime-info>

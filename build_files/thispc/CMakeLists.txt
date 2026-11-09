@@ -37,7 +37,7 @@ if(KF6KIO_FOUND)
     install(TARGETS kio_thispc LIBRARY DESTINATION ${QT6_INSTALL_PLUGINS}/kf6/kio)
 
     add_library(thispcnotifier MODULE notifier.cpp)
-    target_link_libraries(thispcnotifier PRIVATE KF6::KIOCore KF6::Solid KF6::DBusAddons)
+    target_link_libraries(thispcnotifier PRIVATE KF6::KIOCore KF6::Solid KF6::DBusAddons KF6::CoreAddons)
     set_target_properties(thispcnotifier PROPERTIES PREFIX "")
     install(TARGETS thispcnotifier LIBRARY DESTINATION ${QT6_INSTALL_PLUGINS}/kf6/kded)
 endif()

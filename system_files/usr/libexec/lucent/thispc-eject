@@ -1,0 +1,66 @@
+#!/usr/bin/python3 -P
+"""Eject a removable drive from Files' "This PC" page.
+
+Run by the "Eject" action (/usr/share/kio/servicemenus/lucent-thispc-eject.desktop)
+with the item's URL, thispc:/drive-<block device>. Unmounts every mounted
+file system on that drive, then powers the drive off, the way Plasma's own
+"Safely remove" does (udisks; polkit decides, a password is asked if needed).
+The page refreshes by itself (thispcnotifier, kded). docs/this-pc.md
+"""
+import gettext
+import json
+import re
+import subprocess
+import sys
+from urllib.parse import unquote
+
+_ = gettext.translation("lucent-thispc", fallback=True).gettext
+
+
+def device_for(url: str) -> str | None:
+    """thispc:/drive-sdb1 -> /dev/sdb1 (nothing else is accepted)."""
+    m = re.fullmatch(r"thispc:/*drive-([A-Za-z0-9][A-Za-z0-9._-]*)/?", unquote(url))
+    return f"/dev/{m[1]}" if m else None
+
+
+def mounted_partitions(lsblk_json: str) -> list[str]:
+    """Block devices with a mount point, from `lsblk -J -o PATH,MOUNTPOINTS <disk>`."""
+    out = []
+
+    def walk(devs):
+        for d in devs:
+            if any(d.get("mountpoints") or []):
+                out.append(d["path"])
+            walk(d.get("children") or [])
+    walk(json.loads(lsblk_json).get("blockdevices", []))
+    return out
+
+
+def notify(summary: str, body: str, icon: str) -> None:
+    subprocess.run(["gdbus", "call", "--session", "--dest", "org.freedesktop.Notifications",
+                    "--object-path", "/org/freedesktop/Notifications",
+                    "--method", "org.freedesktop.Notifications.Notify",
+                    "Files", "0", icon, summary, body, "[]", "{}", "5000"],
+                   capture_output=True, timeout=10)
+
+
+def main(argv: list[str]) -> int:
+    dev = device_for(argv[1]) if len(argv) > 1 else None
+    if not dev:
+        return 2
+    run = lambda *cmd: subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    parent = run("lsblk", "-ndo", "PKNAME", dev).stdout.strip()
+    disk = f"/dev/{parent}" if parent else dev
+    ok = True
+    for part in mounted_partitions(run("lsblk", "-J", "-o", "PATH,MOUNTPOINTS", disk).stdout or "{}"):
+        ok = ok and run("udisksctl", "unmount", "-b", part).returncode == 0
+    ok = ok and run("udisksctl", "power-off", "-b", disk).returncode == 0
+    if ok:
+        notify(_("It is safe to remove the drive now."), "", "media-eject")
+        return 0
+    notify(_("Can't eject the drive"), _("Close the files that are open from it and try again."), "dialog-warning")
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

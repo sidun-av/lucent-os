@@ -1,0 +1,67 @@
+# Russian translation of Lucent's "This PC" page (kio_thispc, the Eject
+# action, the sidebar entry). Domain: lucent-thispc.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgctxt "@title the overview page of Files"
+msgid "This PC"
+msgstr "Этот компьютер"
+
+msgctxt "@title:group"
+msgid "Folders"
+msgstr "Папки"
+
+msgctxt "@title:group"
+msgid "Drives and devices"
+msgstr "Диски и устройства"
+
+msgctxt "@title:group"
+msgid "Recent files"
+msgstr "Недавние файлы"
+
+msgctxt "@item the drive that holds the user's files"
+msgid "Home"
+msgstr "Домашняя папка"
+
+msgctxt "@item a drive without a name, as Windows calls it"
+msgid "Local Disk"
+msgstr "Локальный диск"
+
+msgctxt "@item a removable drive without a name"
+msgid "USB drive"
+msgstr "USB-накопитель"
+
+msgctxt "@info number of items in a folder"
+msgid "%1 item"
+msgid_plural "%1 items"
+msgstr[0] "%1 объект"
+msgstr[1] "%1 объекта"
+msgstr[2] "%1 объектов"
+
+msgctxt "@info free space, e.g. 410 GB free of 512 GB"
+msgid "%1 free of %2"
+msgstr "%1 свободно из %2"
+
+msgctxt "@info a drive whose files can't be changed; %1 is its size or free space"
+msgid "Read-only · %1"
+msgstr "Только чтение · %1"
+
+msgctxt "@info %1 is the drive's size"
+msgid "USB drive · %1"
+msgstr "USB-накопитель · %1"
+
+msgctxt "@info folder of a recent file and when it changed, e.g. Documents · Today"
+msgid "%1 · %2"
+msgstr "%1 · %2"
+
+msgid "Can't eject the drive"
+msgstr "Не удалось извлечь диск"
+
+msgid "Close the files that are open from it and try again."
+msgstr "Закройте открытые с него файлы и попробуйте ещё раз."
+
+msgid "It is safe to remove the drive now."
+msgstr "Теперь диск можно отключить."
