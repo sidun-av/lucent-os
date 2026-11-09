@@ -105,6 +105,9 @@ if [ "$(uname -m)" = x86_64 ]; then   # the other GPU drivers stay
 fi
 echo "initramfs: $(( $(stat -c %s "$initramfs") / 1048576 )) MB"
 rm /tmp/initramfs.list
+# A hung app is killed after 10 s at logout/shutdown (no SIGABRT + second timeout).
+grep -qx 'TimeoutStopFailureMode=kill' /usr/lib/systemd/user/service.d/50-lucent-stop-kill.conf
+grep -qx 'DefaultTimeoutStopSec=10s' /usr/lib/systemd/user.conf.d/50-lucent-timeouts.conf
 # Xwayland Video Bridge not autostarted; man-db/AppStream caches after the login.
 xvb=/etc/xdg/autostart/org.kde.xwaylandvideobridge.desktop
 if [ -f "$xvb" ]; then grep -q '^Hidden=true' "$xvb"; fi
