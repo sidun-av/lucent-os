@@ -1,0 +1,54 @@
+name: release-tools
+
+# Tests of the release tooling, on the systems users run it on:
+# the join+verify scripts (tools/release/join-lucent-iso.*) with Windows
+# PowerShell 5.1, PowerShell 7 and cmd on Windows, sh on Linux and macOS;
+# the asset/ISO scripts (tools/release/, iso/). Also run by release.yml
+# before it builds anything.
+on:
+  push:
+    branches: [main]
+    paths:
+      - tools/release/**
+      - tests/release/**
+      - iso/*.py
+      - tests/iso/**
+      - .github/workflows/release-tools.yml
+  pull_request:
+    paths:
+      - tools/release/**
+      - tests/release/**
+      - iso/*.py
+      - tests/iso/**
+      - .github/workflows/release-tools.yml
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install pytest
+      - name: Which shells run the scripts here
+        shell: bash
+        run: |
+          command -v sh pwsh powershell cmd zstd 2>/dev/null || true
+          if command -v powershell >/dev/null; then powershell -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'; fi
+          if command -v pwsh >/dev/null; then pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'; fi
+      - name: pytest (join scripts; on Windows also Windows PowerShell 5.1 and cmd)
+        run: python -m pytest -v -rs tests/release
+      - name: pytest (ISO tools)
+        if: runner.os == 'Linux'
+        run: python -m pytest -v -rs tests/iso
