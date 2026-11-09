@@ -10,7 +10,7 @@ set -euo pipefail
 out=$1/lucent-apps
 list=/src/system_files/usr/share/lucent/flatpaks.list
 
-dnf -y -q --setopt=install_weak_deps=False install flatpak zstd tar >/dev/null
+dnf -y -q --setopt=install_weak_deps=False install flatpak zstd tar python3 >/dev/null
 mapfile -t APPS < <(grep -Ev '^\s*(#|$)' "$list")
 
 # Same remote setup as the installed system (lucent-flatpak-setup).
@@ -34,10 +34,22 @@ installed=$(du -sb /var/lib/flatpak | cut -f1)
 
 rm -rf "$out"
 mkdir -p "$out"
-# tar keeps the repo's hard links (deployed files share inodes with objects).
-tar -C /var/lib/flatpak --numeric-owner -cf - . \
-    | zstd -T0 -12 --long=27 -q \
+# Member order (iso/bundle-members.py): the same file of two versions of a
+# runtime side by side, so zstd stores the second copy cheaply; deployed
+# files before the repo's hard links to them. tar keeps those hard links, so
+# each file's content is stored once.
+# zstd -19 with a 2^27 window: the largest window decoders accept by default
+# (the installer's `zstd -dc` included), so unpacking needs no extra memory
+# or flags.
+python3 /src/iso/bundle-members.py /var/lib/flatpak > /tmp/members
+tar -C /var/lib/flatpak --numeric-owner --no-recursion --null -T /tmp/members -cf - \
+    | zstd -T0 -19 --long=27 -q \
     | split -b 1024M -d -a 2 - "$out/flatpak.tar.zst."
+if [ -n "${LUCENT_BUNDLE_COMPARE:-}" ]; then
+    # Measurement only: the previous packing (plain order, zstd -12).
+    old=$(tar -C /var/lib/flatpak --numeric-owner -cf - . | zstd -T0 -12 --long=27 -q | wc -c)
+    echo "previous_packing_bytes $old" | tee "$1/bundle-compare.txt"
+fi
 (cd "$out" && sha256sum flatpak.tar.zst.* > SHA256SUMS)
 cp /tmp/apps.txt "$out/apps.txt"
 packed=$(cat "$out"/flatpak.tar.zst.* | wc -c)
