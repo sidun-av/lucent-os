@@ -67,7 +67,7 @@ jobs:
       - name: Unit tests (verdict, screenshot conversion)
         run: |
           pip install -q pytest
-          python3 -m pytest -q tests/acceptance
+          PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -p no:cacheprovider tests/acceptance tests/system
 
       - name: Find the ISO
         id: iso
@@ -125,7 +125,7 @@ jobs:
         run: |
           p="$WORK/payload"
           mkdir -p "$p/guest"
-          cp tests/acceptance/guest/* "$p/guest/"
+          cp tests/acceptance/guest/*.sh tests/acceptance/guest/*.py "$p/guest/"
           cp system_files/usr/share/lucent/flatpaks.list "$p/"
           curl -fsSL --retry 5 --retry-all-errors -o "$p/$NPP" "$NPP_URL"
           echo "$NPP_SHA256  $p/$NPP" | sha256sum -c
