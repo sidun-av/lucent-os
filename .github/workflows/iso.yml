@@ -2,8 +2,12 @@ name: iso
 
 # Builds an installable Anaconda ISO from the published image, with Lucent's
 # default apps on the media so they are installed offline, before the first
-# login (iso/lucent-apps.ks). Manual only: it takes a while and produces a
-# multi-GB artifact.
+# login (iso/lucent-apps.ks). Manual, or called by the release workflow: it
+# takes a while and produces a multi-GB artifact.
+#
+# The installed system follows the image tag the ISO was built from
+# (bootc-image-builder writes it into the new system's origin): `latest` for
+# test ISOs, `stable` for releases.
 on:
   workflow_dispatch:
     inputs:
@@ -16,6 +20,21 @@ on:
         description: "Unattended, offline install of the ISO in QEMU/KVM, then check the apps on the disk (amd64 only)"
         type: boolean
         default: true
+      image_tag:
+        description: "Image tag to install, and to follow for updates (latest, testing, stable)"
+        type: string
+        default: latest
+  workflow_call:
+    inputs:
+      arch:
+        type: string
+        required: true
+      install_test:
+        type: boolean
+        default: true
+      image_tag:
+        type: string
+        default: latest
 
 permissions:
   contents: read
@@ -23,6 +42,7 @@ permissions:
 
 env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/lucent-os
+  IMAGE_REF: ghcr.io/${{ github.repository_owner }}/lucent-os:${{ inputs.image_tag || 'latest' }}
   FEDORA: quay.io/fedora/fedora:45
   WORK: /mnt/lucent-iso
 
@@ -42,18 +62,22 @@ jobs:
       - name: Pull image
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | sudo podman login ghcr.io -u "${{ github.actor }}" --password-stdin
-          # The multi-arch :latest tag, so the installed system keeps
-          # following :latest for its atomic updates.
-          sudo podman pull "$IMAGE:latest"
-          sudo podman image inspect "$IMAGE:latest" --format '{{index .Labels "org.opencontainers.image.revision"}}' | tee image-revision.txt
+          # The multi-arch tag, so the installed system keeps following it
+          # for its atomic updates.
+          sudo podman pull "$IMAGE_REF"
+          sudo podman image inspect "$IMAGE_REF" --format '{{index .Labels "org.opencontainers.image.revision"}}' | tee image-revision.txt
 
       - name: Offline app bundle (Flathub apps + runtimes as a ready /var/lib/flatpak)
+        env:
+          LUCENT_BUNDLE_COMPARE: "1"
         run: |
           # --privileged: flatpak runs its install triggers (icon/desktop caches) in bwrap.
-          sudo podman run --rm --privileged -v "$PWD:/src:ro" -v "$WORK:/out" "$FEDORA" /src/iso/build-app-bundle.sh /out
+          start=$(date +%s)
+          sudo podman run --rm --privileged -e LUCENT_BUNDLE_COMPARE -v "$PWD:/src:ro" -v "$WORK:/out" "$FEDORA" /src/iso/build-app-bundle.sh /out
+          echo "bundle took $(( $(date +%s) - start )) s"
       - name: Check the bundle offline in the Lucent image
         run: |
-          sudo podman run --rm --network none -v "$PWD:/src:ro" -v "$WORK:/out:ro" "$IMAGE:latest" \
+          sudo podman run --rm --network none -v "$PWD:/src:ro" -v "$WORK:/out:ro" "$IMAGE_REF" \
             /src/iso/check-app-bundle.sh /out
 
       - name: bootc-image-builder (anaconda-iso)
@@ -68,19 +92,38 @@ jobs:
             -v /var/lib/containers/storage:/var/lib/containers/storage \
             quay.io/centos-bootc/bootc-image-builder:latest \
             --type anaconda-iso --rootfs btrfs \
-            "$IMAGE:latest"
+            "$IMAGE_REF"
           sudo find "$WORK/output" -type f -exec ls -la {} +
-      - name: Put the app bundle on the ISO
+      - name: Recompress the system image on the ISO (gzip to zstd) and add the app bundle
         run: |
           iso="lucent-os-${{ inputs.arch }}.iso"
-          # mkksiso replays the boot records and re-implants the media checksum;
-          # the boot configuration is unchanged, so no efiboot rebuild.
-          sudo podman run --rm -v "$WORK:/work" "$FEDORA" bash -euc '
-            dnf -y -q --setopt=install_weak_deps=False install lorax xorriso isomd5sum >/dev/null
-            mkksiso --skip-mkefiboot -a /work/lucent-apps /work/output/bootiso/install.iso /work/'"$iso"'
-            xorriso -indev /work/'"$iso"' -find /lucent-apps -exec lsdl 2>/dev/null'
+          # 1. The system image on the ISO (/container, an OCI layout) gets
+          #    zstd -19 layers instead of gzip. iso/zstd-oci.py checks each
+          #    layer's content against its diff_id: only the compression
+          #    changes. The installer (ostree-container) reads both.
+          # 2. A new ISO from the old one: xorriso replays its boot records
+          #    (El Torito, hybrid MBR/GPT, the EFI partition), swaps /container
+          #    and adds /lucent-apps; then the media checksum is implanted
+          #    again. The boot configuration is unchanged, so no efiboot
+          #    rebuild (as `mkksiso --skip-mkefiboot -a` did, plus the swap).
+          sudo podman run --rm -v "$WORK:/work" -v "$PWD:/src:ro" "$FEDORA" bash -euc '
+            dnf -y -q --setopt=install_weak_deps=False install xorriso isomd5sum zstd pigz python3 >/dev/null
+            in=/work/output/bootiso/install.iso
+            osirrox -indev "$in" -extract /container /work/container 2>/dev/null
+            chmod -R u+w /work/container
+            du -sb /work/container | cut -f1 > /work/container-gzip.txt
+            start=$(date +%s)
+            python3 /src/iso/zstd-oci.py /work/container | tail -n 2
+            echo "recompression took $(( $(date +%s) - start )) s"
+            du -sb /work/container | cut -f1 > /work/container-zstd.txt
+            xorriso -indev "$in" -outdev /work/'"$iso"' -boot_image any replay \
+              -rm_r /container -- \
+              -map /work/container /container \
+              -map /work/lucent-apps /lucent-apps
+            implantisomd5 /work/'"$iso"'
+            xorriso -indev /work/'"$iso"' -report_el_torito plain -report_system_area plain 2>/dev/null | head -n 40'
           base=$(sudo stat -c %s "$WORK/output/bootiso/install.iso")
-          sudo rm -rf "$WORK/output"
+          sudo rm -rf "$WORK/output" "$WORK/container"
           sudo mv "$WORK/$iso" "$iso"
           sudo chown "$USER" "$iso"
           sha256sum "$iso" | tee "$iso.sha256"
@@ -89,12 +132,18 @@ jobs:
           read -r _ packed < <(grep packed_bytes "$WORK/lucent-apps/sizes.txt")
           gb() { awk -v b="$1" 'BEGIN { printf "%.2f GB", b / 1e9 }'; }
           {
-            echo "### ISO size (${{ inputs.arch }}, image $(cat image-revision.txt))"
+            echo "### ISO size (${{ inputs.arch }}, $IMAGE_REF, image $(cat image-revision.txt))"
             echo "| | size |"
             echo "|---|---|"
             echo "| ISO from bootc-image-builder | $(gb "$base") |"
+            echo "| system image on it (/container), gzip layers | $(gb "$(cat "$WORK/container-gzip.txt")") |"
+            echo "| system image, recompressed (zstd -19) | $(gb "$(cat "$WORK/container-zstd.txt")") |"
             echo "| default apps installed (/var/lib/flatpak) | $(gb "$installed") |"
-            echo "| app bundle on the ISO (zstd) | $(gb "$packed") |"
+            echo "| app bundle on the ISO (zstd -19, sorted) | $(gb "$packed") |"
+            if [ -f "$WORK/bundle-compare.txt" ]; then
+              read -r _ previous < "$WORK/bundle-compare.txt"
+              echo "| app bundle, previous packing (zstd -12, plain order) | $(gb "$previous") |"
+            fi
             echo "| **final ISO** | **$(gb "$final")** |"
             echo
             echo '```'
