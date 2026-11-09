@@ -29,7 +29,11 @@ on:
   push:
     branches: [main]
     paths:
-      - tests/hardware/**
+      - tests/hardware/hwlive.py
+      - tests/hardware/hwlib.py
+      - tests/hardware/guest/**
+      - tests/hardware/runner/**
+      - tests/hardware/image/**
       - .github/workflows/hardware-live.yml
 
 permissions:
@@ -54,15 +58,21 @@ jobs:
       - name: Unit tests (WAV analysis, tray icons, read-only rule)
         run: |
           pip install -q pytest
-          PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -p no:cacheprovider tests/hardware tests/system
+          PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -p no:cacheprovider tests/hardware/test_hwlib.py tests/system
 
       - name: Disk space and tools
+        timeout-minutes: 20
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost || true
           sudo mkdir -p "$WORK" && sudo chown "$USER" "$WORK"
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq qemu-system-x86 qemu-utils ovmf dosfstools exfatprogs ntfs-3g \
-            cups-ipp-utils avahi-daemon dnsmasq-base >/dev/null
+          # man-db's trigger alone can take minutes on a runner.
+          echo 'man-db man-db/auto-update boolean false' | sudo debconf-set-selections
+          sudo rm -f /var/lib/man-db/auto-update
+          sudo apt-get update -q
+          sudo -E apt-get install -y -q --no-install-recommends qemu-system-x86 qemu-utils ovmf ipxe-qemu dosfstools \
+            exfatprogs ntfs-3g cups-ipp-utils avahi-daemon dnsmasq-base
           command -v podman || sudo apt-get install -y -qq podman
           ls -la /usr/share/OVMF/
           df -h / /mnt
