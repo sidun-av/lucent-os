@@ -113,17 +113,21 @@ what was left alone: [`docs/performance.md`](docs/performance.md)
   fstab line for the read-only composefs `/`, and power profiles come from
   power-profiles-daemon instead of TuneD, whose bootloader plugin ran
   `bootc` at boot in a domain that may not.
-- Not started with every session: Xwayland Video Bridge, and KDE Connect's
-  daemon until a phone is paired; man-db and AppStream cache rebuilds run 5
-  minutes after boot instead of during it.
-- The initramfs leaves out nouveau and its NVIDIA firmware: 233 → 132 MB.
+- About 200 MiB less memory in use on an idle desktop: no TuneD (two Python
+  daemons) and no Xwayland Video Bridge in every session.
+- Reboot 46-52 s → 27-29 s: an app that ignores SIGTERM (a Windows program)
+  is killed after 10 s instead of holding shutdown for 30 s.
+- Fedora's man-db, AppStream and third-party-repository housekeeping runs 5
+  minutes after boot instead of during it (first boot 6-8 s shorter).
+- The initramfs leaves out nouveau and its NVIDIA firmware: 233 → 131 MB.
 - Fedora already provides zram swap and systemd-oomd — Lucent does **not**
   duplicate them.
 - Baloo indexes file **names only** — content indexing of a freshly migrated
   Windows library would pin CPU and disk for hours after first login.
 - Animations at 0.7× duration — snappier without losing spatial cues
   (scale for open/close, squash for minimise; wobbly windows off).
-- Stop timeout 15 s (Fedora: 45 s) — a hung service can't stall shutdown.
+- Stop timeout 15 s for services, 10 s for apps (Fedora: 45 s) — a hung
+  service can't stall shutdown.
 - Moderate KWin blur strength — cheap on weak GPUs.
 
 ## "Move from Windows" migration wizard
