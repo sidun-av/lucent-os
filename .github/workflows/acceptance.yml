@@ -9,7 +9,12 @@ name: acceptance
 #      offline apps in favorites and launcher, the prefix template service,
 #      Notepad++'s real installer double-clicked from ~/Downloads, its GUI
 #      clicked through, its launcher entry started, its window found;
-#      SELinux, wine-systemd, boot/RAM/services/disk numbers; screenshots.
+#      SELinux, wine-systemd, boot/RAM/services/disk numbers; screenshots;
+#   3. reboot once and measure an ordinary boot: boot time, idle memory (PSS
+#      per process), failed units, SELinux denials, and how quickly the
+#      launcher and a few apps open (docs/performance.md).
+# Two machines, in parallel: "standard" (4 vCPU, 8 GB; the gate) and
+# "low-spec" (2 vCPU, 4 GB; reported, does not fail the run).
 # Test code: tests/acceptance/. Fails on any failed check.
 on:
   workflow_run:
@@ -41,6 +46,20 @@ concurrency:
 jobs:
   acceptance:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    name: acceptance (${{ matrix.profile }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - profile: standard
+            smp: 4
+            mem: 8192
+            artifact: acceptance-x86_64
+          - profile: low-spec
+            smp: 2
+            mem: 4096
+            artifact: acceptance-x86_64-low-spec
+    continue-on-error: ${{ matrix.profile == 'low-spec' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 200
     steps:
@@ -137,7 +156,7 @@ jobs:
         if: steps.iso.outputs.skip != 'true'
         run: |
           python3 tests/acceptance/harness.py run --disk "$WORK/disk.raw" --vars "$WORK/vars.fd" \
-            --payload "$WORK/payload.img" --out "$WORK/out"
+            --payload "$WORK/payload.img" --out "$WORK/out" --smp ${{ matrix.smp }} --mem ${{ matrix.mem }}
       - name: Results
         if: always() && steps.iso.outputs.skip != 'true'
         run: |
@@ -156,7 +175,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always() && steps.iso.outputs.skip != 'true'
         with:
-          name: acceptance-x86_64
+          name: ${{ matrix.artifact }}
           path: ${{ env.WORK }}/out
           if-no-files-found: ignore
           retention-days: 14

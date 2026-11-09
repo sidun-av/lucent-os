@@ -80,3 +80,28 @@ def test_ppm_to_png_round_trip(tmp_path):
     idat_len = struct.unpack(">I", data[33:37])[0]
     raw = zlib.decompress(data[41:41 + idat_len])
     assert raw == b"\x00" + pix[:9] + b"\x00" + pix[9:]
+
+
+def test_summary_shows_profile_memory_table_and_boot_chain(tmp_path):
+    res = tmp_path / "results"
+    (res / "logs" / "boot2").mkdir(parents=True)
+    (res / "results.tsv").write_text("".join(f"{cid}\tPASS\tfine\n" for cid, _ in summarize.REQUIRED))
+    (res / "metrics.tsv").write_text("boot2_ram_used_idle_mib\t1500\nlauncher_warm_first_ms\t180\n")
+    (res / "logs" / "boot2" / "top-pss.tsv").write_text(
+        "pss_mib\trss_mib\tanon_mib\tfile_mib\tshmem_mib\tuser\tpid\tname\n"
+        "300.0\t480.0\t200.0\t90.0\t10.0\tanna\t1234\tplasmashell\n"
+        "# total\t1400.0\t3000.0\tprocesses 210\n"
+        "# user\tanna 1000.0\troot 400.0\n")
+    (res / "logs" / "boot2" / "systemd-analyze-critical-chain.txt").write_text(
+        "graphical.target @9.1s\n└─multi-user.target @9.1s\n")
+    (tmp_path / "harness.json").write_text(
+        '{"guest_done": true, "guest_rc": 0, "timed_out": false, "smp": 2, "mem_mib": 4096}')
+    r = subprocess.run([sys.executable, str(HERE / "summarize.py"), str(tmp_path)], capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout
+    md = (tmp_path / "summary.md").read_text()
+    assert "2 vCPU, 4 GB" in md.splitlines()[0]
+    assert "| RAM used, idle 2 min after login, second boot (MiB) | 1500 |" in md
+    assert "| launcher opens, warm: first change (ms) | 180 |" in md
+    assert "| 300.0 | 480.0 | anna | plasmashell |" in md
+    assert "1400.0 MiB in 210 processes" in md
+    assert "graphical.target @9.1s" in md
