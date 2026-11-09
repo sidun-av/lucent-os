@@ -1,6 +1,6 @@
 /*
     Lucent login screen (SDDM, Qt 6 greeter). Same language as the Lucent
-    lock screen: the dark Lucent Flow wallpaper, blurred and dimmed; a large
+    lock screen: the Drift night wallpaper, blurred and dimmed; a large
     clock; the user's picture or initial on Lucent's gradient; one 340 px
     rounded translucent password field with the sign-in arrow inside it; a
     row of round power actions. No on-screen keyboard button.

@@ -18,7 +18,7 @@ for (var i = 0; i < desktopsArray.length; i++) {
     var d = desktopsArray[i];
     d.wallpaperPlugin = "org.kde.image";
     d.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
-    d.writeConfig("Image", "file:///usr/share/wallpapers/Lucent/");
+    d.writeConfig("Image", "file:///usr/share/wallpapers/Drift/");
 }
 
 var bar = new Panel;

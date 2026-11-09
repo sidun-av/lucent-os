@@ -65,9 +65,9 @@ whatever is missing in the background, retried until online.
   window decoration (44 px title bar that merges with the app header, thin
   minimise/maximise/close glyphs, 14 px rounded corners), Lucent app and
   folder icons on top of Papirus, colour schemes, Inter at 11 pt, the
-  "Lucent Flow" wallpaper (also on the lock and login screens), a Lucent
-  boot splash and Alt+Tab switcher. Generators and sources: `design/`,
-  licenses: `THIRD_PARTY.md`.
+  "Drift" wallpaper (its night version in dark mode; also on the lock and
+  login screens), a Lucent boot splash and Alt+Tab switcher. Generators
+  and sources: `design/`, licenses: `THIRD_PARTY.md`.
 
 Everything is done with stock Plasma 6 mechanisms — a look-and-feel package
 with a layout script (`system_files/usr/share/plasma/look-and-feel/`) and
@@ -198,7 +198,9 @@ from the launcher; About this PC → "Advanced settings…" opens it.
 
 The Pebble Drift wallpapers (Drift, Tide, Aurora, each with a night version
 that Plasma switches to in dark mode) are in `system_files/usr/share/wallpapers/`,
-rendered at 4K from the mockups by `design/render-drift-wallpapers.sh`.
+rendered at 4K and at 2560x1440 from the mockups by
+`design/render-drift-wallpapers.sh`. Drift is the default (desktop, lock and
+login screens, login splash); the older "Lucent Flow" stays as a choice.
 
 | Section | Does | Through |
 | --- | --- | --- |

@@ -42,3 +42,8 @@ InactiveSecondOutlineAlpha=8
 [ksplashrc][KSplash]
 Engine=KSplashQML
 Theme=org.lucent.desktop
+
+# Default image for desktops without one (a new screen, a reset desktop):
+# the Drift package; Plasma shows its images_dark/ night version in dark mode.
+[Wallpaper]
+Image=Drift

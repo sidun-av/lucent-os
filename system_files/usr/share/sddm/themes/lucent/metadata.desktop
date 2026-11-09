@@ -1,6 +1,6 @@
 [SddmGreeterTheme]
 Name=Lucent
-Description=Lucent OS login screen: dimmed Lucent wallpaper, clock, initials avatar, one rounded password field
+Description=Lucent OS login screen: dimmed Drift wallpaper, clock, initials avatar, one rounded password field
 Author=Lucent OS contributors
 License=Apache-2.0
 Type=sddm-theme

@@ -1,5 +1,5 @@
 /*
-    Lucent login splash: the Lucent wallpaper, the logo and a thin progress
+    Lucent login splash: the Drift wallpaper (day or night), the logo and a thin progress
     line, fading out into the desktop (KSplash stages 1-6).
 
     SPDX-License-Identifier: Apache-2.0
@@ -12,11 +12,11 @@ Rectangle {
     property int stage
 
     readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
-    color: dark ? "#0d1222" : "#e9eefb"
+    color: dark ? "#070a18" : "#dfe5ff"  // Drift night / day base (pebble-drift.css body)
 
     Image {
         anchors.fill: parent
-        source: "file:///usr/share/wallpapers/Lucent/contents/" + (root.dark ? "images_dark" : "images") + "/3840x2160.jpg"
+        source: "file:///usr/share/wallpapers/Drift/contents/" + (root.dark ? "images_dark" : "images") + "/3840x2160.jpg"
         fillMode: Image.PreserveAspectCrop
         sourceSize.width: root.width
         asynchronous: false

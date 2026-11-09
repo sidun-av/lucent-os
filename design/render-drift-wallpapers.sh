@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Render the Pebble Drift wallpapers (docs/mockups/concepts-2026/pebble-drift/
-# drift-shell.js: Drift, Tide, Aurora, day and night) at 4K into the Plasma
+# drift-shell.js: Drift, Tide, Aurora, day and night) at 4K (16:9, 16:10) and at
+# 2560x1440 (QHD at scale 1, the mockups' own size) into the Plasma
 # wallpaper packages in system_files/usr/share/wallpapers/{Drift,Tide,Aurora}.
 # Needs Google Chrome (headless) and Python with Pillow.
 set -euo pipefail
@@ -23,7 +24,7 @@ for key in drift tide aurora; do
     for mode in light dark; do
         sub=images; [ "$mode" = dark ] && sub=images_dark
         mkdir -p "$repo/system_files/usr/share/wallpapers/$name/contents/$sub"
-        for size in 3840x2160 3840x2400; do
+        for size in 3840x2160 3840x2400 2560x1440; do
             "$chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
                 --allow-file-access-from-files --virtual-time-budget=8000 --window-size="${size/x/,}" \
                 --screenshot="$work/$key-$mode-$size.png" "file://$work/render.html#$key-$mode" >/dev/null 2>&1
