@@ -18,9 +18,10 @@ user doesn't have yet, so their own choices always win.
   detail line ("212 items", "410 GB free of 512 GB"). Dolphin keeps one set
   of view properties for all non-local locations, so this is where it goes.
 - Flatpak Qt apps get the Lucent Kvantum theme (kvantum-flatpak-sync).
-- A picture for the account if it has none: the user's initial on the
-  launcher's peach-pink gradient, set through AccountsService so the login
-  and lock screens, the launcher and Settings all show it.
+- A picture for the account if it has none: the user's initial on Pebble
+  Drift's avatar gradient (.avatar: indigo -> violet -> rose), set through
+  AccountsService so the login and lock screens, the launcher and Settings
+  all show it.
 """
 import os
 import re
@@ -194,8 +195,9 @@ def account_picture() -> None:
     app = QGuiApplication.instance() or QGuiApplication([])
     img = QImage(256, 256, QImage.Format.Format_ARGB32)
     grad = QLinearGradient(QPointF(0, 0), QPointF(256, 256))
-    grad.setColorAt(0, QColor("#ffb37a"))
-    grad.setColorAt(1, QColor("#f2668b"))
+    grad.setColorAt(0, QColor("#6a86ff"))    # pebble-drift.css .avatar, 135deg
+    grad.setColorAt(0.6, QColor("#9a62e0"))
+    grad.setColorAt(1, QColor("#d0679c"))
     p = QPainter(img)
     p.fillRect(img.rect(), grad)
     p.setPen(QColor("white"))
