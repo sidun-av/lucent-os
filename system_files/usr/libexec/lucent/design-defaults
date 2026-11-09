@@ -101,6 +101,8 @@ def places_xbel() -> str:
     for i, (target, title, icon) in enumerate(PLACES):
         href = target if ":/" in target else (HOME / target).as_uri() if target else HOME.as_uri()
         if (target, title, icon) == THIS_PC:
+            if not this_pc_available():
+                continue
             title = this_pc_title()
         out.append(bookmark(href, title, icon, f"{stamp}/{i}"))
     for udi in ALWAYS_HIDDEN_UDIS + system_volume_udis():
@@ -117,6 +119,12 @@ def bookmark(href: str, title: str, icon: str, ident: str) -> str:
             f'    <bookmark:icon name="{icon}"/>\n   </metadata>\n'
             f'   <metadata owner="http://www.kde.org">\n    <ID>{ident}</ID>\n'
             f'    <isSystemItem>true</isSystemItem>\n   </metadata>\n  </info>\n </bookmark>\n')
+
+
+def this_pc_available() -> bool:
+    """kio_thispc is in the image (build_files/thispc.sh leaves it out, and
+    Files opens on Home, if it ever fails to build)."""
+    return any(Path("/usr").glob("lib*/qt6/plugins/kf6/kio/thispc.so"))
 
 
 def _thispc_catalog():
@@ -225,12 +233,13 @@ def main() -> int:
     if not places.exists():
         places.parent.mkdir(parents=True, exist_ok=True)
         places.write_text(places_xbel(), encoding="utf-8")
-    elif not thispc_marker.exists():
+    elif not thispc_marker.exists() and this_pc_available():
         # once: a user who later removes This PC from the sidebar keeps it removed
         places.write_text(add_this_pc(places.read_text(encoding="utf-8"), this_pc_title()), encoding="utf-8")
-    thispc_marker.parent.mkdir(parents=True, exist_ok=True)
-    thispc_marker.touch()
-    seed_thispc_view(DATA)
+    if this_pc_available():
+        thispc_marker.parent.mkdir(parents=True, exist_ok=True)
+        thispc_marker.touch()
+        seed_thispc_view(DATA)
     marker = DATA / "lucent/account-picture.png"
     if not marker.exists():
         account_picture()

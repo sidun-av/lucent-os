@@ -25,6 +25,13 @@ def load(name):
 
 dd = load("design-defaults")
 eject = load("thispc-eject")
+dd.this_pc_available = lambda: True  # the worker is in the image
+
+
+def test_no_this_pc_when_the_worker_did_not_build(monkeypatch):
+    monkeypatch.setattr(dd, "this_pc_available", lambda: False)
+    assert "thispc:/" not in dd.places_xbel()
+    assert bookmarks(dd.places_xbel())[0].findtext("title") == "Desktop"
 
 
 def bookmarks(xbel: str):
