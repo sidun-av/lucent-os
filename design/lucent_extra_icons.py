@@ -90,6 +90,9 @@ WIRED = ("M8.5 3.5h7a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-4a1 1 0 0 1
          "M12 9.5v4.5M5 14h14M5 14v2.5M19 14v2.5M12 14v2.5",
          "M3.5 16.5h3v3h-3zM10.5 16.5h3v3h-3zM17.5 16.5h3v3h-3z")
 CROSS = "M16 15.5l4 4M20 15.5l-4 4"
+RUNE = "M7 7.5l10 9L12 21V3l5 4.5-10 9"
+USB = ("M12 17.7V3.5", "M9.6 5.9L12 3.5l2.4 2.4", "M12 14.5l-4.5-3V9.4", "M12 12.5l4.5-3V7.6",
+       "M15.3 5.4h2.4v2.4h-2.4z")
 BELL = ("M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z", "M10 20.5a2.2 2.2 0 0 0 4 0")
 UPDATE = ("M12 4v10.5", "M7.5 10l4.5 4.5 4.5-4.5", "M5 19.5h14")
 ACCENT = "#4257e8"        # --accent (pebble-drift.css)
@@ -120,6 +123,15 @@ LINES = {
                 "network-wireless-signal-none", "network-wireless-connected-00", "network-wireless-0"]),
     "wifi-off": (line(WIFI3, WIFI2, "M3 3l18 18", dots=[(12, 19.3, 1.1)]),
                  ["network-wireless-disconnected", "network-wireless-offline", "network-wireless-off"]),
+    # Bluetooth and Disks & Devices: without these the tray fell through to
+    # Papirus's light-on-dark symbolic icons, near-invisible on the light
+    # taskbar (tests/hardware: docs/screenshots/real/hardware-x86/).
+    "bluetooth": (line(RUNE), ["network-bluetooth", "bluetooth-active", "bluetooth-online"]),
+    "bluetooth-connected": (line(RUNE, dots=[(4.5, 12, 1.2), (19.5, 12, 1.2)]),
+                            ["network-bluetooth-activated", "bluetooth-paired"]),
+    "bluetooth-off": (line(RUNE, "M4 4l16 16"),
+                      ["network-bluetooth-inactive", "bluetooth-disabled", "bluetooth-offline"]),
+    "devices": (line(*USB, dots=[(7.5, 8, 1.4), (12, 19.4, 1.7)]), ["device-notifier"]),
     "bell": (line(*BELL), ["notifications", "notification-inactive", "notification-empty"]),
     "bell-new": (with_dot(line(*BELL)), ["notification-active", "notification-new", "notification-unread"]),
     "bell-off": (line(*BELL, "M4 3.5l16 17"), ["notifications-disabled", "notification-disabled"]),
