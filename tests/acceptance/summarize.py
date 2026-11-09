@@ -30,7 +30,7 @@ REQUIRED = [
     ("window.notepadpp", "Notepad++ window after launching it from the launcher"),
     ("window.not-administrator", "Notepad++ not elevated: no \"[Administrator]\" in its title"),
     ("launch.from-entry", "process runs in its launcher entry's unit"),
-    ("prefix.appearance", "Windows environment in the desktop's look (Pebble Drift colours, Inter)"),
+    ("prefix.appearance", "Windows environment in the desktop's look (Pebble Drift colours, its UI font)"),
     ("prefix.dxvk", "Direct3D through lucent-bridge's DXVK"),
     ("selinux.enforcing", "SELinux enforcing"),
     ("selinux.no-avc-flow", "no AVC denials during the flow"),

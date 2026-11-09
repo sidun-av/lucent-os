@@ -697,15 +697,16 @@ if [ -n "$prefix" ]; then
     fi
     metric prefix_size "$(du -sh "$prefix" | cut -f1) (apparent; btrfs reflinks share data with the template)"
     # lucent-bridge 0.2 gives the prefix the desktop's look (light here:
-    # Pebble Drift's --surface-raised for windows, Inter for dialogs) and,
-    # on x86_64, its bundled DXVK.
+    # Pebble Drift's --surface-raised for windows; dialogs in the desktop's
+    # UI font, whatever kdeglobals names) and, on x86_64, its bundled DXVK.
+    ui_font=$(as_user kreadconfig6 --file kdeglobals --group General --key font 2>/dev/null | cut -d, -f1)
     win=$(grep -a -m1 -o '^"Window"="[0-9 ]*"' "$prefix/user.reg")
     dlg=$(grep -a -m1 -o '^"MS Shell Dlg"="[^"]*"' "$prefix/system.reg")
     dpi=$(grep -a -m1 -o '^"LogPixels"=dword:[0-9a-f]*' "$prefix/user.reg")
-    if [ "$win" = '"Window"="253 253 255"' ] && [ "$dlg" = '"MS Shell Dlg"="Inter"' ]; then
-        record prefix.appearance PASS "$win $dlg $dpi"
+    if [ "$win" = '"Window"="253 253 255"' ] && [ -n "$ui_font" ] && [ "$dlg" = "\"MS Shell Dlg\"=\"$ui_font\"" ]; then
+        record prefix.appearance PASS "$win $dlg (desktop font: $ui_font) $dpi"
     else
-        record prefix.appearance FAIL "${win:-no Window colour} ${dlg:-no MS Shell Dlg} ${dpi:-no LogPixels}"
+        record prefix.appearance FAIL "${win:-no Window colour} ${dlg:-no MS Shell Dlg} (desktop font: ${ui_font:-unknown}) ${dpi:-no LogPixels}"
     fi
     dxvk=$(grep -a -o -m1 'dxvk [0-9][0-9.]*\|DXVK v[0-9.]*\|v[0-9]\.[0-9.]*' "$prefix/drive_c/windows/system32/d3d11.dll" 2>/dev/null | head -n1)
     if cmp -s "$prefix/drive_c/windows/system32/d3d11.dll" /usr/share/lucent-bridge/dxvk/x64/d3d11.dll; then
