@@ -252,7 +252,7 @@ class Sheet(QWidget):
             elif what == "status":
                 p.setFont(f["body"])
                 p.setPen(L.text2)
-                pct = model.percent(s)
+                pct = self.percent_text()
                 pct_w = QFontMetricsF(f["strong"]).horizontalAdvance(pct) + L.px(12)
                 status = QFontMetricsF(f["body"]).elidedText(model.status_line(s), Qt.TextElideMode.ElideRight,
                                                              r.width() - pct_w)
@@ -388,6 +388,10 @@ class Sheet(QWidget):
                 self.action.emit("close")
             return
         super().keyPressEvent(event)
+
+    def percent_text(self) -> str:
+        """The number next to the bar, as far as the bar has got."""
+        return model.percent(self.state, self.shown_fraction)
 
     def render_image(self) -> QImage:
         """The window as an image (previews and tests)."""

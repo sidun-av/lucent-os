@@ -86,6 +86,20 @@ def test_errors_stay_until_answered(qapp):
     assert code == sheet_app.EXIT_DONE
 
 
+def test_the_percentage_follows_the_bar_not_the_target(qapp):
+    # Seen in the acceptance screenshot: "100%" next to a bar still easing
+    # towards the end.
+    sheet = Sheet(looks.load(dark=False, scale=1.0))
+    state = model.State()
+    for e in (START, PREP, {"v": 1, "event": "progress", "fraction": 1.0}):
+        state = model.apply(state, e)
+    sheet.set_state(state)
+    sheet.shown_fraction = 0.83
+    assert sheet.percent_text() == "83%"
+    sheet.shown_fraction = 1.0
+    assert sheet.percent_text() == "100%"
+
+
 def test_partial_lines_and_garbage(qapp):
     sheet = Sheet(looks.load(dark=False, scale=1.0))
     ctl = sheet_app.Controller(qapp, sheet)

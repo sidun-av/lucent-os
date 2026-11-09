@@ -132,8 +132,11 @@ def status_line(s: State) -> str:
     return _("Getting everything ready to launch — only needed the first time")
 
 
-def percent(s: State) -> str:
-    return _("{}%").format(round(s.fraction * 100))
+def percent(s: State, shown: float | None = None) -> str:
+    """The percentage; `shown` is the fraction the bar has reached so far,
+    so the number and the bar agree while it eases towards the target."""
+    fraction = s.fraction if shown is None else min(shown, s.fraction)
+    return _("{}%").format(round(fraction * 100))
 
 
 def buttons(s: State) -> list[tuple[str, str, bool]]:
