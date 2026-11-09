@@ -51,6 +51,8 @@ METRICS = [
     ("boot2_services_running_user", "running user services, second boot"),
     ("boot2_failed_units", "failed units, second boot"),
     ("boot2_avc_at_boot", "SELinux denial records, second boot"),
+    ("reboot_to_session_s", "reboot, wall clock: reboot command to desktop session (s)"),
+    ("reboot_before_kernel_s", "of which shutdown, firmware and GRUB loading kernel + initramfs (s)"),
     ("launcher_cold_first_ms", "launcher opens, first time: first change (ms)"),
     ("launcher_cold_settled_ms", "launcher opens, first time: animation done (ms)"),
     ("launcher_warm_first_ms", "launcher opens, warm: first change (ms)"),
@@ -119,6 +121,26 @@ def machine(harness):
     return f", {harness['smp']} vCPU, {harness.get('mem_mib', 0) / 1024:g} GB"
 
 
+def reboot_times(harness_log):
+    """From harness.log: (seconds from the first boot's reboot command to the
+    second boot's desktop session, of which before the kernel started:
+    shutdown, firmware and GRUB loading kernel and initramfs), or Nones."""
+    t_reboot = t_session = up = None
+    for line in harness_log.splitlines():
+        stamp, _, rest = line.partition("] ")
+        try:
+            t = float(stamp.lstrip("[ "))
+        except ValueError:
+            continue
+        if rest.startswith("log: first boot done") and "rebooting" in rest:
+            t_reboot = t
+        elif rest.startswith("metric: boot2_session_up_s "):
+            t_session, up = t, float(rest.split()[-1])
+    if t_reboot is None or t_session is None:
+        return None, None
+    return t_session - t_reboot, t_session - t_reboot - up
+
+
 def perf_sections(logs):
     """The second boot's (else the first's) memory table and critical chain."""
     md = []
@@ -154,6 +176,11 @@ def main():
     results = [tuple(r) for r in read_tsv(res / "results.tsv", 3)]
     metrics = dict((k, v) for k, v in read_tsv(res / "metrics.tsv", 2))
     harness = json.loads((out / "harness.json").read_text()) if (out / "harness.json").exists() else {}
+    if (out / "harness.log").exists():
+        reboot, before_kernel = reboot_times((out / "harness.log").read_text(errors="replace"))
+        if reboot is not None:
+            metrics["reboot_to_session_s"] = f"{reboot:.1f}"
+            metrics["reboot_before_kernel_s"] = f"{before_kernel:.1f}"
     ok, checks, failures = evaluate(results, harness)
     shots = sorted(p.name for p in (out / "screens").glob("*.png")) if (out / "screens").exists() else []
     summary = {"passed": ok, "failures": failures, "checks": checks, "metrics": metrics,

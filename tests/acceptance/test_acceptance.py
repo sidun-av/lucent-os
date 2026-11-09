@@ -105,3 +105,15 @@ def test_summary_shows_profile_memory_table_and_boot_chain(tmp_path):
     assert "| 300.0 | 480.0 | anna | plasmashell |" in md
     assert "1400.0 MiB in 210 processes" in md
     assert "graphical.target @9.1s" in md
+
+
+def test_reboot_times_from_the_harness_log():
+    log = ("[   15.9] metric: os Lucent OS 0.1\n"
+           "[  319.6] log: first boot done (failed=0); rebooting for the second boot\n"
+           "[  322.0] result: INFO session.inhibit: x\n"
+           "[  352.1] metric: boot2_session_up_s 14.80\n"
+           "[  352.2] result: PASS boot2.session: Plasma session of anna running 14.80 s after kernel start\n")
+    reboot, before_kernel = summarize.reboot_times(log)
+    assert abs(reboot - 32.5) < 0.01          # wall clock: reboot command to the desktop session
+    assert abs(before_kernel - 17.7) < 0.01   # of which shutdown, firmware and GRUB (kernel+initramfs load)
+    assert summarize.reboot_times("[ 1.0] metric: os x\n") == (None, None)

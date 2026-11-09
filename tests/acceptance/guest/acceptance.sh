@@ -88,6 +88,9 @@ finish() {
     ((finished)) && return
     finished=1
     log "collecting system logs (boot $BOOT)"
+    { cat /proc/meminfo; zramctl; } > "$LOGS/meminfo-end.txt" 2>&1
+    metric "$([ "$BOOT" = 1 ] || echo boot2_)mem_at_end" "$(awk '/^MemAvailable:/ {a = $2} /^SwapTotal:/ {t = $2}
+        /^SwapFree:/ {f = $2} END { printf "available %d MiB, swap used %d MiB", a / 1024, (t - f) / 1024 }' /proc/meminfo)"
     journalctl -b --no-pager -o short-monotonic > "$LOGS/journal.txt" 2>&1
     systemctl list-units --failed --no-pager > "$LOGS/failed-units.txt" 2>&1
     as_user journalctl --user -b --no-pager -o short-monotonic 2>/dev/null | cat > "$LOGS/journal-user.txt"
@@ -212,7 +215,7 @@ boot_numbers() {
     if [ -z "$failed" ]; then
         record "$cid.no-failed-units" PASS "no failed units 2 min after login"
     else
-        record "$cid.no-failed-units" INFO "failed units 2 min after login: $failed"
+        record "$cid.no-failed-units" FAIL "failed units 2 min after login: $failed"
     fi
     avc=$(ausearch -m AVC,USER_AVC,SELINUX_ERR,USER_SELINUX_ERR --start boot --format raw 2>/dev/null)
     printf '%s\n' "$avc" > "$LOGS/avc-boot.txt"
@@ -221,7 +224,7 @@ boot_numbers() {
     if ((n == 0)); then
         record "$cid.no-avc" PASS "no SELinux denials from power-on to 2 min after login"
     else
-        record "$cid.no-avc" INFO "$n SELinux denial records by 2 min after login: $(grep -oE 'comm="[^"]*"|scontext=[^ ]*|invalid_context="[^"]*"' <<<"$avc" | sort | uniq -c | sort -rn | head -n 4 | oneline)"
+        record "$cid.no-avc" FAIL "$n SELinux denial records by 2 min after login: $(grep -oE 'comm="[^"]*"|scontext=[^ ]*|invalid_context="[^"]*"' <<<"$avc" | sort | uniq -c | sort -rn | head -n 4 | oneline)"
     fi
 }
 
@@ -292,6 +295,9 @@ app_start() { # label query regex(class or caption)
         metric "app_${label}_ms" $((t_win - t0))
         record "app.$label" INFO "$query: window '$cap' (class $cls) $((t_win - t0)) ms after Enter in the launcher"
         sleep 5
+        # Memory with the app open: does a small machine swap (zram)?
+        metric "app_${label}_mem" "$(awk '/^MemAvailable:/ {a = $2} /^SwapTotal:/ {t = $2} /^SwapFree:/ {f = $2}
+            END { printf "available %d MiB, swap used %d MiB", a / 1024, (t - f) / 1024 }' /proc/meminfo)"
         shot "09-app-$label"
         kwin close-class "$re" >/dev/null
         sleep 4
