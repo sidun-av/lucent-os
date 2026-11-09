@@ -21,6 +21,14 @@ for v in Papirus/64x64 Papirus/16x16 Papirus-Dark/16x16; do
     ln -s ../../Papirus/64x64/places/folder-blue.svg "$d/folder-elsewhere.svg"  # other dir: untouched
 done
 mkdir -p "$t/Papirus-Light/64x64"; ln -s ../../Papirus/64x64/places "$t/Papirus-Light/64x64/places"
+# Fedora's Papirus at 16 px: the generic folder.svg is a regular file (a
+# monochrome glyph), not a link to folder-blue.svg; folder-templates.svg is
+# regular too but has no colour family at that size.
+d=$t/Papirus/22x22/places; mkdir -p "$d"
+for c in blue indigo; do mk "$d" "folder-$c.svg"; done
+printf '<svg><path class="ColorScheme-Text"/></svg>\n' > "$d/folder.svg"
+printf '<svg><path class="ColorScheme-Text"/></svg>\n' > "$d/folder-templates.svg"
+mk "$d" folder-red.svg
 
 bash "$script" "$t"
 
@@ -43,6 +51,12 @@ for v in Papirus/64x64 Papirus/16x16 Papirus-Dark/16x16; do
     check "grep -q 'fill:#3f51b5' $d/folder-red.svg"
     check "grep -q 'fill:#3f51b5' $d/folder-blue.svg"
 done
+# a regular generic file with blue and indigo twins becomes the indigo one;
+# without a colour family (or colour-named) it stays as it is
+d=$t/Papirus/22x22/places
+check "[ \"\$(readlink $d/folder.svg)\" = folder-indigo.svg ]"
+check "[ -f $d/folder-templates.svg ] && [ ! -L $d/folder-templates.svg ]"
+check "[ -f $d/folder-red.svg ] && [ ! -L $d/folder-red.svg ]"
 # running it twice changes nothing
 before=$(find "$t" -type l -exec readlink {} + | sort | md5sum; find "$t" -type f -name "*.svg" -exec cat {} + | md5sum)
 bash "$script" "$t"

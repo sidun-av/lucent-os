@@ -36,6 +36,22 @@ for dir in "$icons"/Papirus*/*/places; do
             retargeted=$((retargeted + 1))
         fi
     done
+    # Fedora's Papirus ships the 16 px generic folder.svg as a regular file
+    # (a monochrome glyph) next to its folder-blue/folder-indigo family: it
+    # becomes the indigo one too. Regular files without a blue and an
+    # indigo twin (no colour family, or colour-named) stay as they are.
+    for f in "$dir"/folder.svg "$dir"/folder-*.svg "$dir"/user-*.svg; do
+        [ -f "$f" ] && [ ! -L "$f" ] || continue
+        name=${f##*/}
+        case "$name" in *-blue*|*-indigo*) continue ;; esac
+        base=${name%.svg}
+        stem=${base%%-*}                      # folder / user
+        rest=${base#"$stem"}                  # "" or -templates, -home ...
+        if [ -f "$dir/$stem-blue$rest.svg" ] && [ -f "$dir/$stem-indigo$rest.svg" ]; then
+            ln -sfn "$stem-indigo$rest.svg" "$f"
+            retargeted=$((retargeted + 1))
+        fi
+    done
     for f in "$dir"/*-indigo*.svg; do
         [ -f "$f" ] && [ ! -L "$f" ] || continue
         grep -qi -e '#3f51b5' -e '#5c6bc0' -e '#202543' "$f" || continue
