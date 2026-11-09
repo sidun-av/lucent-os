@@ -35,7 +35,7 @@ env:
   NPP_SHA256: a18cfb33d616c8eecda0059604d40bdb9d607fbc4ede857c8be6e41986464367
 
 concurrency:
-  group: acceptance
+  group: acceptance-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
