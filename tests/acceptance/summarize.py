@@ -138,11 +138,13 @@ def perf_sections(logs):
         md += ["| PSS MiB | RSS MiB | user | process |", "|---:|---:|---|---|"]
         md += [f"| {r[0]} | {r[1]} | {r[5]} | {r[7]} |" for r in body]
         md.append("")
-    chain = boot / "systemd-analyze-critical-chain.txt"
-    if chain.exists():
-        lines = [ln for ln in chain.read_text(errors="replace").splitlines() if ln.strip()
-                 and not ln.startswith("The time")]
-        md += [f"### Boot critical chain ({which})", "", "```"] + lines[:25] + ["```", ""]
+    for name, title in (("systemd-analyze-critical-chain-login.txt", "Path to the login screen"),
+                        ("systemd-analyze-critical-chain.txt", "Boot critical chain")):
+        chain = boot / name
+        if chain.exists():
+            lines = [ln for ln in chain.read_text(errors="replace").splitlines() if ln.strip()
+                     and not ln.startswith("The time")]
+            md += [f"### {title} ({which})", "", "```"] + lines[:25] + ["```", ""]
     return md
 
 
