@@ -2,28 +2,43 @@
 ColorScheme=LucentLight
 
 [kdeglobals][Icons]
-Theme=breeze
+Theme=Lucent
+
+[plasmarc][Theme]
+name=lucent
 
 [kdeglobals][KDE]
 widgetStyle=Breeze
-
-[plasmarc][Theme]
-name=default
 
 [kcminputrc][Mouse]
 cursorTheme=breeze_cursors
 
 [kwinrc][WindowSwitcher]
-LayoutName=thumbnail_grid
+LayoutName=org.lucent.switcher
 
 [kwinrc][DesktopSwitcher]
 LayoutName=org.kde.breeze.desktop
 
 [kwinrc][org.kde.kdecoration2]
-library=org.kde.breeze
-theme=Breeze
+library=org.kde.kwin.aurorae.v2
+theme=__aurorae__svg__Lucent
+BorderSize=None
+BorderSizeAuto=false
 ButtonsOnLeft=M
 ButtonsOnRight=IAX
 
+[kwinrc][Round-Corners]
+OutlineColor=15,20,35
+InactiveOutlineColor=15,20,35
+ActiveOutlineAlpha=30
+InactiveOutlineAlpha=24
+SecondOutlineThickness=0
+InactiveSecondOutlineThickness=0
+SecondOutlineColor=255,255,255
+InactiveSecondOutlineColor=255,255,255
+ActiveSecondOutlineAlpha=12
+InactiveSecondOutlineAlpha=8
+
 [ksplashrc][KSplash]
-Theme=org.kde.Breeze
+Engine=KSplashQML
+Theme=org.lucent.desktop

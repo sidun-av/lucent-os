@@ -1,0 +1,17 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [{ "Name": "Lucent OS contributors" }],
+        "Category": "Application Launchers",
+        "Description": "Taskbar search field: opens the launcher with search focused",
+        "Description[ru]": "Поле поиска на панели задач: открывает меню с поиском",
+        "Icon": "search",
+        "Id": "org.lucent.search",
+        "License": "Apache-2.0",
+        "Name": "Search field",
+        "Name[ru]": "Поле поиска",
+        "Version": "1.0",
+        "Website": "https://github.com/sidun-av/lucent-os"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

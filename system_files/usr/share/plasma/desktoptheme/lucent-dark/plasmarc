@@ -1,0 +1,10 @@
+[ContrastEffect]
+# Behind the translucent taskbar/popups: blur + a little more
+# saturation, like `backdrop-filter: blur() saturate(1.7)` in the mockups.
+enabled=true
+contrast=0.25
+intensity=1.6
+saturation=1.7
+
+[AdaptiveTransparency]
+enabled=true

@@ -1,6 +1,10 @@
 [org.kde.kdecoration2]
-library=org.kde.breeze
-theme=Breeze
+# Lucent window decoration (Aurorae v2, /usr/share/aurorae/themes/Lucent):
+# 44 px title bar in the app header colour, thin glyph buttons, soft shadow.
+library=org.kde.kwin.aurorae.v2
+theme=__aurorae__svg__Lucent
+BorderSize=None
+BorderSizeAuto=false
 # Windows layout: window menu on the left, minimise / maximise / close on the right.
 ButtonsOnLeft=M
 ButtonsOnRight=IAX
@@ -17,21 +21,41 @@ FocusPolicy=ClickToFocus
 
 [Plugins]
 blurEnabled=true
+# KDE-Rounded-Corners: clips every window to the 14 px radius of the mockups.
+kwin4_effect_shapecornersEnabled=true
+scaleEnabled=true
+glideEnabled=false
 contrastEnabled=true
 # The "shake cursor to find it" toy and window wobbling are off for a calm desktop.
 shakecursorEnabled=false
 wobblywindowsEnabled=false
 
 [Effect-blur]
-# Moderate blur for the panels/dock and menus; strong blur costs GPU time on
-# weak laptops and looks muddy at 1x scale.
+# Frosted taskbar, popups and launcher (mockups: backdrop-filter blur(34px)).
+# Strength 10 is the cheapest level that still reads as frosted glass.
 BlurStrength=10
 NoiseStrength=0
 
 [TabBox]
-# Alt+Tab shows window thumbnails in a grid, like Windows 10/11.
-LayoutName=thumbnail_grid
+# Alt+Tab shows large window thumbnails, like Windows 10/11 (Lucent switcher).
+LayoutName=org.lucent.switcher
 
 [ModifierOnlyShortcuts]
 # Pressing and releasing the Win key alone opens the launcher (Start menu).
 Meta=org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu
+
+[Round-Corners]
+# Same radius as the decoration and docs/mockups (--radius-win), a plain
+# circular arc, and a 1 px hairline instead of a heavy border.
+Size=14
+InactiveCornerRadius=14
+UseSquircleShape=false
+UseNativeDecorationShadows=true
+OutlineThickness=1
+InactiveOutlineThickness=1
+OutlineColor=15,20,35
+InactiveOutlineColor=15,20,35
+ActiveOutlineAlpha=30
+InactiveOutlineAlpha=24
+SecondOutlineThickness=0
+InactiveSecondOutlineThickness=0

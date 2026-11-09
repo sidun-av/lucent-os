@@ -1,0 +1,6 @@
+<svg viewBox="-5.5 -5.5 75 75" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g11" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a4adbd"/><stop offset="1" stop-color="#5c6577"/></linearGradient></defs>
+         <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#g11)"/>
+      <rect x="2.5" y="2.5" width="59" height="59" rx="14.5" fill="none" stroke="rgb(0,0,0)" stroke-opacity=".08"/>
+      <path d="M17 2.5h30a14.5 14.5 0 0 1 14.5 14.5v2C50 12 30 10 2.5 18v-1A14.5 14.5 0 0 1 17 2.5z" fill="#fff" opacity="0.1"/>
+      <g transform="translate(32 32)" fill="#fff"><rect x="-3.5" y="-19" width="7" height="9" rx="2" transform="rotate(0)"/><rect x="-3.5" y="-19" width="7" height="9" rx="2" transform="rotate(45)"/><rect x="-3.5" y="-19" width="7" height="9" rx="2" transform="rotate(90)"/><rect x="-3.5" y="-19" width="7" height="9" rx="2" transform="rotate(135)"/><rect x="-3.5" y="-19" width="7" height="9" rx="2" transform="rotate(180)"/><rect x="-3.5" y="-19" width="7" height="9" rx="2" transform="rotate(225)"/><rect x="-3.5" y="-19" width="7" height="9" rx="2" transform="rotate(270)"/><rect x="-3.5" y="-19" width="7" height="9" rx="2" transform="rotate(315)"/>
+       <circle r="13"/></g><circle cx="32" cy="32" r="5.5" fill="#6a7385"/></svg>

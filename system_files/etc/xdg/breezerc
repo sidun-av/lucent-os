@@ -1,0 +1,7 @@
+# Lucent: Breeze widget style, tuned toward docs/mockups (no focus rectangles,
+# frameless side panels, frosted menus). Colours come from Lucent Light/Dark.
+[Style]
+MenuOpacity=88
+ViewDrawFocusIndicator=false
+SidePanelDrawFrame=false
+ToolBarDrawItemSeparator=false

@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+"""Generate the Lucent Light / Lucent Dark KDE colour schemes from the
+mockup tokens (docs/mockups/lucent.css :root and .dark).
+
+Mapping to KDE colour sets:
+  Window   = --win-side   (sidebars, dialogs, toolbars)
+  Header   = --win-head   (title bar + app header, seamless with the decoration)
+  View     = --win-bg     (lists, documents)
+  Button   = --field      (buttons, fields)
+  Selection= --accent
+Output: system_files/usr/share/color-schemes/Lucent{Light,Dark}.colors
+"""
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / "system_files/usr/share/color-schemes"
+
+LIGHT = dict(
+    name="Lucent Light", id="LucentLight",
+    text="#1b1f27", text2="#4c5463", text3="#6a7282",
+    window="#f4f5f8", window_alt="#eceef3", head="#f4f5f8", head_inactive="#f7f8fa",
+    view="#ffffff", view_alt="#f7f8fa", button="#eceef3", button_alt="#e3e6ec",
+    tooltip="#fafbfd", accent="#3b6ef5", accent_hover="#5b86f7", link="#2f5fe0",
+    visited="#7c4dc4", negative="#d23b3b", neutral="#b86e00", positive="#1f9d55",
+    comp_bg="#16181e", comp_text="#f2f4f8",
+)
+DARK = dict(
+    name="Lucent Dark", id="LucentDark",
+    text="#eef0f5", text2="#b4bac6", text3="#959cab",
+    window="#191b21", window_alt="#1f2229", head="#191b21", head_inactive="#1c1e24",
+    view="#1f2229", view_alt="#23262d", button="#2b2f38", button_alt="#323743",
+    tooltip="#22252d", accent="#5b8bff", accent_hover="#6e98ff", link="#7ea4ff",
+    visited="#b08cff", negative="#f06a6a", neutral="#f0b04a", positive="#3cc47a",
+    comp_bg="#0f1116", comp_text="#eef0f5",
+)
+
+
+def c(h):
+    h = h.lstrip("#")
+    return ",".join(str(int(h[i:i + 2], 16)) for i in (0, 2, 4))
+
+
+def group(name, bg, bg_alt, t, fg=None, inactive=None):
+    fg = fg or t["text"]
+    return f"""[{name}]
+BackgroundAlternate={c(bg_alt)}
+BackgroundNormal={c(bg)}
+DecorationFocus={c(t['accent'])}
+DecorationHover={c(t['accent_hover'])}
+ForegroundActive={c(t['accent'])}
+ForegroundInactive={c(inactive or t['text3'])}
+ForegroundLink={c(t['link'])}
+ForegroundNegative={c(t['negative'])}
+ForegroundNeutral={c(t['neutral'])}
+ForegroundNormal={c(fg)}
+ForegroundPositive={c(t['positive'])}
+ForegroundVisited={c(t['visited'])}
+"""
+
+
+def scheme(t, dark):
+    sel = dict(t)
+    parts = [
+        """[ColorEffects:Disabled]
+Color=56,56,56
+ColorAmount=0
+ColorEffect=0
+ContrastAmount=0.65
+ContrastEffect=1
+IntensityAmount=0.1
+IntensityEffect=2
+
+[ColorEffects:Inactive]
+ChangeSelectionColor=true
+Color=112,111,110
+ColorAmount=0.025
+ColorEffect=2
+ContrastAmount=0.1
+ContrastEffect=2
+Enable=false
+IntensityAmount=0
+IntensityEffect=0
+""",
+        group("Colors:Button", t["button"], t["button_alt"], t),
+        group("Colors:Complementary", t["comp_bg"], t["comp_bg"], t, fg=t["comp_text"]),
+        group("Colors:Header", t["head"], t["head"], t),
+        group("Colors:Header][Inactive", t["head_inactive"], t["head_inactive"], t),
+        group("Colors:Selection", t["accent"], t["accent_hover"], sel, fg="#ffffff", inactive="#ffffff")
+        .replace(f"ForegroundActive={c(t['accent'])}", "ForegroundActive=255,255,255")
+        .replace(f"ForegroundLink={c(t['link'])}", "ForegroundLink=255,255,255"),
+        group("Colors:Tooltip", t["tooltip"], t["tooltip"], t),
+        group("Colors:View", t["view"], t["view_alt"], t),
+        group("Colors:Window", t["window"], t["window_alt"], t),
+        f"""[General]
+ColorScheme={t['id']}
+Name={t['name']}
+shadeSortColumn=true
+AccentColor={c(t['accent'])}
+
+[KDE]
+contrast=4
+
+[WM]
+activeBackground={c(t['head'])}
+activeBlend={c(t['text'])}
+activeForeground={c(t['text'])}
+inactiveBackground={c(t['head'])}
+inactiveBlend={c(t['text3'])}
+inactiveForeground={c(t['text3'])}
+""",
+    ]
+    return "\n".join(parts)
+
+
+def main():
+    for t, dark in ((LIGHT, False), (DARK, True)):
+        (OUT / f"{t['id']}.colors").write_text(scheme(t, dark))
+        print("wrote", t["id"])
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "KWin/WindowSwitcher",
+    "KPlugin": {
+        "Authors": [{ "Name": "Lucent OS contributors" }, { "Name": "Chris Holland", "Email": "zrenfire@gmail.com" }],
+        "Description": "Large rounded window thumbnails with the app icon and title, accent ring on the selection",
+        "Description[ru]": "Крупные скруглённые миниатюры окон со значком и названием, выделение акцентной рамкой",
+        "Icon": "preferences-system-windows-switcher-thumbnail-grid",
+        "Id": "org.lucent.switcher",
+        "License": "GPL-2.0-or-later",
+        "Name": "Lucent",
+        "Version": "1.0"
+    },
+    "X-Plasma-API": "declarativeappletscript"
+}

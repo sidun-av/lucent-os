@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [{ "Name": "Lucent OS contributors" }],
+        "Category": "Application Launchers",
+        "Description": "Full-screen app launcher with search, categories and a large app grid",
+        "Description[ru]": "Полноэкранное меню программ с поиском, категориями и крупной сеткой",
+        "Icon": "lucent-start",
+        "Id": "org.lucent.launcher",
+        "License": "GPL-2.0-or-later",
+        "Name": "Lucent Launcher",
+        "Name[ru]": "Меню Lucent",
+        "Version": "1.0",
+        "Website": "https://github.com/sidun-av/lucent-os"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-Provides": ["org.kde.plasma.launchermenu"]
+}

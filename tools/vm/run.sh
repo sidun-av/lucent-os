@@ -40,7 +40,7 @@ qemu-system-aarch64 \
     -drive "if=pflash,format=raw,readonly=on,file=$share/edk2-aarch64-code.fd" \
     -drive "if=pflash,format=raw,file=$vars" \
     "${drives[@]}" \
-    -device virtio-gpu-pci,xres=1920,yres=1080 \
+    -device "virtio-gpu-pci,xres=${LUCENT_VM_RES%x*},yres=${LUCENT_VM_RES#*x}" \
     -device qemu-xhci -device usb-kbd -device usb-tablet \
     -netdev "user,id=n0,hostfwd=tcp:127.0.0.1:$LUCENT_VM_SSH_PORT-:22" -device virtio-net-pci,netdev=n0 \
     -device virtio-rng-pci \

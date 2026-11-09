@@ -1,0 +1,16 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Lucent OS contributors"
+            }
+        ],
+        "Description": "Lucent: floating translucent taskbar and rounded popups",
+        "Id": "lucent-dark",
+        "License": "Apache-2.0",
+        "Name": "Lucent Dark",
+        "Version": "1.0",
+        "Website": "https://github.com/sidun-av/lucent-os"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

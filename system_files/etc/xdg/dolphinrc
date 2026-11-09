@@ -7,4 +7,5 @@ ShowFullPath=false
 BrowseThroughArchives=true
 
 [MainWindow]
-MenuBar=Disabled
+# Windows habit and docs/mockups/01-desktop: menus inside the window.
+MenuBar=Enabled

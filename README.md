@@ -34,12 +34,16 @@ whatever is missing in the background, retried until online.
 
 ## Desktop: macOS-clean look, Windows habits
 
-- **Top bar**: launcher button (left), system tray and clock (right). No
-  global menu — menus stay inside each window, which is what Windows users
-  expect and what Flatpak/GTK/ONLYOFFICE apps actually support.
-- **Floating bottom dock = Windows taskbar**: icons-only task manager with
-  pinned apps, running windows grouped per app, hover thumbnails, click to
-  minimise/restore.
+- **One floating taskbar** at the bottom (as in `docs/mockups/`): start
+  button and a search field on the left, pinned and running apps in the
+  middle (active app on a light tile with an accent bar, running apps with
+  a dot), system tray and a two-line clock on the right. Translucent and
+  blurred, 20 px corners, floating 12 px above the screen edge. No global
+  menu — menus stay inside each window, which is what Windows users expect
+  and what Flatpak/GTK/ONLYOFFICE apps actually support.
+- **Launcher** (Win key, start button or the search field): full screen,
+  a large search field, category chips and a grid of large app icons;
+  typing searches apps, files and settings at once.
 - **Windows**: minimise / maximise / close on the **right**; double-click the
   title bar to maximise; drag to a screen edge to snap (Aero Snap).
 - **Shortcuts**: Win (alone) opens the launcher · Win+E Files · Win+D show
@@ -56,8 +60,14 @@ whatever is missing in the background, retried until online.
   «Локальный диск (C:)»), and right-click → **Create New → Document /
   Spreadsheet / Presentation** creates blank `.docx/.xlsx/.pptx` that open
   in ONLYOFFICE.
-- **Look**: Lucent Light / Lucent Dark colour schemes and look-and-feel
-  packages, Inter UI font, JetBrains Mono, KWin blur, own wallpaper.
+- **Look**: Lucent Light / Lucent Dark global themes built from the
+  mockups' design tokens: own Plasma theme (taskbar, frosted popups),
+  window decoration (44 px title bar that merges with the app header, thin
+  minimise/maximise/close glyphs, 14 px rounded corners), Lucent app and
+  folder icons on top of Papirus, colour schemes, Inter at 11 pt, the
+  "Lucent Flow" wallpaper (also on the lock and login screens), a Lucent
+  boot splash and Alt+Tab switcher. Generators and sources: `design/`,
+  licenses: `THIRD_PARTY.md`.
 
 Everything is done with stock Plasma 6 mechanisms — a look-and-feel package
 with a layout script (`system_files/usr/share/plasma/look-and-feel/`) and
@@ -81,7 +91,8 @@ their own settings always win.
   duplicate them.
 - Baloo indexes file **names only** — content indexing of a freshly migrated
   Windows library would pin CPU and disk for hours after first login.
-- Animations at 0.7× duration — snappier without losing spatial cues.
+- Animations at 0.7× duration — snappier without losing spatial cues
+  (scale for open/close, squash for minimise; wobbly windows off).
 - Stop timeout 15 s (Fedora: 45 s) — a hung service can't stall shutdown.
 - Moderate KWin blur strength — cheap on weak GPUs.
 
@@ -245,6 +256,8 @@ sudo bootc switch ghcr.io/sidun-av/lucent-os:latest
 Containerfile                 image definition (FROM Kinoite 45)
 build_files/build.sh          declutter, packages, lucent-bridge, DXVK, services
 build_files/smoke-test.sh     CI: start a Windows program in the built image
+build_files/design.sh         look: Papirus, rounded corners, boot splash, caches
+design/                       generators for the theme assets (from docs/mockups)
 system_files/                 copied to / : /etc/xdg defaults, look-and-feel,
                               colour schemes, systemd units, scripts, templates
 migration-wizard/             "Move from Windows" wizard (lucent_migrate, po/, tests)

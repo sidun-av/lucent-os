@@ -4,6 +4,7 @@
 : "${LUCENT_VM_ARCH:=arm64}"
 : "${LUCENT_VM_SSH_PORT:=2222}"
 : "${LUCENT_VM_VNC_DISPLAY:=1}"          # VNC on 127.0.0.1:590N
+: "${LUCENT_VM_RES:=1920x1080}"          # virtio-gpu mode; 2560x1440 matches docs/mockups
 : "${LUCENT_VM_KEY:=$HOME/.ssh/lucent_vm_ed25519}"
 : "${LUCENT_VM_REPO:=sidun-av/lucent-os}"
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)

@@ -1,0 +1,2 @@
+# Graphical boot splash (Plymouth "lucent") and no kernel text on screen.
+kargs = ["rhgb", "quiet"]

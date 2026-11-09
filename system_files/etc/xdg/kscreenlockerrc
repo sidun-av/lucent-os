@@ -1,0 +1,7 @@
+# Lock screen on the Lucent wallpaper (Fedora's default is its own artwork).
+[Greeter]
+WallpaperPlugin=org.kde.image
+
+[Greeter][Wallpaper][org.kde.image][General]
+Image=file:///usr/share/wallpapers/Lucent/
+PreviewImage=file:///usr/share/wallpapers/Lucent/
