@@ -61,3 +61,11 @@ ActiveOutlineAlpha=30
 InactiveOutlineAlpha=24
 SecondOutlineThickness=0
 InactiveSecondOutlineThickness=0
+
+[Wayland]
+# No on-screen keyboard: Fedora's kde-settings profile starts plasma-keyboard
+# in every session (~200-400 MB, even without a touchscreen) and the login
+# screen shows a "Show On-Screen Keyboard" button. The package stays
+# (plasma-desktop requires it); it just isn't started.
+InputMethod=
+VirtualKeyboardEnabled=false

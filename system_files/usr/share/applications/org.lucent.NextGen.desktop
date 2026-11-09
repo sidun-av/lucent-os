@@ -5,6 +5,6 @@ Name[ru]=Новое поколение (бета)
 Comment=Optionally install the experimental ArtCraft apps
 Comment[ru]=Установить экспериментальные приложения ArtCraft (по желанию)
 Exec=konsole --hold -e /usr/bin/lucent-nextgen install
-Icon=applications-other
+Icon=lucent-nextgen
 Categories=System;
 Keywords=artcraft;beta;

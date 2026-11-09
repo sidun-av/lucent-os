@@ -10,7 +10,10 @@ user doesn't have yet, so their own choices always win.
   Pictures, Music, Videos, Home, Trash; the Remote, Recent, Search and Tags
   groups hidden; and the operating system's own volumes hidden from
   "Devices" (the read-only composefs root and /usr, and the partition that
-  holds the OS), so Devices shows the user's disks: "Windows (C:)", USB.
+  holds the OS), so Devices shows the user's disks: "Local Disk (C:)", USB.
+- A picture for the account if it has none: the user's initial on the
+  launcher's peach-pink gradient, set through AccountsService so the login
+  and lock screens, the launcher and Settings all show it.
 """
 import os
 import re
@@ -98,6 +101,42 @@ def places_xbel() -> str:
     return "".join(out)
 
 
+def account_picture() -> None:
+    uid = os.getuid()
+    path = f"/org/freedesktop/Accounts/User{uid}"
+    def prop(name):
+        out = subprocess.run(["busctl", "--system", "get-property", "org.freedesktop.Accounts", path,
+                              "org.freedesktop.Accounts.User", name], capture_output=True, text=True).stdout
+        return out.strip()[3:-1] if out.startswith('s "') else ""
+    icon = prop("IconFile")
+    if icon and Path(icon).is_file():
+        return  # the user (or the installer) already chose one
+    name = prop("RealName") or prop("UserName") or os.environ.get("USER", "?")
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"
+    from PySide6.QtCore import QPointF, QRectF, Qt
+    from PySide6.QtGui import QColor, QFont, QGuiApplication, QImage, QLinearGradient, QPainter
+    app = QGuiApplication.instance() or QGuiApplication([])
+    img = QImage(256, 256, QImage.Format.Format_ARGB32)
+    grad = QLinearGradient(QPointF(0, 0), QPointF(256, 256))
+    grad.setColorAt(0, QColor("#ffb37a"))
+    grad.setColorAt(1, QColor("#f2668b"))
+    p = QPainter(img)
+    p.fillRect(img.rect(), grad)
+    p.setPen(QColor("white"))
+    font = QFont("Inter")
+    font.setPixelSize(118)
+    font.setWeight(QFont.Weight.Bold)
+    p.setFont(font)
+    p.drawText(QRectF(0, 0, 256, 256), Qt.AlignmentFlag.AlignCenter, name[:1].upper())
+    p.end()
+    out = DATA / "lucent/account-picture.png"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    img.save(str(out))
+    del app
+    subprocess.run(["busctl", "--system", "call", "org.freedesktop.Accounts", path,
+                    "org.freedesktop.Accounts.User", "SetIconFile", "s", str(out)], capture_output=True)
+
+
 def main() -> int:
     STATE.mkdir(parents=True, exist_ok=True)
     if not (STATE / "dolphinstaterc").exists():
@@ -110,6 +149,9 @@ def main() -> int:
     if not places.exists():
         places.parent.mkdir(parents=True, exist_ok=True)
         places.write_text(places_xbel(), encoding="utf-8")
+    marker = DATA / "lucent/account-picture.png"
+    if not marker.exists():
+        account_picture()
     return 0
 
 

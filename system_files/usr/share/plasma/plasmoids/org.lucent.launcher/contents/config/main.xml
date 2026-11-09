@@ -6,7 +6,7 @@
   <group name="General">
     <!-- Order of the first apps under "All apps"; the rest follow A-Z. -->
     <entry name="pinned" type="StringList">
-      <default>org.kde.dolphin.desktop,org.mozilla.firefox.desktop,org.onlyoffice.desktopeditors.desktop,org.kde.okular.desktop,com.github.jeromerobert.pdfarranger.desktop,org.gimp.GIMP.desktop,org.kde.krita.desktop,org.inkscape.Inkscape.desktop,org.darktable.Darktable.desktop,org.kde.kdenlive.desktop,net.scribus.Scribus.desktop,org.kde.konsole.desktop,org.lucent.Migrate.desktop,org.kde.discover.desktop,systemsettings.desktop</default>
+      <default>org.kde.dolphin.desktop,org.mozilla.firefox.desktop,org.onlyoffice.desktopeditors.desktop,org.kde.okular.desktop,com.github.jeromerobert.pdfarranger.desktop,org.gimp.GIMP.desktop,org.kde.krita.desktop,org.inkscape.Inkscape.desktop,org.darktable.Darktable.desktop,org.kde.kdenlive.desktop,net.scribus.Scribus.desktop,org.kde.konsole.desktop,org.lucent.Migrate.desktop,org.kde.discover.desktop,systemsettings.desktop,org.kde.kwrite.desktop,org.kde.spectacle.desktop,org.kde.ark.desktop,org.kde.filelight.desktop,org.kde.plasma-systemmonitor.desktop,org.kde.kdeconnect.app.desktop,org.lucent.NextGen.desktop</default>
     </entry>
   </group>
 </kcfg>

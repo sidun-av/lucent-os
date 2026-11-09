@@ -8,7 +8,10 @@ set -euo pipefail
 pre=
 if [ "${1:-}" = --session ]; then
     shift
-    pre='export XDG_RUNTIME_DIR=/run/user/$(id -u); export DBUS_SESSION_BUS_ADDRESS=unix:path=$XDG_RUNTIME_DIR/bus QT_QPA_PLATFORM=wayland XDG_CURRENT_DESKTOP=KDE KDE_FULL_SESSION=true KDE_SESSION_VERSION=6; for s in $XDG_RUNTIME_DIR/wayland-?; do export WAYLAND_DISPLAY=${s##*/}; done; '
+    # Plasma exports its session environment to the systemd user manager:
+    # import all of it (menu prefix, config/data dirs, ...), then add what an
+    # SSH shell needs to reach the Wayland session.
+    pre='export XDG_RUNTIME_DIR=/run/user/$(id -u); export DBUS_SESSION_BUS_ADDRESS=unix:path=$XDG_RUNTIME_DIR/bus; while IFS= read -r l; do export "$l"; done < <(systemctl --user show-environment 2>/dev/null); export QT_QPA_PLATFORM=wayland XDG_CURRENT_DESKTOP=KDE KDE_FULL_SESSION=true KDE_SESSION_VERSION=6; for s in $XDG_RUNTIME_DIR/wayland-?; do export WAYLAND_DISPLAY=${s##*/}; done; '
 fi
 opts=(-i "$LUCENT_VM_KEY" -p "$LUCENT_VM_SSH_PORT" -o IdentitiesOnly=yes
       -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR

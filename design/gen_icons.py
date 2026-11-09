@@ -12,11 +12,14 @@ supplies every icon Lucent doesn't draw itself.
 
 Run: python3 design/gen_icons.py   (needs playwright)
 """
+import os
 import re
 import shutil
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
+
+import lucent_extra_icons as extra
 
 ROOT = Path(__file__).resolve().parents[1]
 JS = (ROOT / "docs/mockups/lucent.js").read_text()
@@ -56,7 +59,7 @@ Comment=Lucent OS icons on top of {parent}
 Inherits={parent},breeze{dark},hicolor
 Example=folder
 DisplayDepth=32
-Directories=scalable/apps,scalable/places
+Directories=scalable/apps,scalable/places,scalable/status,scalable/actions
 
 [scalable/apps]
 Size=64
@@ -70,6 +73,20 @@ Size=64
 MinSize=32
 MaxSize=512
 Context=Places
+Type=Scalable
+
+[scalable/status]
+Size=24
+MinSize=16
+MaxSize=512
+Context=Status
+Type=Scalable
+
+[scalable/actions]
+Size=24
+MinSize=16
+MaxSize=512
+Context=Actions
 Type=Scalable
 """
 
@@ -127,6 +144,20 @@ def main():
     (base / "scalable/places/user-home.svg").write_text(qtsvg_safe(home) + "\n")
     for alias in ("folder-home", "folder-blue-home"):
         (base / f"scalable/places/{alias}.svg").symlink_to("user-home.svg")
+    # Tiles for the rest of the launcher's apps, and line icons for the tray
+    # and session actions (design/lucent_extra_icons.py).
+    for key, (svg, names) in extra.TILES.items():
+        (base / f"scalable/apps/{names[0]}.svg").write_text(safe_area(svg) + "\n")
+        for alias in names[1:]:
+            (base / f"scalable/apps/{alias}.svg").symlink_to(f"{names[0]}.svg")
+    for sub in ("status", "actions"):
+        (base / f"scalable/{sub}").mkdir(parents=True, exist_ok=True)
+    session = {"shutdown", "reboot", "sleep", "log-out", "lock", "users"}
+    for key, (svg, names) in extra.LINES.items():
+        d = base / "scalable" / ("actions" if key in session else "status")
+        (d / f"{names[0]}.svg").write_text(svg + "\n")
+        for alias in names[1:] + [n + "-symbolic" for n in names]:
+            (d / f"{alias}.svg").symlink_to(f"{names[0]}.svg")
     logo = logo.replace(' width="64" height="64"', "")
     (base / "scalable/apps/lucent-start.svg").write_text(logo + "\n")
     for alias in ("start-here", "start-here-kde", "start-here-kde-plasma"):
@@ -137,7 +168,19 @@ def main():
     if dark.exists():
         shutil.rmtree(dark)
     dark.mkdir()
-    (dark / "scalable").symlink_to("../Lucent/scalable")
+    (dark / "scalable").mkdir()
+    for sub in ("apps", "places"):
+        (dark / "scalable" / sub).symlink_to(f"../../Lucent/scalable/{sub}")
+    # Line icons in a light default colour for dark surfaces.
+    for sub in ("status", "actions"):
+        src = base / "scalable" / sub
+        (dark / "scalable" / sub).mkdir()
+        for f in sorted(src.iterdir()):
+            out = dark / "scalable" / sub / f.name
+            if f.is_symlink():
+                out.symlink_to(os.readlink(f))
+            else:
+                out.write_text(extra.recolor(f.read_text(), "#eef0f5"))
     (dark / "index.theme").write_text(INDEX.format(name="Lucent Dark", parent="Papirus-Dark", dark="-dark"))
     print("wrote", base, dark)
 

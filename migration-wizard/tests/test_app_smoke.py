@@ -39,7 +39,7 @@ def test_wizard_walkthrough(windows_root, tmp_path, monkeypatch):
     wiz.show()
     wiz.next()  # -> source
     assert wiz.currentPage().list.count() == 2
-    assert "OS (C:)" in wiz.currentPage().list.item(0).text()
+    assert "Local Disk (C:)" in wiz.currentPage().list.item(0).text()
     wiz.next()  # -> folders
     wait_until(lambda: " file" in wiz.currentPage().tree.topLevelItem(0).text(1))
     wiz.next()  # -> extras

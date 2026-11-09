@@ -44,3 +44,15 @@ msgstr "Переезд с Windows"
 msgctxt "@action:inmenu"
 msgid "Edit Applications…"
 msgstr "Изменить меню программ…"
+
+msgid "Archives"
+msgstr "Архивы"
+
+msgid "Disk Usage"
+msgstr "Использование диска"
+
+msgid "Text Editor"
+msgstr "Текстовый редактор"
+
+msgid "Screenshot"
+msgstr "Снимок экрана"

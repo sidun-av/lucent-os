@@ -10,6 +10,7 @@ falls back to Plasma's default (Breeze) theme:
   widgets/tasks              taskbar buttons: active tile + accent pill, running dot
   widgets/viewitem           list highlights in popups: radius 9
   widgets/tabbar             tab underline; no "popup open" line on the taskbar
+  widgets/lineedit           text fields (login/lock password, popup search)
 
 Values come from docs/mockups/lucent.css (#taskbar, .preview, .di ...).
 Output: system_files/usr/share/plasma/desktoptheme/lucent{,-dark}/
@@ -220,6 +221,31 @@ def tabbar(t):
     return doc
 
 
+def lineedit(t):
+    """Text fields in Plasma (popup search fields, the lock and login screens'
+    password field): a translucent rounded field, accent ring on focus."""
+    doc, cur = SvgDoc(0, 0), Cursor()
+    r = 14
+    sz = 2 * r + 8
+    dark = t["dark"]
+    fill = "rgba(255,255,255,.12)" if dark else "rgba(255,255,255,.78)"
+    line = "rgba(255,255,255,.20)" if dark else "rgba(20,28,45,.14)"
+    line_hover = "rgba(255,255,255,.32)" if dark else "rgba(20,28,45,.24)"
+    for name, col in (("base", line), ("hover", line_hover)):
+        img = render_box(sz, sz, (0, 0, sz, sz), r, fill=fill, border=col)
+        nine_slice(doc, cur, name, img, r, r, r, r)
+        hints(doc, cur, name, (12, 6, 12, 6))
+    ring = render_box(sz, sz, (0, 0, sz, sz), r, border=t["accent"], border_w=2)
+    nine_slice(doc, cur, "focus", ring, r, r, r, r)
+    hints(doc, cur, "focus", (12, 6, 12, 6))
+    nine_slice(doc, cur, "focusframe", ring, r, r, r, r)
+    hints(doc, cur, "focusframe", (12, 6, 12, 6))
+    x, y = cur.place(4, 4)
+    doc.rect("hint-focus-over-base", x, y, 2, 2)
+    doc.w, doc.h = cur.max_w, cur.height + 4
+    return doc
+
+
 def viewitem(t):
     doc, cur = SvgDoc(0, 0), Cursor()
     r = 9
@@ -249,6 +275,7 @@ def main():
         write(base / "widgets/tasks.svgz", tasks(t))
         write(base / "widgets/viewitem.svgz", viewitem(t))
         write(base / "widgets/tabbar.svgz", tabbar(t))
+        write(base / "widgets/lineedit.svgz", lineedit(t))
         meta = {
             "KPlugin": {
                 "Authors": [{"Name": "Lucent OS contributors"}],

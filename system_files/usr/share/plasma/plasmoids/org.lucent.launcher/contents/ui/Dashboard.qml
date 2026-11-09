@@ -84,7 +84,9 @@ Kicker.DashboardWindow {
         "com.github.jeromerobert.pdfarranger.desktop", "org.gimp.GIMP.desktop", "org.kde.krita.desktop",
         "org.inkscape.Inkscape.desktop", "org.darktable.Darktable.desktop", "org.kde.kdenlive.desktop",
         "systemsettings.desktop", "org.kde.discover.desktop", "org.kde.konsole.desktop",
-        "org.lucent.Migrate.desktop"]
+        "org.lucent.Migrate.desktop", "org.kde.ark.desktop", "org.kde.filelight.desktop",
+        "org.kde.kdeconnect.app.desktop", "org.kde.kwrite.desktop", "org.kde.spectacle.desktop",
+        "org.kde.plasma-systemmonitor.desktop", "net.scribus.Scribus.desktop", "org.lucent.NextGen.desktop"]
 
     // Plain names for the apps a newcomer looks for (the mockups' wording);
     // everything else keeps the app's own name.
@@ -95,6 +97,10 @@ Kicker.DashboardWindow {
         "org.kde.discover.desktop": i18n("Store"),
         "systemsettings.desktop": i18n("Settings"),
         "org.lucent.Migrate.desktop": i18n("Move from Windows"),
+        "org.kde.ark.desktop": i18n("Archives"),
+        "org.kde.filelight.desktop": i18n("Disk Usage"),
+        "org.kde.kwrite.desktop": i18n("Text Editor"),
+        "org.kde.spectacle.desktop": i18n("Screenshot"),
     })
 
     function launch(i) {
@@ -421,7 +427,7 @@ Kicker.DashboardWindow {
                             width: 18
                             height: 18
                             source: chip.index === 0 ? "view-app-grid-symbolic" : chip.model.decoration
-                            isMask: chip.index === 0
+                            isMask: true    // one-colour glyphs, readable in light and dark
                             color: chip.on ? (root.dark ? "#1b1f27" : "white") : root.text2
                         }
                         Text {

@@ -28,12 +28,23 @@ if "$DNF" "${DNF_OPTS[@]}" install kwin-effect-roundcorners; then
     built_for=$(rpm -q --qf '%{RELEASE}' kwin-effect-roundcorners)
     if [[ "$built_for" != "$kwin_version".* ]]; then
         echo "WARNING: kwin-effect-roundcorners was built for KWin ${built_for%%.fc*}, image has $kwin_version; leaving it out"
-        "$DNF" -y remove kwin-effect-roundcorners
+        "$DNF" -y --setopt=clean_requirements_on_remove=False remove kwin-effect-roundcorners
     fi
 else
     echo "WARNING: kwin-effect-roundcorners unavailable for Fedora $FEDORA; windows keep square bottom corners"
 fi
 rm -f /etc/yum.repos.d/lucent-roundcorners.repo
+
+# A Windows switcher's launcher shows apps, not admin and developer tools:
+# these stay installed but get NoDisplay (also hides them from search). Info
+# Center and Firewall stay reachable from System Settings, Help from F1.
+for id in firewall-config org.kde.kcharselect org.kde.kdebugsettings org.kde.kdeconnect.sms \
+          org.kde.khelpcenter org.kde.kinfocenter org.kde.kmenuedit org.kde.kwalletmanager \
+          org.kde.plasma.emojier org.kde.kfind org.kde.partitionmanager; do
+    f=/usr/share/applications/$id.desktop
+    [ -f "$f" ] || continue
+    grep -q '^NoDisplay=true' "$f" || sed -i '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nNoDisplay=true/' "$f"
+done
 
 # Icon caches for the generated Lucent themes (Papirus ships its own).
 for theme in Lucent Lucent-Dark; do

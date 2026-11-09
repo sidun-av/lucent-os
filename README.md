@@ -82,6 +82,11 @@ their own settings always win.
   "install this app" and web-search suggestions disabled.
 - Fewer rarely-used apps: games, PIM suite, Matrix client, desktop-sharing
   server etc. removed (all still installable from Flathub).
+- A launcher with apps, not tools: Info Center, Help Center, Firewall,
+  KCharSelect, Emoji Selector, KDE Connect SMS, KFind, Partition Manager,
+  Menu Editor, KWallet Manager and KDebugSettings stay installed but are
+  hidden from it (NoDisplay); the first three are reachable from Settings
+  and F1. The on-screen keyboard isn't started (session and login screen).
 - Fedora's own Flatpak remote is disabled in favour of a single, unfiltered
   Flathub remote, so apps aren't listed twice in Discover.
 

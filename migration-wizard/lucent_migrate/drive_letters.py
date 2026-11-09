@@ -41,12 +41,14 @@ def assign(vols: list[Volume], is_system: Callable[[Volume], bool]) -> dict[str,
 
 
 def display_name(letter: str, label: str | None) -> str:
-    """As Windows Explorer shows it: "Local Disk (C:)", or "Data (D:)" with a label."""
-    if label and label.endswith(f"({letter}:)"):
+    """"Local Disk (C:)" for the Windows drive, whatever its label (owner
+    decision: the name every Windows user knows); other drives as Explorer
+    shows them, "Data (D:)" with a label, "Local Disk (D:)" without."""
+    if letter == "C" or not label:
+        return _("Local Disk ({letter}:)").format(letter=letter)
+    if label.endswith(f"({letter}:)"):
         return label  # already named by our udev rule (lsblk reads it back)
-    if label:
-        return _("{label} ({letter}:)").format(label=label, letter=letter)
-    return _("Local Disk ({letter}:)").format(letter=letter)
+    return _("{label} ({letter}:)").format(label=label, letter=letter)
 
 
 def _udev_encode(text: str) -> str:
