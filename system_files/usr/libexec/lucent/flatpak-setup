@@ -9,7 +9,8 @@
 # retried by systemd until it succeeds.
 set -euo pipefail
 
-DONE=/var/lib/lucent/flatpaks-v1.done
+# v2: adds the Kvantum style extension (runs once more on v1 systems).
+DONE=/var/lib/lucent/flatpaks-v2.done
 LIST=/usr/share/lucent/flatpaks.list
 
 has_remote() { flatpak remotes --system --columns=name | grep -qx "$1"; }
@@ -37,6 +38,25 @@ if ((${#missing[@]})); then
 else
     echo "all ${#APPS[@]} default apps are installed"
 fi
+
+# Lucent's widget style for Flatpak Qt apps: Flathub's Kvantum extension
+# (org.kde.KStyle.Kvantum, GPL-3.0) for each KDE runtime branch an app uses,
+# and QT_STYLE_OVERRIDE=kvantum for those apps. The theme itself is put into
+# each app's config dir per user (/usr/libexec/lucent/kvantum-flatpak-sync).
+# Apps on a runtime Flathub has no Kvantum build for keep Breeze.
+if ! available=$(flatpak remote-ls --system flathub --runtime --columns=application,branch 2>/dev/null \
+                 | awk '$1 == "org.kde.KStyle.Kvantum" {print $2}'); then
+    echo "Flathub unreachable; retrying later for the Kvantum style extension" >&2
+    exit 1
+fi
+while IFS=$'\t' read -r app runtime; do
+    [[ "$runtime" == org.kde.Platform/* ]] || continue
+    branch=${runtime##*/}
+    grep -qxF "$branch" <<< "$available" || { echo "no Kvantum build for KDE runtime $branch ($app)"; continue; }
+    flatpak info --system "org.kde.KStyle.Kvantum//$branch" &>/dev/null \
+        || flatpak install --system --noninteractive flathub "org.kde.KStyle.Kvantum//$branch"
+    flatpak override --system --env=QT_STYLE_OVERRIDE=kvantum "$app"
+done < <(flatpak list --system --app --columns=application,runtime)
 
 mkdir -p "$(dirname "$DONE")"
 touch "$DONE"

@@ -35,12 +35,63 @@ else
 fi
 rm -f /etc/yum.repos.d/lucent-roundcorners.repo
 
+# Widget style for Qt apps: Kvantum (GPL-3.0) with Lucent's SVG theme
+# (/usr/share/Kvantum/Lucent, design/gen_kvantum.py), wrapped by Lucent's
+# small style plugin (build_files/lucent-style) that fixes Dolphin's path
+# bar, toolbar groups and free-space line on top of Kvantum. Login screen:
+# SDDM with Lucent's own theme (Fedora 45 defaults to Plasma Login Manager,
+# whose greeter is compiled in and can't be themed).
+"$DNF" "${DNF_OPTS[@]}" install kvantum sddm sddm-wayland-plasma
+
+# Build the style plugin against this image's Qt, then drop the toolchain
+# again (only what this step added; nothing of the base is removed).
+rpm -qa --qf '%{NAME}\n' | sort > /tmp/before-style.txt
+"$DNF" "${DNF_OPTS[@]}" install gcc-c++ cmake make qt6-qtbase-devel
+cmake -S /ctx/build_files/lucent-style -B /tmp/lucent-style -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+cmake --build /tmp/lucent-style --parallel
+cmake --install /tmp/lucent-style
+rpm -qa --qf '%{NAME}\n' | sort > /tmp/after-style.txt
+mapfile -t added < <(comm -13 /tmp/before-style.txt /tmp/after-style.txt)
+if ((${#added[@]})); then
+    "$DNF" -y --setopt=clean_requirements_on_remove=False remove "${added[@]}"
+fi
+rm -rf /tmp/lucent-style /tmp/before-style.txt /tmp/after-style.txt
+ls /usr/lib*/qt6/plugins/styles/liblucentstyle.so
+# Both styles must load (offscreen, no display needed).
+QT_QPA_PLATFORM=offscreen python3 -c '
+from PySide6.QtWidgets import QApplication, QStyleFactory
+app = QApplication([])
+keys = [k.lower() for k in QStyleFactory.keys()]
+assert {"lucent", "lucent-dark", "kvantum", "kvantum-dark"} <= set(keys), keys
+for k in ("kvantum", "lucent", "lucent-dark"):
+    assert QStyleFactory.create(k) is not None, k
+print("Qt styles OK:", keys)'
+
+# Login screen: SDDM (theme in /usr/share/sddm/themes/lucent, settings in
+# /usr/lib/sddm/sddm.conf.d/zz-lucent.conf) instead of plasmalogin.
+test -f /usr/share/sddm/themes/lucent/Main.qml
+systemctl disable plasmalogin.service || true
+systemctl enable --force sddm.service
+
+# Flatpak Qt apps follow the light/dark Kvantum theme (per-user path unit).
+systemctl --global enable lucent-kvantum-sync.path
+
+# Lock screen: Plasma 6.8 draws it from the desktop shell package; Lucent's
+# LockScreenUi.qml replaces the stock one (same authenticator contract). If a
+# Plasma update reshapes that package, the stock lock screen stays.
+lock=/usr/share/plasma/shells/org.kde.plasma.desktop/contents/lockscreen
+if grep -q 'LockScreenUi' "$lock/LockScreen.qml" && [ -f "$lock/PasswordSync.qml" ]; then
+    cp /usr/share/lucent/design/lockscreen/LockScreenUi.qml "$lock/LockScreenUi.qml"
+else
+    echo "WARNING: Plasma's lock screen package changed; keeping the stock lock screen"
+fi
+
 # A Windows switcher's launcher shows apps, not admin and developer tools:
 # these stay installed but get NoDisplay (also hides them from search). Info
 # Center and Firewall stay reachable from System Settings, Help from F1.
 for id in firewall-config org.kde.kcharselect org.kde.kdebugsettings org.kde.kdeconnect.sms \
           org.kde.khelpcenter org.kde.kinfocenter org.kde.kmenuedit org.kde.kwalletmanager \
-          org.kde.plasma.emojier org.kde.kfind org.kde.partitionmanager; do
+          org.kde.plasma.emojier org.kde.kfind org.kde.partitionmanager kvantummanager; do
     f=/usr/share/applications/$id.desktop
     [ -f "$f" ] || continue
     grep -q '^NoDisplay=true' "$f" || sed -i '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nNoDisplay=true/' "$f"

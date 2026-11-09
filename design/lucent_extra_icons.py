@@ -90,6 +90,14 @@ WIRED = ("M8.5 3.5h7a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-4a1 1 0 0 1
          "M12 9.5v4.5M5 14h14M5 14v2.5M19 14v2.5M12 14v2.5",
          "M3.5 16.5h3v3h-3zM10.5 16.5h3v3h-3zM17.5 16.5h3v3h-3z")
 CROSS = "M16 15.5l4 4M20 15.5l-4 4"
+BELL = ("M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z", "M10 20.5a2.2 2.2 0 0 0 4 0")
+UPDATE = ("M12 4v10.5", "M7.5 10l4.5 4.5 4.5-4.5", "M5 19.5h14")
+ACCENT = "#3b6ef5"
+
+
+def with_dot(svg, color=ACCENT, cx=18.5, cy=5.5):
+    """A line icon with a filled accent badge (new notifications, updates)."""
+    return svg.replace("</svg>", f'<circle cx="{cx}" cy="{cy}" r="3.6" fill="{color}"/></svg>')
 
 # line icon -> names (each also gets a -symbolic alias)
 LINES = {
@@ -111,6 +119,14 @@ LINES = {
                 "network-wireless-signal-none", "network-wireless-connected-00", "network-wireless-0"]),
     "wifi-off": (line(WIFI3, WIFI2, "M3 3l18 18", dots=[(12, 19.3, 1.1)]),
                  ["network-wireless-disconnected", "network-wireless-offline", "network-wireless-off"]),
+    "bell": (line(*BELL), ["notifications", "notification-inactive", "notification-empty"]),
+    "bell-new": (with_dot(line(*BELL)), ["notification-active", "notification-new", "notification-unread"]),
+    "bell-off": (line(*BELL, "M4 3.5l16 17"), ["notifications-disabled", "notification-disabled"]),
+    "updates": (line(*UPDATE), ["update-none", "updates-notifier-inactive", "system-software-update-panel"]),
+    "updates-new": (with_dot(line(*UPDATE)),
+                    ["update-low", "update-medium", "updates-notifier", "software-update-available"]),
+    "updates-urgent": (with_dot(line(*UPDATE), color="#d98a00"),
+                       ["update-high", "software-update-urgent"]),
     "shutdown": (line("M12 3.5v8", "M7 6.5a7.5 7.5 0 1 0 10 0"), ["system-shutdown"]),
     "reboot": (line("M19.5 12a7.5 7.5 0 1 1-2.2-5.3", "M19.5 4.5v4.2h-4.2"), ["system-reboot", "system-restart"]),
     "sleep": (line("M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"), ["system-suspend", "system-suspend-hibernate"]),

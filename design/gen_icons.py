@@ -11,13 +11,12 @@ supplies every icon Lucent doesn't draw itself.
   system_files/usr/share/icons/Lucent-Dark  (dark:  Inherits Papirus-Dark)
 
 Run: python3 design/gen_icons.py   (needs playwright)
+     python3 design/gen_icons.py --lines   (only the line icons; no browser)
 """
 import os
 import re
 import shutil
 from pathlib import Path
-
-from playwright.sync_api import sync_playwright
 
 import lucent_extra_icons as extra
 
@@ -108,7 +107,39 @@ def safe_area(svg, ratio=0.8):
     return svg.replace('viewBox="0 0 64 64"', f'viewBox="{off:g} {off:g} {full:g} {full:g}"', 1)
 
 
+def write_lines(base):
+    """Line icons for the tray and session actions (lucent_extra_icons.LINES)."""
+    session = {"shutdown", "reboot", "sleep", "log-out", "lock", "users"}
+    for sub in ("status", "actions"):
+        d = base / f"scalable/{sub}"
+        if d.exists():
+            shutil.rmtree(d)
+        d.mkdir(parents=True)
+    for key, (svg, names) in extra.LINES.items():
+        d = base / "scalable" / ("actions" if key in session else "status")
+        (d / f"{names[0]}.svg").write_text(svg + "\n")
+        for alias in names[1:] + [n + "-symbolic" for n in names]:
+            (d / f"{alias}.svg").symlink_to(f"{names[0]}.svg")
+
+
+def write_lines_dark(base, dark):
+    """The same line icons in a light default colour for dark surfaces."""
+    for sub in ("status", "actions"):
+        src = base / "scalable" / sub
+        out_dir = dark / "scalable" / sub
+        if out_dir.exists():
+            shutil.rmtree(out_dir)
+        out_dir.mkdir()
+        for f in sorted(src.iterdir()):
+            out = out_dir / f.name
+            if f.is_symlink():
+                out.symlink_to(os.readlink(f))
+            else:
+                out.write_text(extra.recolor(f.read_text(), "#eef0f5"))
+
+
 def main():
+    from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page()
@@ -150,14 +181,7 @@ def main():
         (base / f"scalable/apps/{names[0]}.svg").write_text(safe_area(svg) + "\n")
         for alias in names[1:]:
             (base / f"scalable/apps/{alias}.svg").symlink_to(f"{names[0]}.svg")
-    for sub in ("status", "actions"):
-        (base / f"scalable/{sub}").mkdir(parents=True, exist_ok=True)
-    session = {"shutdown", "reboot", "sleep", "log-out", "lock", "users"}
-    for key, (svg, names) in extra.LINES.items():
-        d = base / "scalable" / ("actions" if key in session else "status")
-        (d / f"{names[0]}.svg").write_text(svg + "\n")
-        for alias in names[1:] + [n + "-symbolic" for n in names]:
-            (d / f"{alias}.svg").symlink_to(f"{names[0]}.svg")
+    write_lines(base)
     logo = logo.replace(' width="64" height="64"', "")
     (base / "scalable/apps/lucent-start.svg").write_text(logo + "\n")
     for alias in ("start-here", "start-here-kde", "start-here-kde-plasma"):
@@ -171,19 +195,16 @@ def main():
     (dark / "scalable").mkdir()
     for sub in ("apps", "places"):
         (dark / "scalable" / sub).symlink_to(f"../../Lucent/scalable/{sub}")
-    # Line icons in a light default colour for dark surfaces.
-    for sub in ("status", "actions"):
-        src = base / "scalable" / sub
-        (dark / "scalable" / sub).mkdir()
-        for f in sorted(src.iterdir()):
-            out = dark / "scalable" / sub / f.name
-            if f.is_symlink():
-                out.symlink_to(os.readlink(f))
-            else:
-                out.write_text(extra.recolor(f.read_text(), "#eef0f5"))
+    write_lines_dark(base, dark)
     (dark / "index.theme").write_text(INDEX.format(name="Lucent Dark", parent="Papirus-Dark", dark="-dark"))
     print("wrote", base, dark)
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--lines" in sys.argv[1:]:
+        write_lines(OUT / "Lucent")
+        write_lines_dark(OUT / "Lucent", OUT / "Lucent-Dark")
+        print("wrote line icons")
+    else:
+        main()

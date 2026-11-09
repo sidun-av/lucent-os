@@ -1,0 +1,36 @@
+#!/usr/bin/bash
+# Lucent's login screen is SDDM (theme "lucent"), while Fedora's own tools
+# (plasma-setup, installer kickstarts, test images) write automatic login
+# for Plasma Login Manager, the SDDM fork Fedora 45 defaults to. Before SDDM
+# starts, carry an [Autologin] User/Session/Relogin from
+# /etc/plasmalogin.conf(.d) over to SDDM; without one, nothing is written.
+set -euo pipefail
+out=/etc/sddm.conf.d/zz-lucent-autologin-from-plasmalogin.conf
+files=()
+[ -f /etc/plasmalogin.conf ] && files+=(/etc/plasmalogin.conf)
+for f in /etc/plasmalogin.conf.d/*.conf; do [ -f "$f" ] && files+=("$f"); done
+user= session= relogin=
+for f in "${files[@]}"; do   # later files win, as in plasmalogin itself
+    while IFS='=' read -r key value; do
+        case "$key" in
+            User) user=$value ;;
+            Session) session=$value ;;
+            Relogin) relogin=$value ;;
+        esac
+    done < <(awk '/^\[/{sec=$0; next} sec=="[Autologin]" && /^[A-Za-z]+=/' "$f")
+done
+if [ -z "$user" ]; then
+    rm -f "$out"
+    exit 0
+fi
+[ -z "$session" ] || [[ "$session" == *.desktop ]] || session=$session.desktop
+mkdir -p "${out%/*}"
+cat > "$out.tmp" <<CONF
+# Written at boot by /usr/libexec/lucent/sddm-autologin-from-plasmalogin
+# from the Plasma Login Manager configuration. Edit that, not this file.
+[Autologin]
+User=$user
+Session=${session:-plasma.desktop}
+Relogin=${relogin:-false}
+CONF
+mv "$out.tmp" "$out"

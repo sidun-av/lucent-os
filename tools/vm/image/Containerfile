@@ -1,6 +1,6 @@
 # TEST-ONLY derivative of the published Lucent OS image, for VM checks.
 # Built and consumed only by .github/workflows/vm.yml; never pushed.
-# Adds: plasmalogin autologin for the `lucent` user (created by bootc-image-builder
+# Adds: autologin for the `lucent` user (plasmalogin config, carried over to SDDM at boot; user created by bootc-image-builder
 # from config.toml) and sshd. Locale and keyboard stay the release defaults
 # (en_US, us), i.e. what a fresh boot without an installer looks like.
 ARG IMAGE=ghcr.io/sidun-av/lucent-os:latest

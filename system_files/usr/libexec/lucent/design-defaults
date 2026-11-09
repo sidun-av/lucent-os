@@ -11,6 +11,7 @@ user doesn't have yet, so their own choices always win.
   groups hidden; and the operating system's own volumes hidden from
   "Devices" (the read-only composefs root and /usr, and the partition that
   holds the OS), so Devices shows the user's disks: "Local Disk (C:)", USB.
+- Flatpak Qt apps get the Lucent Kvantum theme (kvantum-flatpak-sync).
 - A picture for the account if it has none: the user's initial on the
   launcher's peach-pink gradient, set through AccountsService so the login
   and lock screens, the launcher and Settings all show it.
@@ -152,6 +153,8 @@ def main() -> int:
     marker = DATA / "lucent/account-picture.png"
     if not marker.exists():
         account_picture()
+    # Flatpak Qt apps: Lucent's Kvantum theme in their config dirs.
+    subprocess.run(["/usr/libexec/lucent/kvantum-flatpak-sync"], timeout=60)
     return 0
 
 

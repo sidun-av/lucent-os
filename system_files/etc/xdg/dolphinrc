@@ -2,10 +2,13 @@
 # Dolphin treats Version < 200 as a first run and hides the menu bar then,
 # overriding MenuBar=Enabled below. 202 = Dolphin 26's config version.
 Version=202
-# Explorer habits: no surprise restore of old tabs. The status bar stays
-# Dolphin's small label: the full-width bar always shows free space, and on
-# an image-based system Dolphin measures the read-only root ("0 B free").
+# Explorer habits: no surprise restore of old tabs.
 RememberOpenedTabs=false
+# A plain full-width status bar under the files (docs/mockups/01-desktop)
+# instead of the boxed label. Its free-space part would describe the
+# read-only system image (Solid maps every local path to "/"), so the Lucent
+# widget style hides it when that happens (build_files/lucent-style).
+ShowStatusBar=FullWidth
 ShowFullPath=false
 BrowseThroughArchives=true
 
@@ -13,6 +16,11 @@ BrowseThroughArchives=true
 # Windows habit and docs/mockups/01-desktop: menus inside the window.
 MenuBar=Enabled
 
+[IconsMode]
+# Large-icon grid like the mockups' folder tiles.
+IconSize=64
+
 [PlacesPanel]
-# 26 px icons: rows close to the mockup sidebar's 38 px rhythm.
-IconSize=26
+# 22 px icons: with the Lucent style's item padding the rows come out at
+# the mockup sidebar's ~38 px rhythm.
+IconSize=22

@@ -1,0 +1,5 @@
+# Lucent: Kvantum theme for Qt apps (widgetStyle=lucent / lucent-dark loads
+# Lucent or its dark variant LucentDark). A user's own
+# ~/.config/Kvantum/kvantum.kvconfig wins.
+[General]
+theme=Lucent

@@ -1,0 +1,10 @@
+[Unit]
+Description=Lucent: keep Flatpak Qt apps on the desktop's light/dark Kvantum theme
+
+[Path]
+# Plasma writes kdeglobals when the look (light/dark) changes.
+PathChanged=%h/.config/kdeglobals
+Unit=lucent-kvantum-sync.service
+
+[Install]
+WantedBy=default.target

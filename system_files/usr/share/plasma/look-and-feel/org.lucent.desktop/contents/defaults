@@ -8,7 +8,7 @@ Theme=Lucent
 name=lucent
 
 [kdeglobals][KDE]
-widgetStyle=Breeze
+widgetStyle=lucent
 
 [kcminputrc][Mouse]
 cursorTheme=breeze_cursors

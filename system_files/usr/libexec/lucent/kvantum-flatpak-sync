@@ -1,0 +1,83 @@
+#!/usr/bin/python3 -P
+"""Lucent widget style for Flatpak Qt apps.
+
+Native apps get the Lucent Kvantum theme from /usr/share/Kvantum. A Flatpak
+app can't see /usr or /etc of the host and reads Kvantum's configuration
+from its own config dir (~/.var/app/<id>/config). For every installed app
+on a KDE runtime this keeps there:
+
+  Kvantum/kvantum.kvconfig      theme=Lucent or LucentDark (follows the
+                                desktop's light/dark look)
+  Kvantum/Lucent/               copy of /usr/share/Kvantum/Lucent
+
+The Kvantum plugin itself comes from Flathub's org.kde.KStyle.Kvantum
+extension, installed with QT_STYLE_OVERRIDE=kvantum per app by
+/usr/libexec/lucent/flatpak-setup. Runs at login (design-defaults) and when
+kdeglobals changes (lucent-kvantum-sync.path). A kvantum.kvconfig the user
+wrote (without Lucent's marker line) is left alone.
+"""
+import filecmp
+import shutil
+import subprocess
+from pathlib import Path
+
+THEME_SRC = Path("/usr/share/Kvantum/Lucent")
+MARK = "# Managed by Lucent (/usr/libexec/lucent/kvantum-flatpak-sync)"
+HOME = Path.home()
+
+
+def desktop_is_dark() -> bool:
+    try:
+        style = subprocess.run(["kreadconfig6", "--file", "kdeglobals", "--group", "KDE", "--key", "widgetStyle"],
+                               capture_output=True, text=True).stdout.strip().lower()
+        scheme = subprocess.run(["kreadconfig6", "--file", "kdeglobals", "--group", "General", "--key", "ColorScheme"],
+                                capture_output=True, text=True).stdout.strip().lower()
+    except OSError:
+        return False
+    return style.endswith("-dark") or "dark" in scheme
+
+
+def kde_apps() -> list[str]:
+    try:
+        out = subprocess.run(["flatpak", "list", "--app", "--columns=application,runtime"],
+                             capture_output=True, text=True, timeout=30).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    apps = []
+    for line in out.splitlines():
+        parts = line.split("\t")
+        if len(parts) == 2 and parts[1].startswith("org.kde.Platform/"):
+            apps.append(parts[0])
+    return sorted(set(apps))
+
+
+def sync_theme(dest: Path) -> None:
+    dest.mkdir(parents=True, exist_ok=True)
+    for src in THEME_SRC.iterdir():
+        out = dest / src.name
+        if not out.exists() or not filecmp.cmp(src, out, shallow=False):
+            shutil.copyfile(src, out)
+
+
+def main() -> int:
+    if not THEME_SRC.is_dir():
+        return 0
+    theme = "LucentDark" if desktop_is_dark() else "Lucent"
+    wanted = f"{MARK}\n[General]\ntheme={theme}\n"
+    for app in kde_apps():
+        kv = HOME / ".var/app" / app / "config/Kvantum"
+        conf = kv / "kvantum.kvconfig"
+        if conf.exists() and not conf.read_text(errors="replace").startswith(MARK):
+            continue  # the user's own choice
+        sync_theme(kv / "Lucent")
+        if not conf.exists() or conf.read_text(errors="replace") != wanted:
+            conf.write_text(wanted)
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except Exception as exc:  # never break a login over a cosmetic default
+        print(f"lucent kvantum-flatpak-sync: {exc}")
+        raise SystemExit(0)

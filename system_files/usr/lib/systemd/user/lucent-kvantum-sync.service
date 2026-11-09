@@ -1,0 +1,7 @@
+[Unit]
+Description=Lucent: sync the Kvantum theme into Flatpak apps
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/lucent/kvantum-flatpak-sync
+Nice=10

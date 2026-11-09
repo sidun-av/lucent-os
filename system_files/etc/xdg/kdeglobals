@@ -23,7 +23,9 @@ LookAndFeelPackage=org.lucent.desktop
 # Quick Settings' light/dark/automatic theme picker offers Lucent, not Breeze.
 DefaultLightLookAndFeel=org.lucent.desktop
 DefaultDarkLookAndFeel=org.lucent.desktop.dark
-widgetStyle=Breeze
+# Widget style: Lucent (Kvantum theme "Lucent" + Lucent's style plugin,
+# THIRD_PARTY.md); the dark look switches to lucent-dark.
+widgetStyle=lucent
 # Windows habit: one click selects, double click opens (as in Explorer).
 SingleClick=false
 # Perceived speed: 0.7x animation length makes every open/close/minimise feel
