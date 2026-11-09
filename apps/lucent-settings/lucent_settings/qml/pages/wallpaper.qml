@@ -7,6 +7,9 @@ import Lucent
 Page {
     id: page
     readonly property var st: AppearancePage.s
+    // four tiles per row inside a card
+    readonly property real tileWidth: (Math.min(Theme.paneMaxWidth, width - Theme.panePadLeft - Theme.panePadRight)
+                                       - 2 * Theme.cardPadH - 3 * 16) / 4
     title: System.tr("Wallpaper")
     lead: System.tr("Lucent's wallpapers switch to their night version in dark mode. Your own pictures stay the same.")
     Component.onCompleted: AppearancePage.refresh()
@@ -21,11 +24,10 @@ Page {
             columns: 4
             columnSpacing: 16
             rowSpacing: 18
-            uniformCellWidths: true
             Repeater {
                 model: (page.st.wallTiles || []).filter(t => ["Drift", "Tide", "Aurora", "Lucent"].indexOf(t.name) >= 0)
                 WallTile { required property var modelData; tile: modelData; current: page.st.wallpaper || ""
-                           Layout.fillWidth: false; Layout.preferredWidth: (parent.width - 48) / 4
+                           Layout.fillWidth: false; Layout.preferredWidth: page.tileWidth
                            onPicked: (p) => AppearancePage.setWallpaper(p) }
             }
         }
@@ -39,14 +41,13 @@ Page {
             columns: 4
             columnSpacing: 16
             rowSpacing: 18
-            uniformCellWidths: true
             Repeater {
                 model: (page.st.wallTiles || []).filter(t => t.variant === "picture")
                 WallTile { required property var modelData; tile: modelData; current: page.st.wallpaper || ""
-                           Layout.fillWidth: false; Layout.preferredWidth: (parent.width - 48) / 4
+                           Layout.fillWidth: false; Layout.preferredWidth: page.tileWidth
                            onPicked: (p) => AppearancePage.setWallpaper(p) }
             }
-            AddPictureTile { onClicked: pick.open(); Layout.fillWidth: false; Layout.preferredWidth: (parent.width - 48) / 4 }
+            AddPictureTile { onClicked: pick.open(); Layout.fillWidth: false; Layout.preferredWidth: page.tileWidth }
         }
     }
     Card {
@@ -58,11 +59,10 @@ Page {
             columns: 4
             columnSpacing: 16
             rowSpacing: 18
-            uniformCellWidths: true
             Repeater {
                 model: (page.st.wallTiles || []).filter(t => t.variant === "" && ["Drift", "Tide", "Aurora", "Lucent"].indexOf(t.name) < 0)
                 WallTile { required property var modelData; tile: modelData; current: page.st.wallpaper || ""
-                           Layout.fillWidth: false; Layout.preferredWidth: (parent.width - 48) / 4
+                           Layout.fillWidth: false; Layout.preferredWidth: page.tileWidth
                            onPicked: (p) => AppearancePage.setWallpaper(p) }
             }
         }
