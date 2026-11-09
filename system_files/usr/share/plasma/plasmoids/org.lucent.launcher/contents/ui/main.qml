@@ -35,9 +35,9 @@ PlasmoidItem {
         id: button
         MouseArea {
             id: area
-            Layout.minimumWidth: 52
-            Layout.preferredWidth: 52
-            Layout.maximumWidth: 52
+            Layout.minimumWidth: 56
+            Layout.preferredWidth: 56
+            Layout.maximumWidth: 56
             Layout.fillHeight: true
             hoverEnabled: true
             activeFocusOnTab: true
@@ -47,49 +47,23 @@ PlasmoidItem {
             Keys.onSpacePressed: dash.toggle()
             onClicked: dash.toggle()
 
-            // .tb-start: 48 px, radius 12; hover = --state-hover, open = a raised pillow
+            // .dk (glass.css): a 56 px tile, radius 14; hover = --state-hover,
+            // open = --accent-soft. Flat tints only, nothing is raised.
             Rectangle {
                 anchors.centerIn: parent
-                width: 48
-                height: 48
-                radius: 12
-                color: kicker.dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.07) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.065)
-                opacity: area.containsMouse && !dash.visible && !area.pressed ? 1 : 0
-            }
-            Item {
-                anchors.centerIn: parent
-                width: 48
-                height: 48
-                opacity: area.pressed || dash.visible ? 1 : 0
+                width: 56
+                height: 56
+                radius: 14
+                color: dash.visible || area.pressed
+                       ? (kicker.dark ? Qt.rgba(112 / 255, 136 / 255, 1, 0.17) : Qt.rgba(66 / 255, 87 / 255, 232 / 255, 0.11))
+                       : (kicker.dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.07) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.06))
+                opacity: area.containsMouse || area.pressed || dash.visible ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
-                Rectangle {     // --shadow-raised drop
-                    anchors.fill: parent
-                    anchors.topMargin: 1
-                    anchors.bottomMargin: -1
-                    radius: 12
-                    color: kicker.dark ? Qt.rgba(0, 0, 0, 0.3) : Qt.rgba(25 / 255, 35 / 255, 90 / 255, 0.10)
-                }
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 12
-                    border.width: 1
-                    border.color: kicker.dark ? Qt.rgba(0, 0, 0, 0.35) : Qt.rgba(30 / 255, 40 / 255, 100 / 255, 0.08)
-                    gradient: Gradient {
-                        GradientStop { position: 0; color: kicker.dark ? "#33364d" : "#fdfdff" }
-                        GradientStop { position: 1; color: kicker.dark ? "#2c2f44" : "#f3f4fb" }
-                    }
-                }
-                Rectangle {     // --highlight-top
-                    x: 6; y: 1
-                    width: parent.width - 12
-                    height: 1
-                    color: kicker.dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.08) : Qt.rgba(1, 1, 1, 0.9)
-                }
             }
             Kirigami.Icon {
                 anchors.centerIn: parent
-                width: 30
-                height: 30
+                width: 38
+                height: 38
                 roundToIconSize: false
                 source: Plasmoid.icon
             }

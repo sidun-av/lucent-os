@@ -5,7 +5,7 @@
                 "Name": "Lucent OS contributors"
             }
         ],
-        "Description": "Lucent (Pebble Drift): edge-attached matte taskbar and popovers",
+        "Description": "Lucent (Glass Card): floating glass dock and popovers",
         "Id": "lucent",
         "License": "Apache-2.0",
         "Name": "Lucent",

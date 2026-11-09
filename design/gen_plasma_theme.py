@@ -5,14 +5,15 @@ Pebble Drift tokens (pebble-drift.css, design/tokens.py).
 Only the parts that define the look are generated; everything else falls
 back to Plasma's default (Breeze) theme, coloured by the Lucent scheme:
 
-  widgets/panel-background   the taskbar: an edge-attached matte slab
-                             (--surface-taskbar, 1 px top line, top light,
-                             --shadow-taskbar), square, full width, 68 px
+  widgets/panel-background   the dock (glass.css): a floating, centred card,
+                             --glass-dock (translucent/, blurred) or its
+                             opaque twin (base, solid/, opaque/), radius 24,
+                             top light, --elev-3, 72 px
   dialogs/background         popups, OSD, notifications, calendar, tray:
                              --surface-popover, radius 16, --shadow-popover
   widgets/tooltip            hover previews: the same popover
-  widgets/tasks              task buttons: hover = raised pillow, active =
-                             pillow + 16 x 3 accent bar, running = 5 px dot
+  widgets/tasks              dock cells: hover = flat --state-hover tile,
+                             focused = 14 x 5 accent dash, running = 5 px dot
   widgets/viewitem           list highlights in popups: radius 10
   widgets/tabbar             tab underline; no "popup open" line on the taskbar
   widgets/lineedit           text fields: a sunken well, accent ring on focus
@@ -37,26 +38,27 @@ from framekit import (SCALE, Cursor, SvgDoc, crop, hints, nine_slice, over,
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "system_files/usr/share/plasma/desktoptheme"
 
-# Taskbar geometry (pebble-drift.css .taskbar): 68 px tall, attached to the
-# bottom edge, 14 px side padding. Applets get 6 px theme margin + Plasma's
-# 4 px spacing top and bottom: 48 px, the start button's size; the 44 px
-# search well sits centred in it. The task manager fills the full 68 px
-# (CanFillArea): each cell is 68 x 68 with the mockup's 52 px tile (radius
-# 12) centred; icons are 48 px (Lucent's app icons keep their tile on an
-# 80 % grid, so the tile shows at ~38 px, the mockup's .tb-app svg).
-PANEL_H = 68
-PANEL_PAD = (14, 10, 14, 10)
-FLOAT_GAP = (8, 8, 8, 8)
-TASK_W = TASK_H = 68
-TASK_TILE = (8, 8, 52, 52)
-TASK_R = 12
-TASK_ICON_PAD = (10, 10, 10, 10)
-BAR_W, BAR_H, BAR_BOTTOM = 16, 3, 3        # .tb-app.active::after
-DOT, DOT_BOTTOM = 5, 2                     # .tb-app.run::after
+# Dock geometry (glass.css .dock, .dk): a floating, centred, fit-width card,
+# 72 px tall, radius 24 (--r-xl), --glass-dock + KWin blur, --elev-3. The task
+# manager fills the full 72 px (CanFillArea): each cell is 72 x 72 with the
+# 56 px .dk tile (radius 14) centred; hover = --state-hover, the focused app
+# = a 14 x 5 accent dash under the icon, running = a 5 px dot.
+PANEL_H = 72
+DOCK_R = 24
+PANEL_PAD = (10, 8, 10, 8)
+FLOAT_GAP = (12, 12, 12, 12)
+TASK_W = TASK_H = 72
+TASK_TILE = (8, 8, 56, 56)
+TASK_R = 14
+TASK_ICON_PAD = (14, 14, 14, 14)
+BAR_W, BAR_H, BAR_BOTTOM = 14, 5, 1        # .dk.active .run i
+DOT, DOT_BOTTOM = 5, 1                     # .dk .run i
 POPUP_R = 16
 
 
-def theme(t: dict, dark: bool) -> dict:
+def theme(t: dict, dark: bool, gl: dict | None = None) -> dict:
+    gl = gl or tokens.load(tokens.GLASS).mode(dark)
+    e3 = tokens.shadows(gl["elev-3"])
     sp = tokens.shadows(t["shadow-popover"])
     sr = tokens.shadows(t["shadow-raised"])
     st = tokens.shadows(t["shadow-taskbar"])
@@ -75,6 +77,11 @@ def theme(t: dict, dark: bool) -> dict:
         well_shadow=tokens.shadows(t["shadow-sunken"])[0][4], well_ring=tokens.shadows(t["shadow-sunken"])[1][4],
         dot=t["text-tertiary"], attention=t["status-warning"], accent=t["accent"],
         soft_a=0.12 if not dark else 0.18, soft_strong_a=0.20 if not dark else 0.28,
+        # Glass Card dock
+        dock=gl["glass-dock"], dock_solid=gl["glass-dock-solid"], dock_ring=tokens.rgba_str(e3[0][4]),
+        dock_shadow=[as_shadow(s) for s in e3[1:]],
+        glass_hl=tokens.rgba_str(tokens.shadows(gl["glass-highlight"])[0][4]),
+        dk_hover=gl["state-hover"], dk_dot=gl["text-tertiary"],
     )
 
 
@@ -164,28 +171,26 @@ def write(path, doc):
 
 
 def panel_background(t, solid):
-    """Edge-attached slab: square corners, 1 px hairline on top (the
-    0 -1px 0 line of --shadow-taskbar, drawn inside), then the top light.
-    Plasma turns off the borders that touch the screen edges, so on the
-    bottom edge only the top row and the fill are drawn."""
+    """The dock (glass.css .dock): a rounded card, --glass-dock (blurred by
+    KWin through the mask) or its opaque twin, a hairline ring, the 1 px top
+    light of --glass-highlight and the --elev-3 drop. When the panel stops
+    floating (a maximised window), Plasma turns off the bottom border and the
+    adaptive opacity switches to solid/."""
     doc, cur = SvgDoc(0, 0), Cursor()
-    fill = t["bar_solid"] if solid else tokens.rgba_str(t["bar"])
-    s = 24
-
-    def lines(img):
-        img = over(img, rgba(t["bar_line"]), np.pad(np.ones((1 * SCALE, s * SCALE)), ((0, (s - 1) * SCALE), (0, 0))))
-        return over(img, rgba(t["highlight"]), np.pad(np.ones((1 * SCALE, s * SCALE)), ((1 * SCALE, (s - 2) * SCALE), (0, 0))))
-    img = render_box(s, s, (0, 0, s, s), 0, fill=fill, extra=lines)
-    nine_slice(doc, cur, "", img, 2, 2, 2, 2)
-    for pre in ("floating", "thick"):
-        nine_slice(doc, cur, pre, img, 2, 2, 2, 2)
+    r = DOCK_R
+    s = 2 * r + 8
+    fill = t["dock_solid"] if solid else tokens.rgba_str(t["dock"])
+    img = render_box(s, s, (0, 0, s, s), r, fill=fill, border=t["dock_ring"],
+                     extra=top_light(s, s, (0, 0, s, s), r, t["glass_hl"]))
+    mask = render_box(s, s, (0, 0, s, s), r, fill="#000000")
+    for pre in ("", "floating", "thick"):
+        nine_slice(doc, cur, pre, img, r, r, r, r, mask=mask)
     hints(doc, cur, "", PANEL_PAD)
     # Panel.qml: applet padding = thick margins + smallSpacing (4 px).
     hints(doc, cur, "thick", PANEL_PAD)
-    # Panel.qml: the floating gap (only if the user turns floating on).
+    # Panel.qml: the gap between the floating dock and the screen edge.
     hints(doc, cur, "floating", FLOAT_GAP)
-    # Upward soft shadow (0 -10px 30px -10px): KWin draws it from shadow-*.
-    shadow_tiles(doc, cur, 0, t["bar_shadow"], None)
+    shadow_tiles(doc, cur, r, t["dock_shadow"], t["dock_ring"])
     doc.w, doc.h = cur.max_w, cur.height + 4
     return doc
 
@@ -203,26 +208,9 @@ def dialog_background(t, solid, r=POPUP_R, margins=(10, 10, 10, 10)):
     return doc
 
 
-def pillow_tile(t, hover=False):
-    """The raised pillow (.tb-app.hover/.active): --surface-raised gradient,
-    --shadow-raised ring and drops, top light."""
-    x, y, w, h = TASK_TILE
-    top, bottom = (tokens.flatten(t["hover"], t["raised"]), tokens.flatten(t["hover"], t["raised2"])) if hover \
-        else (t["raised"], t["raised2"])
-
-    def grad(img):
-        H = img.shape[0] // SCALE
-        ys = (np.arange(H * SCALE) + 0.5) / SCALE
-        k = np.clip((ys - y) / h, 0, 1)[:, None]
-        c0, c1 = np.array(rgba(top)[:3]), np.array(rgba(bottom)[:3])
-        col = c0 * (1 - k[..., None]) + c1 * k[..., None]
-        d = sdf_roundrect(TASK_W, TASK_H, x, y, w, h, TASK_R, SCALE)
-        a = np.clip(0.5 - d * SCALE, 0, 1)[..., None]
-        src = np.concatenate([col * a, a], axis=-1)
-        return src + img * (1 - a)
-    img = render_box(TASK_W, TASK_H, TASK_TILE, TASK_R, ring=t["raised_ring"], shadows=t["raised_drop"])
-    img = grad(img)
-    return top_light(TASK_W, TASK_H, TASK_TILE, TASK_R, t["highlight"])(img)
+def hover_tile(t, color=None):
+    """.dk.hover: a flat --state-hover tile, no shadow (nothing is raised)."""
+    return render_box(TASK_W, TASK_H, TASK_TILE, TASK_R, fill=tokens.rgba_str(color or t["dk_hover"]))
 
 
 def dot_img(img, color):
@@ -237,26 +225,25 @@ def bar_svg(color=None):
     bx, by = x + (w - BAR_W) / 2, y + h - BAR_BOTTOM - BAR_H
     if color:
         r, g, b, _ = tokens.color(color)
-        return (f'<rect x="{bx:g}" y="{by:g}" width="{BAR_W}" height="{BAR_H}" rx="1.5" '
+        return (f'<rect x="{bx:g}" y="{by:g}" width="{BAR_W}" height="{BAR_H}" rx="2.5" '
                 f'style="fill:{tokens.hexcolor((r, g, b))};stroke:none"/>')
-    return hl_rect(bx, by, BAR_W, BAR_H, 1.5)
+    return hl_rect(bx, by, BAR_W, BAR_H, 2.5)
 
 
 def tasks(t):
     doc, cur = SvgDoc(0, 0), Cursor()
     empty = np.zeros((TASK_H * SCALE, TASK_W * SCALE, 4), np.float32)
-    hover = pillow_tile(t, hover=True)
-    pill = pillow_tile(t)
+    hover = hover_tile(t)
     x, y, w, h = TASK_TILE
     states = {   # name: (raster, vector overlay on the bottom-middle piece)
-        "normal": (dot_img(empty, t["dot"]), ""),
-        "normal-hover": (dot_img(hover, t["dot"]), ""),
-        "minimized": (dot_img(empty, t["dot"]), ""),
-        "minimized-hover": (dot_img(hover, t["dot"]), ""),
-        "focus": (pill, bar_svg()),
-        "focus-hover": (pill, bar_svg()),
-        "attention": (pill, bar_svg(t["attention"])),
-        "attention-hover": (pill, bar_svg(t["attention"])),
+        "normal": (dot_img(empty, t["dk_dot"]), ""),
+        "normal-hover": (dot_img(hover, t["dk_dot"]), ""),
+        "minimized": (dot_img(empty, t["dk_dot"]), ""),
+        "minimized-hover": (dot_img(hover, t["dk_dot"]), ""),
+        "focus": (empty, bar_svg()),
+        "focus-hover": (hover, bar_svg()),
+        "attention": (empty, bar_svg(t["attention"])),
+        "attention-hover": (hover, bar_svg(t["attention"])),
         "launcher-hover": (hover, ""),
         "hover": (hover, ""),
         # progress (drawn behind the icon, clipped to the progress): an accent-soft tile
@@ -400,11 +387,13 @@ def main():
         base = OUT / tid
         if base.exists():
             shutil.rmtree(base)
-        for sub in ("", "translucent/"):
+        # translucent/ is what Plasma picks when KWin can blur; without blur
+        # (QPainter / software rendering) the base files apply: the opaque twin.
+        for sub in ("translucent/",):
             write(base / f"{sub}widgets/panel-background.svgz", panel_background(t, False))
             write(base / f"{sub}dialogs/background.svgz", dialog_background(t, False))
             write(base / f"{sub}widgets/tooltip.svgz", dialog_background(t, False, margins=(12, 12, 12, 12)))
-        for sub in ("solid/", "opaque/"):
+        for sub in ("", "solid/", "opaque/"):
             write(base / f"{sub}widgets/panel-background.svgz", panel_background(t, True))
             write(base / f"{sub}dialogs/background.svgz", dialog_background(t, True))
             write(base / f"{sub}widgets/tooltip.svgz", dialog_background(t, True, margins=(12, 12, 12, 12)))
@@ -416,7 +405,7 @@ def main():
         meta = {
             "KPlugin": {
                 "Authors": [{"Name": "Lucent OS contributors"}],
-                "Description": "Lucent (Pebble Drift): edge-attached matte taskbar and popovers",
+                "Description": "Lucent (Glass Card): floating glass dock and popovers",
                 "Id": tid, "License": "Apache-2.0", "Name": t["name"],
                 "Version": "2.0", "Website": "https://github.com/sidun-av/lucent-os",
             },

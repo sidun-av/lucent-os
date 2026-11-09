@@ -1,0 +1,17 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [{ "Name": "Lucent OS contributors" }],
+        "Category": "Windows and Tasks",
+        "Description": "A thin line between the dock's apps and the tray",
+        "Description[ru]": "Тонкая линия между приложениями и треем на панели",
+        "Icon": "distribute-horizontal-x",
+        "Id": "org.lucent.separator",
+        "License": "Apache-2.0",
+        "Name": "Dock separator",
+        "Name[ru]": "Разделитель панели",
+        "Version": "1.0",
+        "Website": "https://github.com/sidun-av/lucent-os"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

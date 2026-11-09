@@ -3,13 +3,13 @@
     "KPlugin": {
         "Authors": [{ "Name": "Lucent OS contributors" }],
         "Category": "Application Launchers",
-        "Description": "Taskbar search field: opens the launcher with search focused",
-        "Description[ru]": "Поле поиска на панели задач: открывает меню с поиском",
+        "Description": "Dock search button: opens search (KRunner)",
+        "Description[ru]": "Кнопка поиска на панели: открывает поиск (KRunner)",
         "Icon": "search",
         "Id": "org.lucent.search",
         "License": "Apache-2.0",
-        "Name": "Search field",
-        "Name[ru]": "Поле поиска",
+        "Name": "Search button",
+        "Name[ru]": "Кнопка поиска",
         "Version": "1.0",
         "Website": "https://github.com/sidun-av/lucent-os"
     },

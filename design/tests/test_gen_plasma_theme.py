@@ -47,11 +47,25 @@ def test_pieces_are_sized_by_their_image():
             assert (round(b.x(), 2), round(b.y(), 2), round(b.width(), 2), round(b.height(), 2)) == (x, y, w, h), eid
 
 
-def test_taskbar_is_a_flush_slab():
+def test_dock_is_a_floating_glass_card():
     t = g.theme(tokens.load().light, False)
-    text = svg_text(g.panel_background(t, False))
-    assert 'id="hint-top-margin"' in text
-    assert g.PANEL_H == 68 and g.TASK_H == g.PANEL_H
+    glass = svg_text(g.panel_background(t, False))
+    solid = svg_text(g.panel_background(t, True))
+    for text in (glass, solid):
+        # rounded and masked (KWin clips the blur to it), a floating gap, a drop shadow
+        assert 'id="mask-center"' in text and 'id="floating-hint-bottom-margin"' in text
+        assert 'id="shadow-top"' in text
+    assert g.PANEL_H == 72 and g.TASK_H == g.PANEL_H and g.DOCK_R == 24
+    assert tokens.color(t["dock"])[3] < 1 and tokens.color(t["dock_solid"])[3] == 1
+
+
+def test_without_blur_the_dock_is_opaque():
+    """Plasma uses translucent/ only when KWin can blur; on software rendering
+    (QPainter) the base files apply, so they must be the opaque twin."""
+    for tid in ("lucent", "lucent-dark"):
+        base, solid, glass = (gzip.open(THEMES / tid / f"{sub}widgets/panel-background.svgz").read()
+                              for sub in ("", "solid/", "translucent/"))
+        assert base == solid and base != glass
 
 
 def test_committed_theme_metadata():

@@ -1,16 +1,19 @@
 // Lucent OS default layout, applied by plasmashell on a user's first login.
 // Uses only the stock Plasma 6 desktop scripting API.
 //
-// One taskbar attached to the bottom edge (Pebble Drift,
-// docs/mockups/concepts-2026/pebble-drift/01-desktop, .taskbar): 68 px tall,
-// full width, a matte slab (--surface-taskbar) with a hairline on top. The
-// slab, its shadow and the task buttons come from the Lucent Plasma theme.
+// One dock-taskbar (Glass Card, docs/mockups/concepts-2026/glass/01-desktop,
+// .dock): floating, centred, as wide as its content, 72 px tall, a glass card
+// (--glass-dock + KWin blur) that turns opaque when a window is maximised
+// (Plasma's adaptive opacity picks the theme's solid/ twin). The card, its
+// shadow, the running dots and the hover tiles come from the Lucent Plasma
+// theme.
 //
-//   [start] [ Search      ]  ....  [pinned + running apps]  ....  [tray] [time/date]
+//   [start] [search] [pinned + running apps] | [tray] [time/date]
 //
 // The task manager is icons-only and behaves like the Windows taskbar
 // (running windows grouped per app, hover thumbnails, click = minimise or
-// restore). There is deliberately no global menu: Flatpak/GTK/Electron apps
+// restore); every window stays reachable through those previews and Alt+Tab.
+// There is deliberately no global menu: Flatpak/GTK/Electron apps
 // (ONLYOFFICE, GIMP, Firefox...) mostly don't export one, and Windows users
 // expect menus inside the window.
 
@@ -25,9 +28,10 @@ for (var i = 0; i < desktopsArray.length; i++) {
 
 var bar = new Panel;
 bar.location = "bottom";
-bar.height = 68;
-bar.lengthMode = "fill";
-bar.floating = false;
+bar.height = 72;
+bar.lengthMode = "fit";
+bar.alignment = "center";
+bar.floating = true;
 bar.hiding = "none";
 
 var launcher = bar.addWidget("org.lucent.launcher");
@@ -35,7 +39,6 @@ launcher.currentConfigGroup = ["Shortcuts"];
 launcher.writeConfig("global", "Alt+F1");
 
 bar.addWidget("org.lucent.search");
-bar.addWidget("org.kde.plasma.panelspacer");
 
 var tasks = bar.addWidget("org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
@@ -57,7 +60,7 @@ tasks.writeConfig("indicateAudioStreams", true);
 tasks.writeConfig("iconSpacing", 1);
 tasks.writeConfig("maxStripes", 1);
 
-bar.addWidget("org.kde.plasma.panelspacer");
+bar.addWidget("org.lucent.separator");
 var tray = bar.addWidget("org.kde.plasma.systemtray");
 tray.currentConfigGroup = ["General"];
 // The mockup tray is keyboard layout, network, volume, battery. Display

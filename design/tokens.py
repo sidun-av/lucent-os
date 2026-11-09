@@ -18,6 +18,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CSS = ROOT / "docs/mockups/concepts-2026/pebble-drift/pebble-drift.css"
+# Glass Card (the November direction): the dock, cards and fields read these.
+GLASS = ROOT / "docs/mockups/concepts-2026/glass/glass.css"
 
 _COMMENT = re.compile(r"/\*.*?\*/", re.S)
 _DECL = re.compile(r"--([\w-]+)\s*:\s*((?:[^;\"']|\"[^\"]*\"|'[^']*')+?)\s*;")
