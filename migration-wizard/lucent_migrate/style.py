@@ -14,7 +14,8 @@ from pathlib import Path
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QIcon, QPalette
 from PySide6.QtWidgets import (
-    QApplication, QFrame, QHBoxLayout, QLabel, QVBoxLayout, QWidget, QWizard,
+    QApplication, QFrame, QHBoxLayout, QHeaderView, QLabel, QTreeWidget, QVBoxLayout, QWidget,
+    QWizard,
 )
 
 from .i18n import N_, _
@@ -71,9 +72,10 @@ QCheckBox::indicator, QListView::indicator, QTreeView::indicator {{ width: 20px;
     border-radius: 6px; border: 1.5px solid {line_strong}; background: {bg}; }}
 QCheckBox::indicator:checked, QListView::indicator:checked, QTreeView::indicator:checked {{
     background: {accent}; border-color: {accent}; image: url({check}); }}
-QRadioButton::indicator {{ width: 20px; height: 20px; border-radius: 11px;
-    border: 1.5px solid {line_strong}; background: {bg}; }}
-QRadioButton::indicator:checked {{ border: 6px solid {accent}; background: white; }}
+QRadioButton::indicator {{ width: 18px; height: 18px; border-radius: 10px;
+    border: 1px solid {line_strong}; background: {bg}; }}
+QRadioButton::indicator:checked {{ width: 8px; height: 8px; border: 6px solid {accent}; background: white; }}
+QWizardRuler, QFrame[frameShape="4"] {{ border: none; background: {line}; min-height: 1px; max-height: 1px; }}
 
 QPushButton {{ min-height: 40px; padding: 0 18px; border-radius: 10px; font-size: 15px;
     font-weight: 600; color: {text}; background: {field}; border: 1px solid {line}; }}
@@ -176,6 +178,14 @@ def _heading(page) -> None:
     page.layout().insertWidget(0, label)
     page.layout().setContentsMargins(44, 36, 44, 12)
     page.layout().setSpacing(14)
+    for tree in page.findChildren(QTreeWidget):
+        # Sizes arrive after the first layout: let the name column take the
+        # rest of the width instead of truncating "1.2 GB" to "1...".
+        header = tree.header()
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        for col in range(1, tree.columnCount()):
+            header.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
 
 
 def apply(wizard: QWizard) -> StepSidebar:
