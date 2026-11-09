@@ -32,11 +32,11 @@ HERE = Path(__file__).parent
 STEPS = [N_("Welcome"), N_("Windows account"), N_("Folders"), N_("Browsers and Wi-Fi"),
          N_("Copying"), N_("Done")]
 
-# Figtree (--font-sans) ships with Lucent Settings (SIL OFL 1.1); the wizard
-# uses that copy when it is there and falls back to the system's Inter.
+# Figtree (--font-sans, SIL OFL 1.1) is installed system-wide; a checkout has
+# it under system_files/. Without it the wizard falls back to Inter.
 FONT_DIRS = [
-    HERE.parent / "lucent_settings" / "fonts",                                  # /usr/lib/lucent
-    HERE.parents[1] / "apps" / "lucent-settings" / "lucent_settings" / "fonts",          # checkout
+    Path("/usr/share/fonts/figtree"),                                           # the image
+    HERE.parents[1] / "system_files" / "usr" / "share" / "fonts" / "figtree",   # checkout
 ]
 BASE_POINTS = 11.0   # Lucent's UI font size (kdeglobals); the tokens' px are for it
 
@@ -205,7 +205,9 @@ def stylesheet(dark: bool, scale: float = 1.0) -> str:
 
 
 def load_fonts() -> list[str]:
-    """Families from the bundled Figtree files that could be registered."""
+    """Figtree's family: the system's, or registered from FONT_DIRS."""
+    if "Figtree" in QFontDatabase.families():
+        return ["Figtree"]
     families: list[str] = []
     for folder in FONT_DIRS:
         for ttf in sorted(folder.glob("*.ttf")):
@@ -217,10 +219,17 @@ def load_fonts() -> list[str]:
 
 
 def ui_font(base: QFont) -> QFont:
-    """The system font, in --font-sans' families (Figtree, then Inter)."""
+    """The system font, in --font-sans' families (Figtree, then Inter). When the
+    session's own UI font is one of them it goes first: a Russian session
+    runs on Inter (Figtree has no Cyrillic, lucent-theme font), and mixing
+    the two would draw Latin and Cyrillic letters in different fonts."""
     font = QFont(base)
     wanted = [f.strip().strip('"') for f in tokens.load(False)["font-sans"].split(",")]
-    font.setFamilies([f for f in wanted if f not in ("system-ui", "sans-serif")] + base.families())
+    wanted = [f for f in wanted if f not in ("system-ui", "sans-serif")]
+    if base.family() in wanted:
+        wanted.remove(base.family())
+        wanted.insert(0, base.family())
+    font.setFamilies(wanted + [f for f in base.families() if f not in wanted])
     return font
 
 

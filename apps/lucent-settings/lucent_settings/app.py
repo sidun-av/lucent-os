@@ -28,9 +28,10 @@ from .run import Runner
 from .sections import sections
 
 QML_DIR = Path(__file__).parent / "qml"
-# Figtree (SIL OFL 1.1, fonts/OFL.txt): the 2026 design's typeface, bundled
-# so the system's own fonts stay as they are.
-FONTS = sorted((Path(__file__).parent / "fonts").glob("*.ttf"))
+# Figtree (SIL OFL 1.1): the 2026 design's typeface, installed system-wide
+# (/usr/share/fonts/figtree); a checkout loads it from system_files/.
+FONT_DIRS = [Path("/usr/share/fonts/figtree"),
+             Path(__file__).resolve().parents[3] / "system_files/usr/share/fonts/figtree"]
 PAGES = ["network", "bluetooth", "display", "sound", "appearance", "wallpaper", "habits", "keyboard", "winapps",
          "updates", "users", "about"]
 
@@ -141,8 +142,13 @@ class System(QObject):
 
 
 def create_engine(app: QGuiApplication, runner, start_page: str = "appearance"):
-    for font in FONTS:
-        QFontDatabase.addApplicationFont(str(font))
+    if "Figtree" not in QFontDatabase.families():
+        for folder in FONT_DIRS:
+            files = sorted(folder.glob("*.ttf"))
+            for font in files:
+                QFontDatabase.addApplicationFont(str(font))
+            if files:
+                break
     engine = QQmlApplicationEngine()
     engine.addImportPath(str(QML_DIR))
     engine.addImageProvider("sym", SymbolProvider())

@@ -85,7 +85,11 @@ def main(argv: list[str] | None = None) -> int:
 
     from .theme import METRICS
     font = app.font()
-    font.setFamilies([*METRICS["fontFamilies"], font.family()])
+    # Figtree first, or the session's own UI font when it is one of the design's
+    # families (Inter in a Russian session: lucent-theme font), so scripts never mix
+    families = [f for f in METRICS["fontFamilies"] if f != font.family()]
+    families.insert(0 if font.family() in METRICS["fontFamilies"] else len(families), font.family())
+    font.setFamilies(families)
     font.setWeight(QFont.Weight.Medium)       # --type-body-weight: 500
     app.setFont(font)
 

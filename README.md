@@ -73,8 +73,10 @@ whatever is missing in the background, retried until online.
   18 px corners), eight accent colours (`lucent-theme`, see
   `docs/theming.md`), Lucent app and folder icons on top of Papirus
   (folders in the accent's indigo at every size, Papirus's own recoloured
-  to match), colour schemes, Inter at 11 pt, the "Drift" wallpaper (its
-  night version in dark mode; also on the lock and login screens), a boot
+  to match), colour schemes, Figtree at 11 pt as the UI font (Inter in
+  languages Figtree has no letters for, such as Russian), the "Drift"
+  wallpaper (its night version in dark mode; also on the lock and login
+  screens), a boot
   splash with the Lucent mark on Drift night and the Alt+Tab switcher.
   Generators and sources: `design/`, licenses: `THIRD_PARTY.md`.
 
@@ -205,7 +207,7 @@ python -m lucent_store --fake             # preview anywhere (no flatpak needed)
 (PySide6 + QML). The look is the 2026 "Pebble Drift" direction
 (`docs/mockups/concepts-2026/pebble-drift/04-settings.png`, `05-settings-dark.png`):
 matte surfaces with grain, raised "pillow" controls, sunken wells, soft
-shadows, Figtree (bundled, SIL OFL), an indigo accent; light and dark follow
+shadows, Figtree (the system UI font, SIL OFL), an indigo accent; light and dark follow
 the system. Every visual value is a token in
 `lucent_settings/qml/Lucent/Theme.qml`, ported 1:1 from `pebble-drift.css`.
 Sections: Network & internet, Bluetooth & devices, Display, Sound,

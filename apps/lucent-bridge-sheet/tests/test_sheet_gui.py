@@ -96,3 +96,17 @@ def test_partial_lines_and_garbage(qapp):
     assert ctl.state.phase == "preparing" and ctl.state.fraction == 0.0
     ctl.feed(b"\n")
     assert ctl.state.fraction == 0.5
+
+
+def test_figtree_comes_from_the_system_fonts_and_follows_the_session(qapp):
+    from pathlib import Path
+
+    from PySide6.QtGui import QFont
+    checkout = Path(__file__).resolve().parents[3] / "system_files/usr/share/fonts/figtree"
+    if not checkout.is_dir():
+        pytest.skip("not a repository checkout")
+    assert checkout in [d.resolve() for d in looks.FONT_DIRS]
+    assert "Figtree" in looks.load_fonts()
+    assert looks.font(15, 500, QFont("Figtree", 11)).families()[:2] == ["Figtree", "Inter"]
+    # a Russian session runs on Inter (no Cyrillic in Figtree): no mixing
+    assert looks.font(15, 500, QFont("Inter", 11)).families()[:2] == ["Inter", "Figtree"]

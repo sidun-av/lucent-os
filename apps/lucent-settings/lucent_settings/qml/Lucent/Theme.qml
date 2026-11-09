@@ -76,7 +76,9 @@ QtObject {
     readonly property color avatarTo: "#d0679c"
 
     // ---- type (px at 1x) ----
-    readonly property string font: "Figtree"
+    // Figtree; Inter when the session runs on it (a language Figtree has no
+    // letters for, e.g. Russian: lucent-theme font), so Latin and Cyrillic never mix
+    readonly property string font: Qt.application.font.family === "Inter" ? "Inter" : "Figtree"
     readonly property int fontH1: 32            // --type-display
     readonly property int weightH1: 800
     readonly property int fontCardTitle: 17     // --type-subhead (card titles)

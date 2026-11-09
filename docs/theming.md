@@ -70,6 +70,7 @@ use `--radius-window` (18 px).
 lucent-theme apply [--mode light|dark|auto] [--accent NAME|#RRGGBB]
 lucent-theme status [--json]
 lucent-theme sync
+lucent-theme font [--apply] [--json]
 lucent-theme accents [--json]
 ```
 
@@ -123,6 +124,54 @@ lucent-theme apply --mode dark --accent azure
 lucent-theme apply --accent "#40a070"      # -> pine
 lucent-theme apply --mode auto
 lucent-theme status --json
+```
+
+## The UI font
+
+Pebble Drift's typeface is **Figtree** (`--font-sans`), installed once,
+system-wide, in `/usr/share/fonts/figtree/` (SIL OFL, `OFL.txt` beside it).
+It is the Plasma UI font (`/etc/xdg/kdeglobals`: Figtree Medium 11 pt =
+14.7 px, the mockups' 15 px body at their weight 500; window titles
+SemiBold), and Settings, the Store, the launch sheet and the "Move from
+Windows" wizard use the same copy. Monospace stays JetBrains Mono.
+
+Figtree has Latin only (Western and Central European; no Cyrillic, Greek or
+Vietnamese). A Russian session in Figtree would draw Latin letters in
+Figtree and Cyrillic ones in a fallback font, so **the UI font follows the
+session's language**:
+
+| Session | UI font |
+| --- | --- |
+| every language of the session covered by Figtree (English, German, French, Polish, ...) | Figtree |
+| any other (Russian, Ukrainian, Greek, Vietnamese, Chinese, ...) | Inter |
+
+- "Covered" is fontconfig's own answer (`fc-list Figtree:lang=ru`), not a
+  list kept by hand. The session's languages are the UI language (first
+  entry of `LANGUAGE`) and the formats' (`LC_TIME`, `LANG`: Russian formats
+  put Cyrillic month names in the clock), from `~/.config/plasma-localerc`
+  (what Settings → Language, KDE's Region & Language page, writes) and the
+  environment.
+- `lucent-theme font --apply` writes the five font keys of `kdeglobals`
+  (`font`, `menuFont`, `toolBarFont`, `smallestReadableFont`, `[WM]
+  activeFont`). It only touches keys that are Figtree or Inter: a font the
+  person picked stays, and so does the size (Settings → Text size); only
+  the family (and Figtree's 500 / Inter's 400 default weight) changes.
+- It runs at every login before KWin and the shell start
+  (`/etc/xdg/plasma-workspace/env/lucent-ui-font.sh`), and from
+  `lucent-theme sync` when `plasma-localerc` changes
+  (`lucent-kvantum-sync.path`): switching to Russian turns the UI to Inter at
+  once; switching back to English keeps Inter until the next login, when the
+  new language actually shows (the running session is still Russian).
+- Lucent's own apps follow it: when the session's UI font is Inter they put
+  Inter before Figtree, so a Russian session is Inter throughout.
+- Text in another script inside a Figtree session (a Cyrillic file name)
+  falls back to Inter first (`/etc/fonts/conf.d/60-lucent-fonts.conf`).
+  Non-KDE apps that ask fontconfig for `sans-serif` get Inter, which covers
+  every language the installer offers.
+
+```
+lucent-theme font [--apply] [--json]
+{"family": "Figtree", "wanted": "Figtree", "languages": ["en"]}
 ```
 
 ## Limits

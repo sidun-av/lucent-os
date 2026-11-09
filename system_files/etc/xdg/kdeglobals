@@ -1,18 +1,21 @@
 # Lucent OS system-wide KDE defaults. Users' own ~/.config/kdeglobals wins.
 [General]
 ColorScheme=LucentLight
-# Inter 11 pt = 14.7 px at 96 dpi, the mockups' 15 px body text: readable at
-# 1x on a 2560x1440 screen without scaling.
-font=Inter,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
-menuFont=Inter,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
-toolBarFont=Inter,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
-smallestReadableFont=Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+# Figtree (Pebble Drift's typeface, /usr/share/fonts/figtree) Medium, 11 pt =
+# 14.7 px at 96 dpi: the mockups' 15 px body text at their weight 500,
+# readable at 1x on a 2560x1440 screen without scaling. Figtree has Latin
+# only: a session in a language it doesn't cover (Russian, Greek, ...) gets
+# Inter at login instead (lucent-theme font, /usr/lib/lucent/lucent_theme/fonts.py).
+font=Figtree,11,-1,5,500,0,0,0,0,0,0,0,0,0,0,1
+menuFont=Figtree,11,-1,5,500,0,0,0,0,0,0,0,0,0,0,1
+toolBarFont=Figtree,11,-1,5,500,0,0,0,0,0,0,0,0,0,0,1
+smallestReadableFont=Figtree,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1
 fixed=JetBrains Mono,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 TerminalApplication=konsole
 TerminalService=org.kde.konsole.desktop
 
 [WM]
-activeFont=Inter,11,-1,5,600,0,0,0,0,0,0,0,0,0,0,1
+activeFont=Figtree,11,-1,5,600,0,0,0,0,0,0,0,0,0,0,1
 
 [Icons]
 # Lucent's own app/folder icons on top of Papirus (see THIRD_PARTY.md).

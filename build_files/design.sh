@@ -90,6 +90,18 @@ systemctl enable --force sddm.service
 # Flatpak Qt apps follow the light/dark Kvantum theme (per-user path unit).
 systemctl --global enable lucent-kvantum-sync.path
 
+# UI font: Figtree (system_files/usr/share/fonts/figtree, SIL OFL) for languages
+# it covers, Inter for the rest (lucent-theme font). fontconfig must see it,
+# say it covers English and not Russian, and fall back to Inter from it.
+fc-cache -f /usr/share/fonts/figtree
+fc-list 'Figtree:lang=en' family | grep -q Figtree
+if fc-list 'Figtree:lang=ru' family | grep -q Figtree; then echo "Figtree unexpectedly covers Russian"; exit 1; fi
+fc-list Figtree style | grep -q Medium
+# the first font after Figtree in its fallback list (what Qt uses for a
+# missing letter) is Inter
+next=$(fc-match -s -f '%{family[0]}\n' Figtree | grep -v -m1 -x Figtree)
+[ "$next" = Inter ] || { echo "Figtree falls back to '$next', not Inter"; exit 1; }
+
 # Accents (lucent-theme): every swatch has its Kvantum theme, light and dark.
 for t in $(PYTHONPATH=/usr/lib/lucent python3 -P -c \
         'from lucent_theme import accents, theme; print(*(theme.kvantum_theme(a.id) for a in accents.ACCENTS))'); do

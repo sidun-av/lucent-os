@@ -46,12 +46,14 @@ App icons in the Lucent theme replace the generic icons of some third-party
 apps (Firefox, ONLYOFFICE, GIMP, ...) with Lucent-style tiles, the same way
 Papirus does; they are original drawings, not the apps' logos.
 
-## Figtree (Lucent Settings)
+## Figtree (UI font)
 
-`apps/lucent-settings/lucent_settings/fonts/Figtree-*.ttf`: the Figtree typeface,
+`system_files/usr/share/fonts/figtree/Figtree-*.ttf` (installed as
+`/usr/share/fonts/figtree/`): the Figtree typeface, version 2.001,
 Copyright 2022 The Figtree Project Authors (https://github.com/erikdkennedy/figtree),
-SIL Open Font License 1.1 (`apps/lucent-settings/lucent_settings/fonts/OFL.txt`).
-Bundled with Settings only; the system fonts are unchanged. The "Move from
-Windows" wizard uses that same copy (`/usr/lib/lucent/lucent_settings/fonts`)
-when it is installed and falls back to Inter otherwise.
+SIL Open Font License 1.1 (`system_files/usr/share/fonts/figtree/OFL.txt`).
+Lucent's UI font in languages it covers (Latin only: Inter takes over for
+Russian, Greek, Vietnamese and other scripts, `docs/theming.md`); Settings,
+the Store, the launch sheet and the "Move from Windows" wizard use this one
+system copy. Regular, Medium, SemiBold, Bold and ExtraBold, no italics.
 

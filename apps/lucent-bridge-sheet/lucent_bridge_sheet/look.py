@@ -16,11 +16,11 @@ from PySide6.QtGui import QColor, QFont, QFontDatabase, QGuiApplication, QPalett
 from lucent_migrate import tokens
 
 HERE = Path(__file__).parent
-# Figtree (--font-sans) ships with Lucent Settings (SIL OFL 1.1); the sheet
-# uses that copy when it is there and falls back to the system's Inter.
+# Figtree (--font-sans, SIL OFL 1.1) is installed system-wide; a checkout has
+# it under system_files/. Without it the sheet falls back to Inter.
 FONT_DIRS = [
-    HERE.parent / "lucent_settings" / "fonts",                                   # /usr/lib/lucent
-    HERE.parents[2] / "apps" / "lucent-settings" / "lucent_settings" / "fonts",  # checkout
+    Path("/usr/share/fonts/figtree"),                                            # the image
+    HERE.parents[2] / "system_files" / "usr" / "share" / "fonts" / "figtree",    # checkout
 ]
 BASE_POINTS = 11.0   # Lucent's UI font size (kdeglobals); the tokens' px are for it
 
@@ -122,7 +122,9 @@ def load(dark: bool | None = None, scale: float | None = None) -> Look:
 
 
 def load_fonts() -> list[str]:
-    """Families from the bundled Figtree files that could be registered."""
+    """Figtree's family: the system's, or registered from FONT_DIRS."""
+    if "Figtree" in QFontDatabase.families():
+        return ["Figtree"]
     families: list[str] = []
     for folder in FONT_DIRS:
         for ttf in sorted(folder.glob("*.ttf")):
@@ -134,10 +136,17 @@ def load_fonts() -> list[str]:
 
 
 def font(px: float, weight: int, base: QFont | None = None) -> QFont:
-    """--font-sans (Figtree, then Inter, then the system font) at px / weight."""
+    """--font-sans (Figtree, then Inter, then the system font) at px / weight.
+    When the session's UI font is one of them it goes first: a Russian session
+    runs on Inter (Figtree has no Cyrillic, lucent-theme font), and mixing the
+    two would draw Latin and Cyrillic letters in different fonts."""
     f = QFont(base or QFont())
     wanted = [x.strip().strip('"') for x in tokens.load(False)["font-sans"].split(",")]
-    f.setFamilies([x for x in wanted if x not in ("system-ui", "sans-serif")] + f.families())
+    wanted = [x for x in wanted if x not in ("system-ui", "sans-serif")]
+    if f.family() in wanted:
+        wanted.remove(f.family())
+        wanted.insert(0, f.family())
+    f.setFamilies(wanted + [x for x in f.families() if x not in wanted])
     f.setPixelSize(max(1, round(px)))
     f.setWeight(QFont.Weight(weight))
     return f

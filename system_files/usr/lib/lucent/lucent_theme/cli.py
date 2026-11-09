@@ -3,6 +3,7 @@
   lucent-theme apply [--mode light|dark|auto] [--accent NAME|#RRGGBB]
   lucent-theme status [--json]
   lucent-theme sync
+  lucent-theme font [--apply] [--json]
   lucent-theme accents [--json]
 
 Exit codes: 0 done, 1 a step failed (details on stderr), 2 bad arguments.
@@ -14,7 +15,7 @@ import argparse
 import json
 import sys
 
-from . import accents, theme
+from . import accents, fonts, theme
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -27,6 +28,9 @@ def _parser() -> argparse.ArgumentParser:
     s = sub.add_parser("status", help="what is chosen and what is showing")
     s.add_argument("--json", action="store_true")
     sub.add_parser("sync", help="put the chosen look back (after Plasma switched themes)")
+    f = sub.add_parser("font", help="the UI font for the session's language (Figtree or Inter)")
+    f.add_argument("--apply", action="store_true", help="write it to kdeglobals (run at every login)")
+    f.add_argument("--json", action="store_true")
     l = sub.add_parser("accents", help="the accent swatches")
     l.add_argument("--json", action="store_true")
     return p
@@ -50,6 +54,12 @@ def main(argv=None, runner=None) -> int:
         code = theme.apply(r, mode=args.mode, accent=acc, errors=errors)
     elif args.cmd == "sync":
         code = theme.sync(r, errors=errors)
+    elif args.cmd == "font":
+        if args.apply:
+            fonts.apply(r)
+        st = fonts.status(r)
+        print(json.dumps(st) if args.json else "\n".join(f"{k}: {v}" for k, v in st.items()))
+        return 0
     elif args.cmd == "status":
         st = theme.status()
         if args.json:

@@ -87,10 +87,16 @@ def test_wizard_follows_a_live_switch_to_dark_and_a_new_text_size(qapp, monkeypa
     qapp.processEvents()
 
 
-def test_figtree_is_found_next_to_lucent_settings(qapp):
-    checkout_fonts = Path(__file__).resolve().parents[2] / "apps/lucent-settings/lucent_settings/fonts"
+def test_figtree_is_found_in_the_system_fonts(qapp):
+    # Figtree is installed system-wide (/usr/share/fonts/figtree); a checkout
+    # has it under system_files/
+    checkout_fonts = Path(__file__).resolve().parents[2] / "system_files/usr/share/fonts/figtree"
     if not checkout_fonts.is_dir():
         pytest.skip("not a repository checkout")
     assert checkout_fonts in [d.resolve() for d in style.FONT_DIRS]
     assert "Figtree" in style.load_fonts()
-    assert style.ui_font(QFont("Inter", 11)).families()[:2] == ["Figtree", "Inter"]
+    assert style.ui_font(QFont("Figtree", 11)).families()[:2] == ["Figtree", "Inter"]
+    # a session in a language Figtree has no letters for runs on Inter
+    # (lucent-theme font): the wizard follows it instead of mixing the two
+    assert style.ui_font(QFont("Inter", 11)).families()[:2] == ["Inter", "Figtree"]
+    assert style.ui_font(QFont("DejaVu Sans", 11)).families()[:2] == ["Figtree", "Inter"]

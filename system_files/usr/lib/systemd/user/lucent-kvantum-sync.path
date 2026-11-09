@@ -1,9 +1,12 @@
 [Unit]
-Description=Lucent: re-sync the look (accent, Kvantum, Flatpak apps) when kdeglobals changes
+Description=Lucent: re-sync the look (accent, Kvantum, UI font, Flatpak apps) when kdeglobals or the language changes
 
 [Path]
 # Plasma writes kdeglobals when the look (light/dark) changes.
 PathChanged=%h/.config/kdeglobals
+# Region & Language (Settings -> Language) writes plasma-localerc: a language
+# Figtree doesn't cover switches the UI font to Inter at once.
+PathChanged=%h/.config/plasma-localerc
 # New Flatpak apps (first boot installs them after the first login) and the
 # per-app style overrides written by lucent-flatpak-setup.
 PathChanged=/var/lib/flatpak/exports/share/applications
