@@ -15,7 +15,9 @@ without internet), and GitHub serves it in parts of under 2 GB.
    - `SHA256SUMS`,
    - `join-lucent-iso.cmd` and `join-lucent-iso.ps1`.
 2. Double-click **`join-lucent-iso.cmd`**. Windows may first ask whether to
-   run a file from the internet: choose **Run**.
+   run a file from the internet: choose **Run** (if it says *"Windows
+   protected your PC"*, click **More info**, then **Run anyway**). On a
+   managed work PC, scripts may be blocked by policy; use a home PC then.
 3. It checks every part, joins them into `lucent-os-<version>-amd64.iso`
    and checks the result. If a part is missing or damaged it says which one:
    download just that part again and double-click the script again.

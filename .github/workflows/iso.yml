@@ -72,9 +72,9 @@ jobs:
           sudo podman image inspect "$IMAGE_REF" --format '{{index .Labels "org.opencontainers.image.revision"}}' | tee image-revision.txt
           # The registry's manifest of this image for this CPU: what the
           # installed system compares against when it first updates.
-          index=$(skopeo inspect --raw "docker://$IMAGE_REF")
+          index=$(sudo skopeo inspect --raw "docker://$IMAGE_REF")
           arch_digest=$(jq -r --arg a "${{ inputs.arch }}" '.manifests[] | select(.platform.architecture == $a) | .digest' <<<"$index")
-          skopeo inspect --raw "docker://$IMAGE@$arch_digest" > "$WORK/registry-manifest.json"
+          sudo skopeo inspect --raw "docker://$IMAGE@$arch_digest" > "$WORK/registry-manifest.json"
           if [ "$(jq -r .config.digest "$WORK/registry-manifest.json")" != "sha256:$(sudo podman image inspect "$IMAGE_REF" --format '{{.Id}}')" ]; then
             echo "::warning::$IMAGE_REF moved since the pull; no first-update estimate"
             rm "$WORK/registry-manifest.json"
