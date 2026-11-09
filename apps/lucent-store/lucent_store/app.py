@@ -30,6 +30,14 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return p.parse_args(argv)
 
 
+def chrome_available(engine) -> bool:
+    """The shared one-row window header (build_files/lucent-chrome, also used
+    by Settings) is installed; LUCENT_CHROME=0 keeps KWin's title bar."""
+    if os.environ.get("LUCENT_CHROME") == "0":
+        return False
+    return any((Path(p) / "org/lucent/chrome/qmldir").exists() for p in engine.importPathList())
+
+
 def create_engine(store, backend, page: str = "home", size: str = "1600x1000"):
     """The QML engine with the store's objects and image providers, Main.qml loaded."""
     from PySide6.QtCore import QUrl
@@ -39,6 +47,10 @@ def create_engine(store, backend, page: str = "home", size: str = "1600x1000"):
     from .store import I18n, qml_dir
 
     engine = QQmlApplicationEngine()
+    frameless = chrome_available(engine)
+    if frameless:
+        from PySide6.QtQuick import QQuickWindow
+        QQuickWindow.setDefaultAlphaBuffer(True)   # rounded corners
     engine.addImageProvider("sym", SymbolProvider())
     engine.addImageProvider("app", AppIconProvider(lambda: backend.icon_dirs, store.tiles))
     engine._l10n = I18n(engine)            # keep it alive as long as the engine
@@ -46,6 +58,7 @@ def create_engine(store, backend, page: str = "home", size: str = "1600x1000"):
     ctx.setContextProperty("store", store)
     ctx.setContextProperty("l10n", engine._l10n)
     ctx.setContextProperty("startPage", page)
+    ctx.setContextProperty("frameless", frameless)
     w, _x, h = size.partition("x")
     ctx.setContextProperty("startWidth", int(w))
     ctx.setContextProperty("startHeight", int(h))

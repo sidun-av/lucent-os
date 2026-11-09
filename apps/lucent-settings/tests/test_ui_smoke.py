@@ -57,3 +57,18 @@ def test_every_page_loads_without_qml_warnings(qapp, warnings, theme, monkeypatc
     win.close()
     engine.deleteLater()
     qapp.processEvents()
+
+
+def test_one_row_header_needs_the_chrome_module(qapp, tmp_path, monkeypatch):
+    """Frameless (one header row) only when org.lucent.chrome is installed
+    (build_files/lucent-chrome); LUCENT_CHROME=0 keeps KWin's title bar."""
+    from PySide6.QtQml import QQmlApplicationEngine
+    engine = QQmlApplicationEngine()
+    monkeypatch.delenv("LUCENT_CHROME", raising=False)
+    module = tmp_path / "org/lucent/chrome"
+    module.mkdir(parents=True)
+    (module / "qmldir").write_text("module org.lucent.chrome\n")
+    engine.addImportPath(str(tmp_path))
+    assert app.chrome_available(engine)
+    monkeypatch.setenv("LUCENT_CHROME", "0")
+    assert not app.chrome_available(engine)

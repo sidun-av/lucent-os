@@ -1,4 +1,7 @@
 // Lucent Store (docs/mockups/06-store.png): sidebar + one page at a time.
+// Frameless (`frameless`, the shared org.lucent.chrome module): one top row,
+// the app icon above the sidebar and the window buttons at the end of the
+// page header; without the module KWin's title bar sits above.
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -11,7 +14,9 @@ ApplicationWindow {
     minimumHeight: 620
     visible: true
     title: l10n.text("Store")
-    color: tk.winBg
+    flags: frameless ? (Qt.Window | Qt.FramelessWindowHint) : Qt.Window
+    color: frameless ? "transparent" : tk.winBg
+    readonly property int headerBand: 64       // the one top row when frameless
 
     readonly property var tk: store.t
     readonly property int rev: store.revision
@@ -33,11 +38,17 @@ ApplicationWindow {
     function openApp(id) { go("app:" + id) }
 
     Component.onCompleted: {
+        if (frameless)
+            chrome.setSource("chrome/Frame.qml", { win: win, leftSlot: leftSlot, rightSlot: rightSlot,
+                                                   overlay: overlay, headerHeight: headerBand })
         if (startPage.indexOf("search:") === 0) { query = startPage.substring(7); page = "search" }
         else page = startPage
     }
 
+    Loader { id: chrome; anchors.fill: parent }   // frameless: surface, shadow, buttons
+
     Image {                  // fine grain over the matte surface (pebble .matte::before)
+        visible: !frameless
         anchors.fill: parent
         source: "../icons/" + tk.grain
         fillMode: Image.Tile
@@ -51,7 +62,7 @@ ApplicationWindow {
             Layout.fillHeight: true
             Layout.preferredWidth: store.t.sidebarWidth
             Layout.leftMargin: store.t.sideInset
-            Layout.topMargin: store.t.sideInset
+            Layout.topMargin: frameless ? win.headerBand : store.t.sideInset
             Layout.bottomMargin: store.t.sideInset
         }
         ColumnLayout {
@@ -61,6 +72,9 @@ ApplicationWindow {
             PageHeader {
                 id: header
                 Layout.fillWidth: true
+                Layout.preferredHeight: frameless ? win.headerBand : implicitHeight
+                topPad: frameless ? (win.headerBand - store.t.searchHeight) / 2 : store.t.paneTop
+                rightPad: frameless ? rightSlot.width + 12 + 20 : store.t.paneX
             }
             Loader {
                 id: loader
@@ -89,10 +103,27 @@ ApplicationWindow {
     Component { id: searchPage; SearchPage { query: win.query } }
     Component { id: appPage; AppPage { appId: win.page.substring(4) } }
 
+    Item {                   // frameless: window buttons kwinrc puts on the left (Lucent: the app icon)
+        id: leftSlot
+        visible: frameless
+        x: store.t.sideInset + 2
+        width: children.length ? children[0].implicitWidth : 0
+        height: win.headerBand
+    }
+    Item {                   // frameless: minimise / maximise / close
+        id: rightSlot
+        visible: frameless
+        anchors.right: parent.right
+        anchors.rightMargin: 12
+        width: children.length ? children[0].implicitWidth : 0
+        height: win.headerBand
+    }
+
     Toast { id: toast }
     Connections {
         target: store
         function onToast(kind, title, detail) { toast.show(kind, title, detail) }
     }
     ConfirmRemove { id: confirmRemove }
+    Item { id: overlay; anchors.fill: parent; z: 1000 }   // frameless: resize edges
 }

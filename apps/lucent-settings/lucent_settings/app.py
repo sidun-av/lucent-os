@@ -72,10 +72,11 @@ class System(QObject):
 
     themeChanged = Signal()
 
-    def __init__(self, app: QGuiApplication, start_page: str):
+    def __init__(self, app: QGuiApplication, start_page: str, frameless: bool = False):
         super().__init__()
         self._app = app
         self._page = start_page
+        self._frameless = frameless
         app.installEventFilter(self)
         self._watch = QFileSystemWatcher(self)
         cfg = kconfig.config_home()
@@ -126,6 +127,7 @@ class System(QObject):
     dark = Property(bool, _dark, notify=themeChanged)
     customAccent = Property(str, _custom_accent, notify=themeChanged)
     startPage = Property(str, lambda self: self._page, constant=True)
+    frameless = Property(bool, lambda self: self._frameless, constant=True)
     language = Property(str, lambda self: i18n.language(), constant=True)
 
     @Slot(str, result=str)
@@ -141,6 +143,14 @@ class System(QObject):
         return Path(url.removeprefix("file://")).exists()
 
 
+def chrome_available(engine: QQmlApplicationEngine) -> bool:
+    """The shared one-row window header (build_files/lucent-chrome) is
+    installed; LUCENT_CHROME=0 keeps KWin's title bar instead."""
+    if os.environ.get("LUCENT_CHROME") == "0":
+        return False
+    return any((Path(p) / "org/lucent/chrome/qmldir").exists() for p in engine.importPathList())
+
+
 def create_engine(app: QGuiApplication, runner, start_page: str = "appearance"):
     if "Figtree" not in QFontDatabase.families():
         for folder in FONT_DIRS:
@@ -152,7 +162,10 @@ def create_engine(app: QGuiApplication, runner, start_page: str = "appearance"):
     engine = QQmlApplicationEngine()
     engine.addImportPath(str(QML_DIR))
     engine.addImageProvider("sym", SymbolProvider())
-    system = System(app, start_page)
+    frameless = chrome_available(engine)
+    if frameless:
+        QQuickWindow.setDefaultAlphaBuffer(True)   # rounded corners
+    system = System(app, start_page, frameless)
     system.setParent(engine)
     # Children of the engine: destroyed after its QML, never before.
     secs = sections(runner, engine)

@@ -1,0 +1,7 @@
+module org.lucent.chrome
+plugin lucentchromeplugin
+WindowButtons 1.0 WindowButtons.qml
+WindowButton 1.0 WindowButton.qml
+HeaderDragArea 1.0 HeaderDragArea.qml
+ResizeHandles 1.0 ResizeHandles.qml
+WindowBackground 1.0 WindowBackground.qml

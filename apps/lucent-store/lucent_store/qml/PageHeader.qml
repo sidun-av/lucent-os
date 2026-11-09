@@ -6,7 +6,9 @@ Item {
     id: h
     readonly property var tk: store.t
     readonly property bool sub: win.page.indexOf("app:") === 0
-    implicitHeight: store.t.paneTop + store.t.searchHeight
+    property real topPad: store.t.paneTop      // frameless: centred in the window's top row
+    property real rightPad: store.t.paneX      // frameless: room for the window buttons
+    implicitHeight: topPad + store.t.searchHeight
 
     LButton {
         id: backBtn
@@ -16,14 +18,14 @@ Item {
         icon: "left"
         text: l10n.text("Back")
         x: store.t.paneX - 12
-        y: store.t.paneTop + 4
+        y: h.topPad + 4
         onClicked: win.back()
     }
     Text {
         id: title
         visible: !h.sub
         x: store.t.paneX
-        y: store.t.paneTop
+        y: h.topPad
         height: store.t.searchHeight
         verticalAlignment: Text.AlignVCenter
         font.pointSize: store.t.fontH1
@@ -44,8 +46,8 @@ Item {
     Rectangle {
         id: field
         anchors.right: parent.right
-        anchors.rightMargin: store.t.paneX
-        y: store.t.paneTop
+        anchors.rightMargin: h.rightPad
+        y: h.topPad
         width: Math.min(store.t.searchWidth, h.width * 0.42)
         height: store.t.searchHeight
         radius: store.t.radiusField

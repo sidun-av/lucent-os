@@ -144,3 +144,20 @@ def test_system_updates_link(ui):
     _win, store, backend, _problems = ui
     store.openSystemUpdates()
     assert backend.opened_updates == 1
+
+
+def test_one_row_header_needs_the_chrome_module(qapp, tmp_path, monkeypatch):
+    """Frameless (one top row) only when org.lucent.chrome is installed
+    (build_files/lucent-chrome); LUCENT_CHROME=0 keeps KWin's title bar."""
+    from PySide6.QtQml import QQmlApplicationEngine
+
+    from lucent_store.app import chrome_available
+    engine = QQmlApplicationEngine()
+    monkeypatch.delenv("LUCENT_CHROME", raising=False)
+    module = tmp_path / "org/lucent/chrome"
+    module.mkdir(parents=True)
+    (module / "qmldir").write_text("module org.lucent.chrome\n")
+    engine.addImportPath(str(tmp_path))
+    assert chrome_available(engine)
+    monkeypatch.setenv("LUCENT_CHROME", "0")
+    assert not chrome_available(engine)

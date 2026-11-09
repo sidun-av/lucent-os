@@ -5,9 +5,12 @@ import QtQuick.Window
 import Lucent
 import "pages"
 
-// Pebble structure (docs/mockups/concepts-2026/pebble/03-settings): a header
-// row (back / forward, centred search), then a sunken sidebar well (account,
-// sections) and the page of cards. Window title and buttons come from KWin.
+// Pebble Drift structure (docs/mockups/concepts-2026/pebble-drift/04-settings):
+// one header row (app icon, title, back / forward, centred search, window
+// buttons), then a sunken sidebar well (account, sections) and the page of
+// cards. The window is frameless and draws that row itself with the shared
+// org.lucent.chrome module (chrome/Frame.qml); without the module
+// (System.frameless false) KWin's title bar sits above a row without them.
 C.ApplicationWindow {
     id: win
     title: System.tr("Settings")
@@ -16,7 +19,8 @@ C.ApplicationWindow {
     height: Math.min(1116, Screen.desktopAvailableHeight * 0.88)
     minimumWidth: 1000
     minimumHeight: 640
-    color: Theme.surface
+    flags: System.frameless ? (Qt.Window | Qt.FramelessWindowHint) : Qt.Window
+    color: System.frameless ? "transparent" : Theme.surface
     font.family: Theme.font
     font.pixelSize: Theme.fontBody
 
@@ -79,14 +83,20 @@ C.ApplicationWindow {
     }
 
     Component.onCompleted: {
+        if (System.frameless)
+            chrome.setSource("chrome/Frame.qml", { win: win, leftSlot: leftSlot, rightSlot: rightSlot, overlay: overlay })
         UsersPage.refresh(); NetworkPage.refresh(); UpdatesPage.refresh(); AboutPage.refresh(); AppearancePage.refresh()
     }
     Shortcut { sequences: [StandardKey.Back]; onActivated: win.goBack() }
     Shortcut { sequences: [StandardKey.Forward]; onActivated: win.goForward() }
     Shortcut { sequences: [StandardKey.Find]; onActivated: search.forceActiveFocus() }
 
+    // frameless: surface, shadow, window buttons, title-bar behaviour
+    Loader { id: chrome; anchors.fill: parent }
+
     // fine grain over the matte surface
     Image {
+        visible: !System.frameless
         anchors.fill: parent
         source: "Lucent/grain.png"
         fillMode: Image.Tile
@@ -100,18 +110,39 @@ C.ApplicationWindow {
 
         // ---------------- header row ----------------
         Item {
+            id: header
             Layout.fillWidth: true
-            Layout.preferredHeight: Theme.headerHeight
+            Layout.preferredHeight: System.frameless ? Theme.headerHeightFrameless : Theme.headerHeight
             RowLayout {
-                anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: Theme.bodyPad + 4 }
+                id: leftRow
+                anchors { left: parent.left; verticalCenter: parent.verticalCenter
+                          leftMargin: System.frameless ? 12 : Theme.bodyPad + 4 }
                 spacing: 2
+                Item {      // window buttons kwinrc puts on the left (Lucent: the app icon = window menu)
+                    id: leftSlot
+                    visible: System.frameless && children.length > 0 && !children[0].empty
+                    implicitWidth: children.length ? children[0].implicitWidth : 0
+                    implicitHeight: 36
+                    Layout.rightMargin: 4
+                }
+                LText {
+                    visible: System.frameless
+                    text: win.title
+                    px: Theme.fontWindowTitle; weight: 700
+                    Layout.leftMargin: leftSlot.visible ? 2 : 4
+                }
+                Rectangle {
+                    visible: System.frameless
+                    implicitWidth: 1; implicitHeight: 26; color: Theme.lineStrong
+                    Layout.leftMargin: 14; Layout.rightMargin: 14
+                }
                 LButton { flat: true; icon: "left"; text: ""; enabled: win.back.length > 0; onClicked: win.goBack() }
                 LButton { flat: true; icon: "right"; text: ""; enabled: win.forward.length > 0; onClicked: win.goForward() }
             }
             C.TextField {
                 id: search
                 anchors.centerIn: parent
-                width: Math.min(Theme.searchWidth, parent.width - 300)
+                width: Math.min(Theme.searchWidth, parent.width - 2 * Math.max(leftRow.width + 12, rightSlot.width + 12) - 48)
                 height: Theme.fieldHeight
                 leftPadding: 42
                 rightPadding: 14
@@ -139,6 +170,13 @@ C.ApplicationWindow {
                     Well { anchors.fill: parent; visible: !search.activeFocus }
                     Sym { x: 14; anchors.verticalCenter: parent.verticalCenter; name: "search"; size: 18; color: Theme.text2 }
                 }
+            }
+            Item {          // minimise / maximise / close (kwinrc order)
+                id: rightSlot
+                visible: System.frameless
+                anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: 12 }
+                width: children.length ? children[0].implicitWidth : 0
+                height: 36
             }
         }
 
@@ -250,7 +288,11 @@ C.ApplicationWindow {
         Timer { id: toastTimer; interval: 2600; onTriggered: toast.opacity = 0 }
         function show(t) { text = t; opacity = 1; toastTimer.restart() }
     }
+    // frameless: the resize edges, over everything
+    Item { id: overlay; anchors.fill: parent; z: 1000 }
+
     Connections { target: UsersPage; function onToast(t) { toast.show(t) } }
     Connections { target: UpdatesPage; function onToast(t) { toast.show(t) } }
     Connections { target: NetworkPage; function onToast(t) { toast.show(t) } }
+    Connections { target: AboutPage; function onToast(t) { toast.show(t) } }
 }

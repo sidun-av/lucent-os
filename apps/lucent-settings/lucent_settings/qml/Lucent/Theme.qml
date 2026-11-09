@@ -48,6 +48,7 @@ QtObject {
     readonly property color scrim: dark ? Qt.rgba(14 / 255, 16 / 255, 32 / 255, 0.60) : Qt.rgba(40 / 255, 48 / 255, 100 / 255, 0.18)
     readonly property color hover: dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.07) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.065)   // state-hover
     readonly property color pressed: dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.11) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.11)
+    readonly property color lineStrong: dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.14) : Qt.rgba(40 / 255, 50 / 255, 110 / 255, 0.17)
     readonly property color line: dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.08) : Qt.rgba(40 / 255, 50 / 255, 110 / 255, 0.10)
     readonly property color line2: dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.14) : Qt.rgba(40 / 255, 50 / 255, 110 / 255, 0.17)  // line-strong
     readonly property color lineControl: dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.38) : Qt.rgba(40 / 255, 50 / 255, 110 / 255, 0.30)
@@ -120,7 +121,9 @@ QtObject {
     readonly property int radiusHeroIcon: 16
 
     // ---- sizes and spacing ----
-    readonly property int headerHeight: 58     // under KWin's title bar (64 in the CSD mockup)
+    readonly property int headerHeight: 58     // under KWin's title bar (two rows)
+    readonly property int headerHeightFrameless: 64   // .head: the one row of the CSD mockup
+    readonly property int fontWindowTitle: 16  // .head .ttl
     readonly property int bodyPad: 12           // .body padding / gap
     readonly property int sidebarWidth: 290
     readonly property int sidebarPadV: 12
