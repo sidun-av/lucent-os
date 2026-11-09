@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=Notepad++
+GenericName=Windows program
+GenericName[ru]=Программа Windows
+Exec=lucent-bridge run "/var/home/lucent/.local/share/lucent-bridge/prefixes/notepadplusplus-bdf24a17/drive_c/Program Files/Notepad++/notepad++.exe"
+Path=/var/home/lucent/.local/share/lucent-bridge/prefixes/notepadplusplus-bdf24a17/drive_c/Program Files/Notepad++
+Icon=/var/home/lucent/.local/share/lucent-bridge/icons/notepadplusplus-bdf24a17/notepadplusplus.png
+Terminal=false
+StartupWMClass=notepad++.exe
+Categories=Utility;
+X-LucentBridge-AppId=notepadplusplus-bdf24a17

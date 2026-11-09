@@ -1,0 +1,12 @@
+[project]
+name = "lucent-settings"
+version = "0.1.0"
+description = "Lucent OS: Settings, the ten things people actually change"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# ../../migration-wizard: the shared gettext .mo writer (lucent_migrate.i18n).
+pythonpath = [".", "tests", "../../migration-wizard"]
+addopts = "-q"

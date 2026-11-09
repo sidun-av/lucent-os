@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+# Lucent Settings (apps/lucent-settings). Never as root: it asks polkit for
+# permission itself when a change needs it.
+exec /usr/bin/python3 -P -c 'import sys; sys.path.insert(0, "/usr/lib/lucent"); from lucent_settings.app import main; sys.exit(main())' "$@"

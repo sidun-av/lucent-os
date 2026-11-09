@@ -1,0 +1,37 @@
+[Desktop Entry]
+Type=Application
+Name=Settings
+Name[ru]=Настройки
+GenericName=Settings
+GenericName[ru]=Настройки
+Comment=Wi-Fi, Bluetooth, display, sound, appearance, users, updates
+Comment[ru]=Wi-Fi, Bluetooth, экран, звук, оформление, пользователи, обновления
+Exec=lucent-settings
+Icon=systemsettings
+Terminal=false
+StartupNotify=true
+StartupWMClass=lucent-settings
+Categories=Settings;System;
+Keywords=settings;preferences;control panel;wifi;network;bluetooth;display;sound;theme;dark;wallpaper;user;password;update;
+Keywords[ru]=настройки;параметры;панель управления;wifi;сеть;bluetooth;экран;звук;тема;тёмная;обои;пользователь;пароль;обновление;
+Actions=network;display;sound;updates;
+
+[Desktop Action network]
+Name=Wi-Fi & Network
+Name[ru]=Wi-Fi и сеть
+Exec=lucent-settings --page network
+
+[Desktop Action display]
+Name=Display
+Name[ru]=Экран
+Exec=lucent-settings --page display
+
+[Desktop Action sound]
+Name=Sound
+Name[ru]=Звук
+Exec=lucent-settings --page sound
+
+[Desktop Action updates]
+Name=Updates
+Name[ru]=Обновления
+Exec=lucent-settings --page updates

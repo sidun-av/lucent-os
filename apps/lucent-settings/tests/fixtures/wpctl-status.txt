@@ -1,0 +1,41 @@
+PipeWire 'pipewire-0' [1.6.11, lucent@fedora, cookie:1951012902]
+ └─ Clients:
+        33. uresourced                          [1.6.11, lucent@fedora, pid:1113]
+        34. WirePlumber                         [1.6.11, lucent@fedora, pid:1129]
+        43. WirePlumber [client]                [1.6.11, lucent@fedora, pid:1129]
+        50. kwin_wayland                        [1.6.11, lucent@fedora, pid:1121]
+        51. pipewire                            [1.6.11, lucent@fedora, pid:1264]
+        53. libcanberra                         [1.6.11, lucent@fedora, pid:1127]
+        58.                                     [1.6.11, lucent@fedora, pid:1127]
+        59. wpctl                               [1.6.11, lucent@fedora, pid:1821]
+        65. xdg-desktop-portal-kde              [1.6.11, lucent@fedora, pid:1478]
+        66. plasmashell                         [1.6.11, lucent@fedora, pid:1142]
+        67. xdg-desktop-portal                  [1.6.11, lucent@fedora, pid:1428]
+        68. libcanberra                         [1.6.11, lucent@fedora, pid:1142]
+        69.                                     [1.6.11, lucent@fedora, pid:1142]
+
+Audio
+ ├─ Devices:
+ │  
+ ├─ Sinks:
+ │  *   52. Dummy Output                        [vol: 1.00]
+ │  
+ ├─ Sources:
+ │  
+ ├─ Filters:
+ │  
+ └─ Streams:
+
+Video
+ ├─ Devices:
+ │  
+ ├─ Sinks:
+ │  
+ ├─ Sources:
+ │  
+ ├─ Filters:
+ │  
+ └─ Streams:
+
+Settings
+ └─ Default Configured Devices:

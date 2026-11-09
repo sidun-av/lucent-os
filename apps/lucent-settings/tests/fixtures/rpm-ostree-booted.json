@@ -1,0 +1,20 @@
+{
+  "deployments": [
+    {
+      "id": "default-47128c2c58ac7f27c1672e1d103f1d3a58af92e8153557a2a2074e4ce350e517.0",
+      "osname": "default",
+      "checksum": "47128c2c58ac7f27c1672e1d103f1d3a58af92e8153557a2a2074e4ce350e517",
+      "version": "45.20261109.0",
+      "timestamp": 1794233640,
+      "booted": true,
+      "staged": false,
+      "pinned": false,
+      "container-image-reference": "ostree-unverified-registry:localhost/lucent-vmtest:latest",
+      "container-image-reference-digest": "sha256:a90007444bbd50fed471a5a4241dac46dc2ecaca3efd649210d91cebddafee9b",
+      "serial": 0
+    }
+  ],
+  "transaction": null,
+  "cached-update": null,
+  "update-driver": null
+}

@@ -1,0 +1,45 @@
+#!/usr/bin/python3 -P
+"""Lucent Settings: the one change it needs root for, run through pkexec
+(polkit action org.lucent.settings.auto-updates). Everything else goes
+through the system services' own D-Bus APIs and their polkit rules.
+
+  settings-helper auto-updates on|off
+
+on  = rpm-ostreed downloads and stages new versions in the background
+      (AutomaticUpdatePolicy=stage + its daily timer); they start at the
+      next restart. off = only when the person clicks "Check".
+"""
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+CONF = Path(os.environ.get("LUCENT_RPM_OSTREED_CONF", "/etc/rpm-ostreed.conf"))
+
+
+def set_policy(text: str, policy: str) -> str:
+    line = f"AutomaticUpdatePolicy={policy}"
+    if re.search(r"^AutomaticUpdatePolicy=.*$", text, re.M):
+        return re.sub(r"^AutomaticUpdatePolicy=.*$", line, text, flags=re.M)
+    if re.search(r"^\[Daemon\]\s*$", text, re.M):
+        return re.sub(r"^\[Daemon\]\s*$", "[Daemon]\n" + line, text, count=1, flags=re.M)
+    return text.rstrip("\n") + ("\n\n" if text.strip() else "") + "[Daemon]\n" + line + "\n"
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) != 3 or argv[1] != "auto-updates" or argv[2] not in ("on", "off"):
+        print("usage: settings-helper auto-updates on|off", file=sys.stderr)
+        return 2
+    on = argv[2] == "on"
+    text = CONF.read_text() if CONF.exists() else ""
+    tmp = CONF.with_name(CONF.name + ".lucent-tmp")
+    tmp.write_text(set_policy(text, "stage" if on else "none"))
+    os.replace(tmp, CONF)
+    subprocess.run(["rpm-ostree", "reload"], check=True)
+    subprocess.run(["systemctl", "enable" if on else "disable", "--now", "rpm-ostreed-automatic.timer"], check=True)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

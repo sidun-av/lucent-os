@@ -1,0 +1,39 @@
+{
+  "app_id": "notepadplusplus-bdf24a17",
+  "name": "Notepad++",
+  "exe": "/var/home/lucent/.local/share/lucent-bridge/prefixes/notepadplusplus-bdf24a17/drive_c/Program Files/Notepad++/notepad++.exe",
+  "exe_arch": "x86_64",
+  "host": "aarch64",
+  "installer": false,
+  "prefix": "/var/home/lucent/.local/share/lucent-bridge/prefixes/notepadplusplus-bdf24a17",
+  "prefix_exists": true,
+  "runner": "wine-fex",
+  "compat": {
+    "name": "Notepad++",
+    "matched_by": "product",
+    "status": "works",
+    "source": "compat/apps.toml",
+    "notes": "",
+    "native_alternative": null
+  },
+  "steps": [
+    {
+      "kind": "launch",
+      "description": "Start Notepad++",
+      "argv": [
+        "/usr/bin/wine",
+        "/var/home/lucent/.local/share/lucent-bridge/prefixes/notepadplusplus-bdf24a17/drive_c/Program Files/Notepad++/notepad++.exe"
+      ],
+      "env": {
+        "HODLL": "libwow64fex.dll",
+        "HODLL64": "libarm64ecfex.dll",
+        "WINEDEBUG": "-all",
+        "WINEDLLOVERRIDES": "winemenubuilder.exe=d",
+        "WINEPREFIX": "/var/home/lucent/.local/share/lucent-bridge/prefixes/notepadplusplus-bdf24a17"
+      }
+    }
+  ],
+  "notes": [],
+  "unsupported": null,
+  "blocked": null
+}

@@ -1,0 +1,7 @@
+*:Home_5G:82:WPA2:AA\:BB\:CC\:00\:00\:01
+ :Home_5G:61:WPA2:AA\:BB\:CC\:00\:00\:02
+ :Cafe\:Guest:54::AA\:BB\:CC\:00\:00\:03
+ :Neighbours:30:WPA1 WPA2:AA\:BB\:CC\:00\:00\:04
+ ::40:WPA2:AA\:BB\:CC\:00\:00\:05
+ :Office:71:WPA2 802.1X:AA\:BB\:CC\:00\:00\:06
+ :Back\\slash:20:WPA3:AA\:BB\:CC\:00\:00\:07

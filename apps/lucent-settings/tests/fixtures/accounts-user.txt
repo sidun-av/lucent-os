@@ -1,0 +1,4 @@
+{"type":"s","data":"lucent"}
+{"type":"s","data":""}
+{"type":"s","data":"/var/lib/AccountsService/icons/lucent"}
+{"type":"i","data":1}

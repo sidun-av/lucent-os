@@ -83,7 +83,7 @@ Kicker.DashboardWindow {
         "org.onlyoffice.desktopeditors.desktop", "org.kde.okular.desktop",
         "com.github.jeromerobert.pdfarranger.desktop", "org.gimp.GIMP.desktop", "org.kde.krita.desktop",
         "org.inkscape.Inkscape.desktop", "org.darktable.Darktable.desktop", "org.kde.kdenlive.desktop",
-        "systemsettings.desktop", "org.lucent.Store.desktop", "org.kde.konsole.desktop",
+        "org.lucent.Settings.desktop", "org.lucent.Store.desktop", "org.kde.konsole.desktop",
         "org.lucent.Migrate.desktop", "org.kde.ark.desktop", "org.kde.filelight.desktop",
         "org.kde.kdeconnect.app.desktop", "org.kde.kwrite.desktop", "org.kde.spectacle.desktop",
         "org.kde.plasma-systemmonitor.desktop", "net.scribus.Scribus.desktop", "org.lucent.NextGen.desktop"]
@@ -95,7 +95,7 @@ Kicker.DashboardWindow {
         "org.gimp.GIMP.desktop": "GIMP",
         "org.kde.konsole.desktop": i18n("Terminal"),
         "org.lucent.Store.desktop": i18n("Store"),
-        "systemsettings.desktop": i18n("Settings"),
+        "org.lucent.Settings.desktop": i18n("Settings"),
         "org.lucent.Migrate.desktop": i18n("Move from Windows"),
         "org.kde.ark.desktop": i18n("Archives"),
         "org.kde.filelight.desktop": i18n("Disk Usage"),

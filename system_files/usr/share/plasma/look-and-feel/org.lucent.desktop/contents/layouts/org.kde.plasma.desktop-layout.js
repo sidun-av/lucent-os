@@ -44,7 +44,7 @@ tasks.writeConfig("launchers", [
     "applications:org.kde.okular.desktop",
     "applications:org.gimp.GIMP.desktop",
     "applications:org.lucent.Store.desktop",
-    "applications:systemsettings.desktop"
+    "applications:org.lucent.Settings.desktop"
 ]);
 tasks.writeConfig("groupingStrategy", 1);          // group windows by app
 tasks.writeConfig("groupedTaskVisualization", 1);  // click group = thumbnails

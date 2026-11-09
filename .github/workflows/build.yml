@@ -40,6 +40,11 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: pytest -v
+      - name: pytest (Lucent Settings)
+        working-directory: apps/lucent-settings
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: pytest -v
 
   image:
     needs: test

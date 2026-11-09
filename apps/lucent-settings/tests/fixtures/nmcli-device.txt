@@ -1,0 +1,2 @@
+enp0s3:ethernet:connected:Wired connection 1
+lo:loopback:connected (externally):lo

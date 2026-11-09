@@ -1,0 +1,11 @@
+[Unit]
+Description=Lucent Settings: keep the chosen accent colour when the theme switches
+
+[Path]
+# Plasma rewrites kdeglobals when Auto switches light/dark at sunset, which
+# drops a custom accent; lucent-settings-accent.service puts it back.
+PathChanged=%h/.config/kdeglobals
+Unit=lucent-settings-accent.service
+
+[Install]
+WantedBy=default.target

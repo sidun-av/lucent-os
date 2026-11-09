@@ -1,0 +1,4 @@
+wlp2s0:wifi:connected:Home_5G
+enp0s31f6:ethernet:unavailable:
+p2p-dev-wlp2s0:wifi-p2p:disconnected:
+lo:loopback:connected (externally):lo

@@ -1,0 +1,16 @@
+[
+  {
+    "app_id": "notepadplusplus-bdf24a17",
+    "name": "Notepad++",
+    "source": "/var/home/lucent/Downloads/npp.exe",
+    "runner": "wine-fex",
+    "created": 1794236483,
+    "verbs_applied": [],
+    "desktop_entries": [
+      "/var/home/lucent/.local/share/applications/lucent-bridge-notepadplusplus-bdf24a17-notepadplusplus.desktop"
+    ],
+    "icons": [
+      "/var/home/lucent/.local/share/lucent-bridge/icons/notepadplusplus-bdf24a17/notepadplusplus.png"
+    ]
+  }
+]

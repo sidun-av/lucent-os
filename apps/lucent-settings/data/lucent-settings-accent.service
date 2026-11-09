@@ -1,0 +1,7 @@
+[Unit]
+Description=Lucent Settings: put the chosen accent colour back after a theme switch
+
+[Service]
+Type=oneshot
+Environment=PYTHONPATH=/usr/lib/lucent
+ExecStart=/usr/bin/python3 -P -m lucent_settings.accent_sync

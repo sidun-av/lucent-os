@@ -1,0 +1,806 @@
+# Russian translation of Lucent Settings. English is the source language.
+# Compiled at image build time to /usr/share/locale/ru/LC_MESSAGES/lucent-settings.mo
+# (apps/lucent-settings/install.sh, with the migration wizard's .mo writer).
+msgid ""
+msgstr ""
+"Project-Id-Version: lucent-settings\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "32-bit"
+msgstr "32-битная"
+
+msgid "A calm, fast desktop. No ads, no AI, no telemetry."
+msgstr "Спокойная и быстрая система. Без рекламы, без ИИ, без телеметрии."
+
+msgid "A new version of Lucent is available"
+msgstr "Доступна новая версия Lucent"
+
+msgid "A new version of Lucent is ready to install"
+msgstr "Новая версия Lucent готова к установке"
+
+msgid "A photo, or your initials"
+msgstr "Фотография или ваши инициалы"
+
+msgid "A single click only selects"
+msgstr "Одиночный щелчок только выделяет"
+
+msgid "A single click opens files and folders"
+msgstr "Файлы и папки открываются одиночным щелчком"
+
+msgid "About"
+msgstr "О системе"
+
+msgid "Accent colour"
+msgstr "Цвет акцента"
+
+msgid "account name password picture"
+msgstr "учётная запись имя пароль изображение аватар"
+
+msgid "Add a picture…"
+msgstr "Добавить картинку…"
+
+msgid "Add a user for someone else, automatic sign-in"
+msgstr "Добавить пользователя для другого человека, автоматический вход"
+
+msgid "Administrator"
+msgstr "Администратор"
+
+msgid "Advanced network settings"
+msgstr "Дополнительные параметры сети"
+
+msgid "Advanced settings…"
+msgstr "Расширенные настройки…"
+
+msgid "After a restart, this computer starts the version of Lucent you used before the last update. Your files, settings and apps are not touched. You can switch back to the newer version the same way."
+msgstr "После перезапуска компьютер включит версию Lucent, которая работала до последнего обновления. Ваши файлы, настройки и программы не затрагиваются. Вернуться на новую версию можно точно так же."
+
+msgid "All apps are up to date"
+msgstr "Все программы обновлены"
+
+msgid "Already downloaded · takes less than a minute when you restart · your files and apps aren't touched"
+msgstr "Уже скачана · займёт меньше минуты при перезапуске · ваши файлы и программы не затрагиваются"
+
+msgid "Animations"
+msgstr "Анимации"
+
+msgid "App updates"
+msgstr "Обновления программ"
+
+msgid "Appearance"
+msgstr "Оформление"
+
+msgid "Apps"
+msgstr "Программы"
+
+msgid "At the next restart this computer starts the version you used before. Your files and apps stay as they are."
+msgstr "При следующем перезапуске компьютер включит прошлую версию. Ваши файлы и программы останутся как есть."
+
+msgid "Auto"
+msgstr "Авто"
+
+msgid "B"
+msgstr "Б"
+
+msgid "battery {n}%"
+msgstr "заряд {n}%"
+
+msgid "Bluetooth"
+msgstr "Bluetooth"
+
+msgid "built {date}"
+msgstr "сборка от {date}"
+
+msgid "Buttons, selection, switches"
+msgstr "Кнопки, выделение, переключатели"
+
+msgid "Cable"
+msgstr "Кабель"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Change password"
+msgstr "Сменить пароль"
+
+msgid "Change…"
+msgstr "Сменить…"
+
+msgid "Check"
+msgstr "Проверить"
+
+msgid "Check for a new version of Lucent"
+msgstr "Проверьте, есть ли новая версия Lucent"
+
+msgid "Check now"
+msgstr "Проверить сейчас"
+
+msgid "Checking for updates…"
+msgstr "Проверяем обновления…"
+
+msgid "Checking…"
+msgstr "Проверяем…"
+
+msgid "Choose a photo"
+msgstr "Выберите фотографию"
+
+msgid "Choose a photo…"
+msgstr "Выбрать фото…"
+
+msgid "Choose a picture"
+msgstr "Выберите картинку"
+
+msgid "Choose…"
+msgstr "Выбрать…"
+
+msgid "Colour and style"
+msgstr "Цвет и стиль"
+
+msgid "Computer name"
+msgstr "Имя компьютера"
+
+msgid "Connect"
+msgstr "Подключить"
+
+msgid "Connect to Wi-Fi or a network cable. Networks you have joined are remembered."
+msgstr "Подключение к Wi-Fi или по кабелю. Сети, к которым вы подключались, запоминаются."
+
+msgid "Connected"
+msgstr "Подключено"
+
+msgid "Connected to “{name}”"
+msgstr "Подключено к «{name}»"
+
+msgid "Couldn't change the accent colour."
+msgstr "Не удалось сменить цвет акцента."
+
+msgid "Couldn't change the resolution."
+msgstr "Не удалось сменить разрешение."
+
+msgid "Couldn't change the scale."
+msgstr "Не удалось сменить масштаб."
+
+msgid "Couldn't change the theme."
+msgstr "Не удалось сменить тему."
+
+msgid "Couldn't change the wallpaper."
+msgstr "Не удалось сменить обои."
+
+msgid "Couldn't check for updates. Are you online?"
+msgstr "Не удалось проверить обновления. Есть ли подключение к интернету?"
+
+msgid "Couldn't connect to “{name}”."
+msgstr "Не удалось подключиться к «{name}»."
+
+msgid "Couldn't connect."
+msgstr "Не удалось подключиться."
+
+msgid "Couldn't connect. Is the device switched on and close by?"
+msgstr "Не удалось подключиться. Устройство включено и находится рядом?"
+
+msgid "Couldn't disconnect."
+msgstr "Не удалось отключиться."
+
+msgid "Couldn't switch Bluetooth."
+msgstr "Не удалось переключить Bluetooth."
+
+msgid "Couldn't switch to the previous version."
+msgstr "Не удалось переключиться на прошлую версию."
+
+msgid "Couldn't switch Wi-Fi."
+msgstr "Не удалось переключить Wi-Fi."
+
+msgid "Dark"
+msgstr "Тёмная"
+
+msgid "Devices nearby"
+msgstr "Устройства рядом"
+
+msgid "Disconnect"
+msgstr "Отключить"
+
+msgid "Display"
+msgstr "Экран"
+
+msgid "Document — Files"
+msgstr "Документ — Файлы"
+
+msgid "Doesn't work"
+msgstr "Не работает"
+
+msgid "Doesn't work on Lucent"
+msgstr "Не работает в Lucent"
+
+msgid "Done"
+msgstr "Готово"
+
+msgid "Double-click a Windows installer (.exe or .msi) in Files to install a program. It then appears in the Start menu and here."
+msgstr "Чтобы установить программу, дважды щёлкните её установщик (.exe или .msi) в «Файлах». Потом она появится в меню «Пуск» и здесь."
+
+msgid "Download"
+msgstr "Скачать"
+
+msgid "Download it now; it's installed when you restart. Your files and apps aren't touched."
+msgstr "Скачайте её сейчас — она установится при перезапуске. Ваши файлы и программы не затрагиваются."
+
+msgid "Download updates automatically"
+msgstr "Скачивать обновления автоматически"
+
+msgid "Downloaded · {built} · starts at the next restart"
+msgstr "Скачана · {built} · включится при следующем перезапуске"
+
+msgid "Downloading the new version…"
+msgstr "Скачиваем новую версию…"
+
+msgid "Everything the system knows about this computer's parts"
+msgstr "Всё, что система знает о комплектующих компьютера"
+
+msgid "Fast"
+msgstr "Быстрые"
+
+msgid "Find a setting"
+msgstr "Найти настройку"
+
+msgid "Forget"
+msgstr "Забыть"
+
+msgid "GB"
+msgstr "ГБ"
+
+msgid "Go back"
+msgstr "Вернуть"
+
+msgid "Go back to the previous version?"
+msgstr "Вернуться к прошлой версии?"
+
+msgid "Hardware details"
+msgstr "Сведения об оборудовании"
+
+msgid "headphones mouse speaker pair"
+msgstr "наушники мышь колонка сопряжение"
+
+msgid "Headphones, speakers, mice and keyboards. Put a new device in pairing mode, then choose it below."
+msgstr "Наушники, колонки, мыши и клавиатуры. Переведите новое устройство в режим сопряжения и выберите его ниже."
+
+msgid "In the background, once a day. A new version starts when you restart."
+msgstr "В фоне, раз в день. Новая версия включится при перезапуске."
+
+msgid "Input"
+msgstr "Вход"
+
+msgid "Installed and running · {built}"
+msgstr "Установлена и работает · {built}"
+
+msgid "Installed programs"
+msgstr "Установленные программы"
+
+msgid "internet network cable password"
+msgstr "интернет сеть кабель пароль вайфай"
+
+msgid "It starts the next time you restart or turn on the computer."
+msgstr "Она включится при следующем перезапуске или включении компьютера."
+
+msgid "KB"
+msgstr "КБ"
+
+msgid "KDE System Settings: everything Lucent's Settings leaves out (printers, power, mouse and touchpad, date and time, languages…)"
+msgstr "Параметры системы KDE: всё, чего нет в настройках Lucent (принтеры, питание, мышь и тачпад, дата и время, языки…)"
+
+msgid "Keep"
+msgstr "Оставить"
+
+msgid "Keep this resolution? Going back in {n} s."
+msgstr "Оставить это разрешение? Возврат через {n} с."
+
+msgid "Kept so you can go back · {built}"
+msgstr "Сохранена, чтобы можно было вернуться · {built}"
+
+msgid "Keyboard and mouse"
+msgstr "Клавиатура и мышь"
+
+msgid "Keyboard shortcuts"
+msgstr "Сочетания клавиш"
+
+msgid "large"
+msgstr "крупный"
+
+msgid "larger"
+msgstr "очень крупный"
+
+msgid "Last check"
+msgstr "Последняя проверка"
+
+msgid "Last check: {when}"
+msgstr "Последняя проверка: {when}"
+
+msgid "Later"
+msgstr "Позже"
+
+msgid "Light"
+msgstr "Светлая"
+
+msgid "light by day, dark after sunset"
+msgstr "светлая днём, тёмная после заката"
+
+msgid "Light or dark theme, accent colour and wallpaper. Changes apply right away, no restart needed."
+msgstr "Светлая или тёмная тема, цвет акцента и обои. Изменения применяются сразу, без перезапуска."
+
+msgid "Like Windows"
+msgstr "Как в Windows"
+
+msgid "Lock the computer"
+msgstr "Заблокировать компьютер"
+
+msgid "Looking for devices…"
+msgstr "Ищем устройства…"
+
+msgid "Looking for networks…"
+msgstr "Ищем сети…"
+
+msgid "Lucent is up to date"
+msgstr "У вас последняя версия Lucent"
+
+msgid "Lucent updates as a whole, like a phone: the new version is prepared next to the current one and starts when you restart. If something goes wrong, you can go back to the previous version in one step."
+msgstr "Lucent обновляется целиком, как телефон: новая версия собирается рядом с текущей и включается при перезапуске. Если что-то пойдёт не так, можно вернуться к прошлой версии одним нажатием."
+
+msgid "Lucent will go back to the previous version"
+msgstr "Lucent вернётся к прошлой версии"
+
+msgid "made for Intel/AMD, translated"
+msgstr "для Intel/AMD, с переводом"
+
+msgid "Make sure the device is switched on and in pairing mode."
+msgstr "Убедитесь, что устройство включено и находится в режиме сопряжения."
+
+msgid "MB"
+msgstr "МБ"
+
+msgid "Memory"
+msgstr "Память"
+
+msgid "Microphone"
+msgstr "Микрофон"
+
+msgid "Microphone level"
+msgstr "Уровень микрофона"
+
+msgid "Microphone off"
+msgstr "Микрофон выключен"
+
+msgid "MMMM d, yyyy"
+msgstr "d MMMM yyyy"
+
+msgid "Model"
+msgstr "Модель"
+
+msgid "More"
+msgstr "Ещё"
+
+msgid "More settings"
+msgstr "Другие настройки"
+
+msgid "Muted"
+msgstr "Звук выключен"
+
+msgid "My devices"
+msgstr "Мои устройства"
+
+msgid "Name"
+msgstr "Имя"
+
+msgid "Network cable"
+msgstr "Сетевой кабель"
+
+msgid "never"
+msgstr "никогда"
+
+msgid "New password"
+msgstr "Новый пароль"
+
+msgid "New password again"
+msgstr "Новый пароль ещё раз"
+
+msgid "New version"
+msgstr "Новая версия"
+
+msgid "Night light"
+msgstr "Ночной свет"
+
+msgid "No Bluetooth adapter found"
+msgstr "Адаптер Bluetooth не найден"
+
+msgid "No cable plugged in"
+msgstr "Кабель не подключён"
+
+msgid "No microphone found."
+msgstr "Микрофон не найден."
+
+msgid "No networks found"
+msgstr "Сети не найдены"
+
+msgid "No sound device (nothing will be heard)"
+msgstr "Нет звукового устройства (звука не будет)"
+
+msgid "No speakers or headphones found. Connect some, or check that the sound card is enabled in the firmware."
+msgstr "Колонки и наушники не найдены. Подключите их или проверьте, что звуковая карта включена в прошивке (BIOS)."
+
+msgid "No Windows programs yet"
+msgstr "Программ Windows пока нет"
+
+msgid "Normal"
+msgstr "Обычные"
+
+msgid "Not available on this processor"
+msgstr "Недоступно на этом процессоре"
+
+msgid "Not connected"
+msgstr "Не подключено"
+
+msgid "Not tested yet"
+msgstr "Ещё не проверялась"
+
+msgid "Nothing found. More settings are in Advanced settings (About)."
+msgstr "Ничего не найдено. Остальные настройки — в «Расширенных настройках» (О системе)."
+
+msgid "Now: {size}"
+msgstr "Сейчас: {size}"
+
+msgid "Now: {w} × {h}"
+msgstr "Сейчас: {w} × {h}"
+
+msgid "Off"
+msgstr "Выкл."
+
+msgid "OK"
+msgstr "ОК"
+
+msgid "On. Other devices can find this computer while this page is open."
+msgstr "Включён. Пока эта страница открыта, другие устройства видят этот компьютер."
+
+msgid "Open Files"
+msgstr "Открыть «Файлы»"
+
+msgid "Open files with a double-click"
+msgstr "Открывать файлы двойным щелчком"
+
+msgid "Open folder"
+msgstr "Открыть папку"
+
+msgid "Options"
+msgstr "Параметры"
+
+msgid "Other people and sign-in options"
+msgstr "Другие пользователи и вход в систему"
+
+msgid "Output"
+msgstr "Выход"
+
+msgid "Pair"
+msgstr "Подключить"
+
+msgid "Pairing didn't work. Make sure the device is in pairing mode and close by."
+msgstr "Сопряжение не удалось. Убедитесь, что устройство в режиме сопряжения и находится рядом."
+
+msgid "Password"
+msgstr "Пароль"
+
+msgid "Password changed."
+msgstr "Пароль изменён."
+
+msgid "Picture"
+msgstr "Изображение"
+
+msgid "Pictures"
+msgstr "Изображения"
+
+msgid "Play sound through"
+msgstr "Выводить звук через"
+
+msgid "Previous version"
+msgstr "Прошлая версия"
+
+msgid "Processor"
+msgstr "Процессор"
+
+msgid "programs exe remove uninstall"
+msgstr "программы exe удалить удаление"
+
+msgid "Programs for Windows that you installed by double-clicking their installer. They run in Lucent Bridge, each in its own folder."
+msgstr "Программы для Windows, установленные двойным щелчком по установщику. Они работают в Lucent Bridge, каждая в своей папке."
+
+msgid "Recommended for this screen: {n}"
+msgstr "Рекомендуется для этого экрана: {n}"
+
+msgid "Remove"
+msgstr "Удалить"
+
+msgid "Remove “{name}”?"
+msgstr "Удалить «{name}»?"
+
+msgid "Resolution"
+msgstr "Разрешение"
+
+msgid "Restart now"
+msgstr "Перезапустить сейчас"
+
+msgid "Roll back"
+msgstr "Откатить"
+
+msgid "Roll back to previous version"
+msgstr "Откатить к прошлой версии"
+
+msgid "running now"
+msgstr "работает сейчас"
+
+msgid "Runs directly on this processor"
+msgstr "Работают напрямую на этом процессоре"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Screen"
+msgstr "Экран"
+
+msgid "screen resolution scale night light"
+msgstr "экран разрешение масштаб ночной свет монитор"
+
+msgid "Screen resolution, the size of everything on screen, and night light."
+msgstr "Разрешение экрана, размер всего на экране и ночной свет."
+
+msgid "Screenshot"
+msgstr "Снимок экрана"
+
+msgid "Settings"
+msgstr "Настройки"
+
+msgid "shortcuts keyboard layout language double-click"
+msgstr "сочетания клавиши раскладка язык двойной щелчок"
+
+msgid "Show desktop"
+msgstr "Показать рабочий стол"
+
+msgid "Shown on the login screen. Your sign-in name stays “{login}”."
+msgstr "Показывается на экране входа. Имя для входа остаётся «{login}»."
+
+msgid "Size of text and apps"
+msgstr "Размер текста и программ"
+
+msgid "small"
+msgstr "мелкий"
+
+msgid "Snap window to a side"
+msgstr "Прикрепить окно к краю"
+
+msgid "Some apps couldn't be updated."
+msgstr "Некоторые программы не удалось обновить."
+
+msgid "Sound"
+msgstr "Звук"
+
+msgid "standard"
+msgstr "обычный"
+
+msgid "Standard user"
+msgstr "Обычный пользователь"
+
+msgid "Start menu"
+msgstr "Меню программ"
+
+msgid "starts after restart"
+msgstr "включится при перезапуске"
+
+msgid "Storage"
+msgstr "Хранилище"
+
+msgid "Switch keyboard layout"
+msgstr "Переключение раскладки"
+
+msgid "Switch windows"
+msgstr "Переключение окон"
+
+msgid "System build"
+msgstr "Сборка системы"
+
+msgid "System versions on this computer"
+msgstr "Версии системы на этом компьютере"
+
+msgid "Takes effect when you have two or more layouts. Win + Space always works too."
+msgstr "Работает, когда раскладок две или больше. Win + Пробел работает всегда."
+
+msgid "Task Manager"
+msgstr "Диспетчер задач"
+
+msgid "TB"
+msgstr "ТБ"
+
+msgid "Text and motion"
+msgstr "Текст и движение"
+
+msgid "Text size"
+msgstr "Размер текста"
+
+msgid "The familiar buttons and keyboard shortcuts are already on. Check or change them here."
+msgstr "Привычные кнопки и сочетания клавиш уже включены. Здесь можно их проверить или поменять."
+
+msgid "The name wasn't changed."
+msgstr "Имя не изменено."
+
+msgid "The password wasn't changed."
+msgstr "Пароль не изменён."
+
+msgid "The password wasn't changed: confirming with your current password was cancelled or failed."
+msgstr "Пароль не изменён: подтверждение текущим паролем отменено или не прошло."
+
+msgid "The picture wasn't changed."
+msgstr "Изображение не изменено."
+
+msgid "The program wasn't removed."
+msgstr "Программа не удалена."
+
+msgid "The program, its settings and the files it keeps in its own folder are deleted. Documents you saved in your Documents folder stay."
+msgstr "Программа, её настройки и файлы в её собственной папке будут удалены. Документы, сохранённые в папке «Документы», останутся."
+
+msgid "The setting wasn't changed."
+msgstr "Настройка не изменена."
+
+msgid "The two passwords are different."
+msgstr "Пароли не совпадают."
+
+msgid "The update couldn't be downloaded."
+msgstr "Не удалось скачать обновление."
+
+msgid "theme dark light accent wallpaper text size"
+msgstr "тема тёмная светлая акцент обои размер текста шрифт"
+
+msgid "This computer"
+msgstr "Этот компьютер"
+
+msgid "This computer has an ARM processor. Programs made for Intel/AMD PCs are translated while they run, so heavy programs and games can be slower."
+msgstr "В этом компьютере процессор ARM. Программы для компьютеров с Intel/AMD переводятся на лету, поэтому тяжёлые программы и игры могут работать медленнее."
+
+msgid "This computer has an Intel or AMD (x86-64) processor, like most Windows PCs, so Windows programs run at full speed."
+msgstr "В этом компьютере процессор Intel или AMD (x86-64), как в большинстве компьютеров с Windows, поэтому программы Windows работают на полной скорости."
+
+msgid "This computer has no Bluetooth, or it is switched off in the firmware (BIOS) or with a key on the keyboard. A USB Bluetooth adapter works too."
+msgstr "В этом компьютере нет Bluetooth, или он выключен в прошивке (BIOS) или клавишей на клавиатуре. Подойдёт и USB-адаптер Bluetooth."
+
+msgid "This computer has no Wi-Fi adapter."
+msgstr "В этом компьютере нет адаптера Wi-Fi."
+
+msgid "To confirm, you'll be asked for your current password."
+msgstr "Для подтверждения понадобится текущий пароль."
+
+msgid "today, {time}"
+msgstr "сегодня, {time}"
+
+msgid "Translated for this ARM processor"
+msgstr "Переводятся для процессора ARM"
+
+msgid "Type the new password."
+msgstr "Введите новый пароль."
+
+msgid "Unknown model"
+msgstr "Неизвестная модель"
+
+msgid "Update apps"
+msgstr "Обновить программы"
+
+msgid "update version roll back apps"
+msgstr "обновление версия откат программы"
+
+msgid "Updates"
+msgstr "Обновления"
+
+msgid "Use at least {n} characters."
+msgstr "Используйте не меньше {n} символов."
+
+msgid "Use initials"
+msgstr "Инициалы"
+
+msgid "Users"
+msgstr "Пользователи"
+
+msgid "Volume"
+msgstr "Громкость"
+
+msgid "volume speakers microphone"
+msgstr "громкость колонки микрофон"
+
+msgid "VPN, proxy, work and school networks, IP addresses"
+msgstr "VPN, прокси, рабочие и учебные сети, IP-адреса"
+
+msgid "Wallpaper"
+msgstr "Обои"
+
+msgid "Warmer colours in the evening, easier on the eyes. Follows sunset and sunrise."
+msgstr "Тёплые цвета вечером, глазам легче. Следует за закатом и рассветом."
+
+msgid "Where sound plays, and the microphone apps use."
+msgstr "Куда выводится звук и какой микрофон используют программы."
+
+msgid "Wi-Fi"
+msgstr "Wi-Fi"
+
+msgid "Wi-Fi & Network"
+msgstr "Wi-Fi и сеть"
+
+msgid "Wi-Fi password"
+msgstr "Пароль Wi-Fi"
+
+msgid "Win + Space always works too. The current layout shows on the taskbar."
+msgstr "Win + Пробел работает всегда. Текущая раскладка видна на панели задач."
+
+msgid "Win + Space only"
+msgstr "Только Win + Пробел"
+
+msgid "Window buttons on the left"
+msgstr "Кнопки окна слева"
+
+msgid "Window buttons on the right"
+msgstr "Кнопки окна справа"
+
+msgid "Windows opening, closing and minimising"
+msgstr "Окна открываются, закрываются и сворачиваются"
+
+msgid "Windows Programs"
+msgstr "Windows-программы"
+
+msgid "Windows programs need an Intel/AMD or ARM processor."
+msgstr "Программам Windows нужен процессор Intel/AMD или ARM."
+
+msgid "Wired connection"
+msgstr "Проводное подключение"
+
+msgid "Work or school network: set it up in Advanced network settings"
+msgstr "Рабочая или учебная сеть: настройте её в дополнительных параметрах сети"
+
+msgid "Works"
+msgstr "Работает"
+
+msgid "Works well"
+msgstr "Работает хорошо"
+
+msgid "Works, with known problems"
+msgstr "Работает, есть известные проблемы"
+
+msgid "yesterday, {time}"
+msgstr "вчера, {time}"
+
+msgid "You can keep working. It's installed when you restart."
+msgstr "Можно продолжать работать. Установка — при перезапуске."
+
+msgid "You have the newest version. Last check: {when}"
+msgstr "Это самая новая версия. Последняя проверка: {when}"
+
+msgid "Your name, picture and password. They show on the login screen and in the Start menu."
+msgstr "Ваше имя, изображение и пароль. Они видны на экране входа и в меню «Пуск»."
+
+msgid "{built} · starts at the next restart"
+msgstr "{built} · включится при следующем перезапуске"
+
+msgid "{free} GB free of {total} GB"
+msgstr "свободно {free} ГБ из {total} ГБ"
+
+msgid "{n} GB"
+msgstr "{n} ГБ"
+
+msgid "— like Windows"
+msgstr "— как в Windows"
+
+msgid "“{name}”, comes with Lucent"
+msgstr "«{name}» — входит в Lucent"
+
+msgid "{name} ({n} core)"
+msgid_plural "{name} ({n} cores)"
+msgstr[0] "{name} ({n} ядро)"
+msgstr[1] "{name} ({n} ядра)"
+msgstr[2] "{name} ({n} ядер)"
+
+msgid "{n} app can be updated: {names}"
+msgid_plural "{n} apps can be updated: {names}"
+msgstr[0] "Можно обновить {n} программу: {names}"
+msgstr[1] "Можно обновить {n} программы: {names}"
+msgstr[2] "Можно обновить {n} программ: {names}"
