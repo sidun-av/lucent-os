@@ -121,4 +121,31 @@ step "udev and polkit rules"
 udevadm verify /usr/lib/udev/rules.d/99-lucent-windows-readonly.rules
 test -r /usr/share/polkit-1/rules.d/50-lucent-windows-disks.rules
 
+step "updates: staged in the background, applied at the next restart"
+grep -qx 'AutomaticUpdatePolicy=stage' /etc/rpm-ostreed.conf
+systemctl cat rpm-ostreed-automatic.service | grep -q 'ExecStart='
+test -s /etc/containers/registries.d/lucent-os.yaml
+if [ -f /etc/pki/containers/lucent-os.pub ]; then
+    python3 -c 'import json, sys
+p = json.load(open("/etc/containers/policy.json"))
+assert p["default"] == [{"type": "reject"}], p["default"]
+r = p["transports"]["docker"]["ghcr.io/sidun-av/lucent-os"][0]
+assert r["type"] == "sigstoreSigned" and r["keyPath"] == "/etc/pki/containers/lucent-os.pub", r
+assert p["transports"]["docker"][""] == [{"type": "insecureAcceptAnything"}]'
+    echo "signature policy: updates must be signed with /etc/pki/containers/lucent-os.pub"
+else
+    echo "signature policy: no Lucent key in the image yet, updates are not signature-checked"
+fi
+updates_enabled() {
+    systemctl is-enabled -q rpm-ostreed-automatic.timer
+    state=$(systemctl is-enabled bootc-fetch-apply-updates.timer 2>/dev/null || true)
+    echo "rpm-ostreed-automatic.timer: enabled; bootc-fetch-apply-updates.timer: ${state:-absent}"
+    [ "$state" != enabled ]
+}
+updates_enabled
+# First boot applies the presets (systemd: enable-only); they must not undo
+# this. The container is thrown away, so applying them here is harmless.
+systemctl preset-all --preset-mode=enable-only
+updates_enabled
+
 echo; echo "smoke test passed"

@@ -1,0 +1,5 @@
+# Lucent OS updates download in the background and start at the next restart
+# (rpm-ostree with AutomaticUpdatePolicy=stage in /etc/rpm-ostreed.conf).
+enable rpm-ostreed-automatic.timer
+# bootc's timer reboots by itself right after downloading (bootc upgrade --apply).
+disable bootc-fetch-apply-updates.timer

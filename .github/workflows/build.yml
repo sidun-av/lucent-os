@@ -1,5 +1,13 @@
 name: build
 
+# The image, for both architectures, and its update channels:
+#   push to main (and the weekly rebuild) -> :testing, plus :latest (the same
+#     image; older installs and the test VMs follow it) and :<sha>
+#   a release (called by release.yml with a version) -> :X.Y.Z and :stable,
+#     which installed systems follow
+# Every published multi-arch image (index and per-arch manifests) is signed
+# with Sigstore (cosign, keyless: the certificate names this workflow and its
+# ref), and the signature is verified right after. Details: docs/updates.md.
 on:
   push:
     branches: [main]
@@ -7,13 +15,21 @@ on:
   schedule:
     - cron: "17 4 * * 1"   # weekly: pick up Fedora security/bug-fix updates
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        description: "Release version X.Y.Z: publishes :X.Y.Z and :stable instead of :testing"
+        type: string
+        required: true
 
 permissions:
   contents: read
   packages: write
+  id-token: write   # Sigstore keyless signing
 
 env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/lucent-os
+  VERSION: ${{ inputs.version }}
 
 concurrency:
   group: build-${{ github.ref }}
@@ -61,6 +77,8 @@ jobs:
           cmake --build /tmp/thispc --parallel
           (cd /tmp/thispc && ctest --output-on-failure)
           pytest -v -p no:cacheprovider build_files/thispc/tests
+      - name: pytest (image build helpers)
+        run: pytest -v build_files/tests
 
   image:
     needs: test
@@ -86,29 +104,118 @@ jobs:
         run: |
           sudo podman build --pull=newer \
             --label org.opencontainers.image.revision=${{ github.sha }} \
+            ${VERSION:+--label org.opencontainers.image.version=$VERSION} \
             -t "$IMAGE:${{ matrix.arch }}" -f Containerfile .
           sudo podman images
-      - name: Smoke test (Windows apps, units, rules) inside the built image
+      - name: Smoke test (Windows apps, units, rules, update settings) inside the built image
         run: sudo podman run --rm -v ./build_files:/t:ro "$IMAGE:${{ matrix.arch }}" /t/smoke-test.sh
+      - name: Signature policy test (the image's own tools, an ephemeral key, a local registry)
+        run: |
+          sudo podman run -d --name sigtest-registry -p 127.0.0.1:5000:5000 docker.io/library/registry:2
+          d="$RUNNER_TEMP/sigtest"
+          mkdir -p "$d" && printf 'lucent\n' > "$d/x" && printf 'FROM scratch\nCOPY x /x\n' > "$d/Containerfile"
+          sudo podman build -t localhost:5000/lucent-sigtest:one "$d"
+          sudo podman push --tls-verify=false localhost:5000/lucent-sigtest:one
+          sudo podman push --tls-verify=false localhost:5000/lucent-sigtest:one docker://localhost:5000/other:one
+          sudo podman run --rm --network host -v ./build_files:/t:ro "$IMAGE:${{ matrix.arch }}" /t/test-sigpolicy.sh localhost:5000
+          sudo podman rm -f sigtest-registry
+          sudo podman rmi localhost:5000/lucent-sigtest:one
       - name: Push
         if: github.event_name != 'pull_request'
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | sudo podman login ghcr.io -u "${{ github.actor }}" --password-stdin
-          sudo podman tag "$IMAGE:${{ matrix.arch }}" "$IMAGE:latest-${{ matrix.arch }}" "$IMAGE:${{ github.sha }}-${{ matrix.arch }}"
-          sudo podman push "$IMAGE:latest-${{ matrix.arch }}"
-          sudo podman push "$IMAGE:${{ github.sha }}-${{ matrix.arch }}"
+          # Per-arch tags, for the multi-arch index the manifest job makes.
+          if [ -n "$VERSION" ]; then
+            tags="$VERSION-${{ matrix.arch }}"
+          else
+            tags="latest-${{ matrix.arch }} ${{ github.sha }}-${{ matrix.arch }}"
+          fi
+          for t in $tags; do
+            sudo podman tag "$IMAGE:${{ matrix.arch }}" "$IMAGE:$t"
+            sudo podman push "$IMAGE:$t"
+          done
 
   manifest:
     needs: image
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
+    env:
+      ISSUER: https://token.actions.githubusercontent.com
+      HAVE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY != '' }}
     steps:
-      - name: Publish multi-arch :latest
+      - name: Publish the multi-arch image
+        id: push
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
-          for tag in latest ${{ github.sha }}; do
-            podman manifest create "lucent:$tag"
-            podman manifest add "lucent:$tag" "docker://$IMAGE:${{ github.sha }}-amd64"
-            podman manifest add "lucent:$tag" "docker://$IMAGE:${{ github.sha }}-arm64"
-            podman manifest push --all "lucent:$tag" "docker://$IMAGE:$tag"
+          if [ -n "$VERSION" ]; then
+            src=$VERSION; tags="$VERSION stable"
+          else
+            src=${{ github.sha }}; tags="testing latest ${{ github.sha }}"
+          fi
+          podman manifest create lucent:list
+          podman manifest add lucent:list "docker://$IMAGE:$src-amd64"
+          podman manifest add lucent:list "docker://$IMAGE:$src-arm64"
+          : > digests
+          for tag in $tags; do
+            podman manifest push --all --digestfile d lucent:list "docker://$IMAGE:$tag"
+            echo "$IMAGE:$tag -> $(cat d)"
+            cat d >> digests; echo >> digests
           done
+          sort -u digests | grep . > unique
+          [ "$(wc -l < unique)" = 1 ] || { echo "::error::the tags got different digests"; cat unique; exit 1; }
+          echo "digest=$(cat unique)" >> "$GITHUB_OUTPUT"
+      - uses: sigstore/cosign-installer@v4.1.2
+        with:
+          cosign-release: v3.1.4
+      - name: Sign (Sigstore keyless; the index and each architecture's image)
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io -u "${{ github.actor }}" --password-stdin
+          cosign sign --yes --recursive "$IMAGE@$DIGEST"
+      - name: Verify the signatures as a user would
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          # The certificate names the workflow that signed: build.yml at this ref
+          # (refs/heads/main, or the release's refs/tags/vX.Y.Z).
+          identity="https://github.com/${{ github.repository }}/.github/workflows/build.yml@${{ github.ref }}"
+          refs="$IMAGE@$DIGEST $(skopeo inspect --raw "docker://$IMAGE@$DIGEST" | jq -r --arg i "$IMAGE" '.manifests[] | "\($i)@\(.digest)"')"
+          for ref in $refs; do
+            cosign verify --certificate-identity "$identity" --certificate-oidc-issuer "$ISSUER" "$ref" > /dev/null
+            echo "verified $ref"
+          done
+          {
+            echo "### Image"
+            echo "\`$IMAGE@$DIGEST\` (${VERSION:+$VERSION, stable}${VERSION:-testing, latest}), signed by \`$identity\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+      # Installed systems can't check keyless signatures (containers/image
+      # matches Fulcio identities by email only, and GitHub Actions has
+      # none), so they check a signature by Lucent's key: made here, with
+      # containers/image's own signer, once the key is set up (secrets
+      # COSIGN_PRIVATE_KEY / COSIGN_PASSWORD from
+      # `cosign generate-key-pair github://sidun-av/lucent-os`, public half in
+      # system_files/etc/pki/containers/lucent-os.pub). docs/updates.md.
+      - uses: actions/checkout@v4
+        if: env.HAVE_KEY == 'true'
+      - name: Sign with Lucent's update key (what installed systems check)
+        if: env.HAVE_KEY == 'true'
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          k="$RUNNER_TEMP/signing"
+          mkdir -m 700 "$k"
+          printf '%s' "$COSIGN_PRIVATE_KEY" > "$k/key"
+          printf '%s' "$COSIGN_PASSWORD" > "$k/pass"
+          mkdir "$k/registries.d"
+          printf 'docker:\n  %s:\n    use-sigstore-attachments: true\n' "$IMAGE" > "$k/registries.d/lucent.yaml"
+          # Re-push the same index (same digests) with signatures attached.
+          skopeo --registries.d "$k/registries.d" copy --all --preserve-digests \
+            --sign-by-sigstore-private-key "$k/key" --sign-passphrase-file "$k/pass" \
+            "docker://$IMAGE@$DIGEST" "docker://$IMAGE:${VERSION:-testing}"
+          rm -rf "$k"
+          cosign verify --key system_files/etc/pki/containers/lucent-os.pub --insecure-ignore-tlog=true \
+            "$IMAGE@$DIGEST" > /dev/null
+          echo "signed with Lucent's update key: $IMAGE@$DIGEST" | tee -a "$GITHUB_STEP_SUMMARY"

@@ -198,6 +198,38 @@ gtk-update-icon-cache -f /usr/share/icons/hicolor 2>/dev/null || true
 systemctl enable lucent-flatpak-setup.service lucent-flatpak-relabel.service lucent-drive-letters.service lucent-bridge-template.timer
 /ctx/build_files/performance.sh           # boot time and idle memory (docs/performance.md)
 
+# Updates (docs/updates.md): new versions of the system download in the
+# background and are staged; they start at the next restart, and the previous
+# version stays one step away. That is rpm-ostree's AutomaticUpdatePolicy=stage
+# with its daily timer (Settings -> Updates turns it off and on, through
+# /usr/libexec/lucent/settings-helper). bootc's own timer stays off: it runs
+# `bootc upgrade --apply`, which reboots by itself. 10-lucent-updates.preset
+# keeps it that way when presets are applied (first boot).
+conf=/etc/rpm-ostreed.conf
+[ -f "$conf" ] || printf '[Daemon]\n' > "$conf"
+if grep -Eq '^#?[[:space:]]*AutomaticUpdatePolicy=' "$conf"; then
+    sed -i -E 's/^#?[[:space:]]*AutomaticUpdatePolicy=.*/AutomaticUpdatePolicy=stage/' "$conf"
+else
+    sed -i 's/^\[Daemon\]$/[Daemon]\nAutomaticUpdatePolicy=stage/' "$conf"
+fi
+grep -qx 'AutomaticUpdatePolicy=stage' "$conf"
+systemctl enable rpm-ostreed-automatic.timer
+if systemctl cat bootc-fetch-apply-updates.timer &>/dev/null; then
+    systemctl disable bootc-fetch-apply-updates.timer
+fi
+# Signed updates: once Lucent's public key is in the image
+# (/etc/pki/containers/lucent-os.pub, see docs/updates.md), updates from
+# ghcr.io/sidun-av/lucent-os must carry a signature from it; nothing else
+# changes for other images. Systems installed from the ISO then pull with
+# `ostree-image-signed:` (iso/lucent-apps.ks). Without the key, no change.
+if [ -f /etc/pki/containers/lucent-os.pub ]; then
+    base=/etc/containers/policy.json
+    [ -f "$base" ] || base=/usr/share/containers/policy.json
+    python3 -P /ctx/build_files/container-policy.py "$base" \
+        --key /etc/pki/containers/lucent-os.pub --scope ghcr.io/sidun-av/lucent-os \
+        --out /etc/containers/policy.json
+fi
+
 # Privacy: Fedora's "countme" sends a weekly anonymous ping used to count
 # installations. Lucent promises no telemetry, so it is masked.
 for unit in rpm-ostree-countme.timer rpm-ostree-countme.service; do
