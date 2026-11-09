@@ -82,16 +82,20 @@ jobs:
           fi
           echo "ref=$IMAGE:$tag" >> "$GITHUB_OUTPUT"
           echo "Auditing $IMAGE:$tag"
+      # podman, not docker: the image has more layers than docker's overlay
+      # driver accepts ("failed to register layer: max depth exceeded").
+      - name: Install podman if missing
+        run: command -v podman || (sudo apt-get update -qq && sudo apt-get install -y -qq podman)
       - name: Pull
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          docker pull -q "${{ steps.img.outputs.ref }}"
-          docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "${{ steps.img.outputs.ref }}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | sudo podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+          sudo podman pull -q "${{ steps.img.outputs.ref }}"
+          sudo podman inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "${{ steps.img.outputs.ref }}"
       - name: Audit inside the image
         run: |
           mkdir -p "$RUNNER_TEMP/out"
           set +e
-          docker run --rm -v "$PWD:/src:ro" -v "$RUNNER_TEMP/out:/out" "${{ steps.img.outputs.ref }}" \
+          sudo podman run --rm -v "$PWD:/src:ro" -v "$RUNNER_TEMP/out:/out" "${{ steps.img.outputs.ref }}" \
             python3 -I /src/tests/hardware/hw_audit.py --repo /src --out /out > "$RUNNER_TEMP/log.txt" 2>&1
           rc=$?
           set -e
