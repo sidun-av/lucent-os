@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "system_files/usr/share/wallpapers/Drift/contents/images_dark/2560x1440.jpg"
 OUT = ROOT / "system_files/usr/share/plymouth/themes/lucent/background.png"
 BLUR = 0.9 * 64                     # Main.qml: MultiEffect blurMax 64, blur 0.9
-SCRIM, SCRIM_OPACITY = (0x0b, 0x0f, 0x1a), 0.45   # Main.qml: the dark scrim over it
+SCRIM, SCRIM_OPACITY = (0x0e, 0x10, 0x20), 0.45   # Main.qml: the Drift-night veil over it
 SIZE = (640, 360)
 
 

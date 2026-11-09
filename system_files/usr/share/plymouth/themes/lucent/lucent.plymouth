@@ -22,8 +22,8 @@ TransitionDuration=0.0
 # 640x360, scaled to the screen once) over a gradient of its top and bottom
 # averages, which is also what a Plymouth without background.png shows.
 ScaleBackgroundImage=true
-BackgroundStartColor=0x201b57
-BackgroundEndColor=0x183653
+BackgroundStartColor=0x211b5a
+BackgroundEndColor=0x1a3655
 # --surface-raised-2 and --accent of pebble-drift.css, dark
 ProgressBarBackgroundColor=0x2c2f44
 ProgressBarForegroundColor=0x7088ff
