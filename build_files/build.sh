@@ -96,10 +96,14 @@ shopt -s nullglob
 d3d11_links=(/etc/alternatives/wine-d3d11*)
 shopt -u nullglob
 if ((${#d3d11_links[@]})); then
-    d3d11=$(readlink -f "${d3d11_links[0]}")
+    # Fedora's wine-dxvk covers 64-bit programs only; the 32-bit (x86-32)
+    # alternative has no DXVK candidate and stays on wined3d. 64-bit must
+    # be DXVK.
+    for link in "${d3d11_links[@]}"; do echo "${link##*/} -> $(readlink -f "$link")"; done
+    d3d11=$(readlink -f '/etc/alternatives/wine-d3d11(x86-64)' || true)
     case "$d3d11" in
-        *dxvk*) echo "Direct3D 11 -> $d3d11" ;;
-        *) echo "DXVK is not the Direct3D 11 implementation (got: $d3d11)"; exit 1 ;;
+        *dxvk*) ;;
+        *) echo "DXVK is not the 64-bit Direct3D 11 implementation (got: ${d3d11:-nothing})"; exit 1 ;;
     esac
 else
     # No alternatives at all: wine-dxvk installs its DLLs directly (the

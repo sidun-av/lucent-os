@@ -49,7 +49,8 @@ jobs:
 
       - name: Offline app bundle (Flathub apps + runtimes as a ready /var/lib/flatpak)
         run: |
-          sudo podman run --rm -v "$PWD:/src:ro" -v "$WORK:/out" "$FEDORA" /src/iso/build-app-bundle.sh /out
+          # --privileged: flatpak runs its install triggers (icon/desktop caches) in bwrap.
+          sudo podman run --rm --privileged -v "$PWD:/src:ro" -v "$WORK:/out" "$FEDORA" /src/iso/build-app-bundle.sh /out
       - name: Check the bundle offline in the Lucent image
         run: |
           sudo podman run --rm --network none -v "$PWD:/src:ro" -v "$WORK:/out:ro" "$IMAGE:latest" \
