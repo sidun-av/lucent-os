@@ -11,10 +11,14 @@
 # then downloads the apps after first boot, as on the online path.
 %post --nochroot --log=/tmp/lucent-apps.log
 set -u
+# Also on the serial console when there is one (CI's install test reads it).
+if [ -c /dev/ttyS0 ]; then exec > >(tee -a /dev/ttyS0) 2>&1; fi
+echo "lucent-apps: start"
 src=/run/install/repo/lucent-apps
 root=/mnt/sysroot
 if [ ! -f "$src/SHA256SUMS" ]; then
-    echo "no offline app bundle on the install media; apps download after first boot"
+    echo "no offline app bundle at $src; apps download after first boot"
+    ls -la /run/install/repo/ 2>&1 | head -20
     exit 0
 fi
 # /mnt/sysroot is the new deployment, but its /var is not the /var the

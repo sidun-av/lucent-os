@@ -153,6 +153,7 @@ jobs:
             -boot order=d -nic none -display none -no-reboot \
             -serial file:"$WORK/serial.log"
           echo "install took $(( $(date +%s) - start )) s" | tee -a "$GITHUB_STEP_SUMMARY"
+          grep -a 'lucent-apps\|unpacking\|default apps\|bundle' "$WORK/serial.log" || true
           tail -n 40 "$WORK/serial.log"
       - name: Install test - check the apps on the installed disk
         if: inputs.install_test && inputs.arch == 'amd64'
@@ -170,6 +171,8 @@ jobs:
           var=$(sudo find /mnt/inst/ostree/deploy -mindepth 2 -maxdepth 2 -name var -type d | head -n1)
           echo "stateroot var: $var"
           sudo cat "$var/log/lucent/apps-install.log" || true
+          sudo find /mnt/inst -xdev \( -name 'apps-install.log' -o -name 'lucent-apps.log' -o -name 'ks-script-*' \) -print 2>/dev/null | head -20
+          sudo find /mnt/inst -xdev -maxdepth 9 -type d -path '*/lib/flatpak/app' -print 2>/dev/null
           # (data must not end up in the deployment's own, unused /var)
           sudo sh -c 'ls -d /mnt/inst/ostree/deploy/*/deploy/*/var/lib/flatpak/app 2>/dev/null' && echo "WARNING: apps in the deployment /var"
           fail=0
