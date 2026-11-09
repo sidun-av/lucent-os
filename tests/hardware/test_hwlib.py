@@ -83,3 +83,11 @@ def test_tray_icons_ignore_a_soft_gradient():
         paint(f, x, 0, x + 1, 60, (220 + x // 15, 225, 235))
     paint(f, 50, 20, 66, 36)
     assert [round(x) for x, _ in hwlib.tray_icons(f, 0, 300, 0, 60)] == [58]
+
+
+def test_tray_icons_finds_a_faint_icon():
+    # Plasma draws an idle Bluetooth icon in light grey on the light panel.
+    f = frame(300, 60, bg=(240, 240, 247))
+    paint(f, 40, 20, 56, 36, (212, 212, 220))
+    paint(f, 100, 20, 116, 36)
+    assert [round(x) for x, _ in hwlib.tray_icons(f, 0, 300, 0, 60)] == [48, 108]

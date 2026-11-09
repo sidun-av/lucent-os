@@ -152,7 +152,18 @@ class Test:
         return rows
 
     def qmp(self, cmd, **args):
-        return self.q.cmd(cmd, **args)
+        return self.qmp_args(cmd, args)
+
+    def qmp_args(self, cmd, args):
+        """QMP command with an argument dict (set_link takes "name", which
+        the client's cmd(name, **args) cannot pass)."""
+        q = self.q
+        q.f.write(json.dumps({"execute": cmd, "arguments": args}) + "\n")
+        q.f.flush()
+        r = q._read()
+        if "error" in r:
+            raise RuntimeError(f"QMP {cmd}: {r['error']}")
+        return r.get("return")
 
     # ------------------------------------------------------------ the machine
     def boot(self):
@@ -375,19 +386,25 @@ class Test:
             self.save(f"usb-{fs}-udev.txt", info)
             self.check(f"usb.{fs}.not-read-only-rule", "UDISKS_MOUNT_OPTIONS_DEFAULTS=ro" not in info,
                        f"udev: {info}")
+            _, auto = self.ssh(f"findmnt -n -o TARGET,OPTIONS -S LABEL={label}; true")
+            self.record(f"usb.{fs}.automount", "INFO",
+                        f"mounted on plug-in: {auto.strip() or 'no (mounted when opened)'}")
             # It shows up in Files' This PC with its label.
-            rc, ls = self.ssh("kioclient ls thispc:/ 2>/dev/null || kioclient6 ls thispc:/", sess=True, timeout=60)
+            rc, ls = self.ssh("for e in $(kioclient ls thispc:/ | grep '^drive-'); do "
+                              "echo \"$e: $(kioclient stat thispc:/$e 2>&1 | grep -iE 'name' | head -n 3 | tr '\\n' ' ')\"; done",
+                              sess=True, timeout=60)
             self.save(f"usb-{fs}-thispc.txt", ls)
             self.check(f"usb.{fs}.this-pc", label in ls, f"thispc:/ lists: {ls}")
             if n == 0:
                 self.keys("meta-e")
                 time.sleep(5)
                 self.shot(f"21-usb-{fs}-this-pc")
-                self.keys("ctrl-w")
+                self.keys("alt-f4")
                 time.sleep(1)
             # Mount as the user's session does (Dolphin -> udisks), read, write.
             rc, out = self.ssh(
-                f"set -e; dev=$(readlink -f /dev/disk/by-label/{label}); udisksctl mount -b $dev; "
+                f"set -e; dev=$(readlink -f /dev/disk/by-label/{label}); "
+                f"findmnt -S $dev >/dev/null || udisksctl mount -b $dev; "
                 f"m=$(findmnt -n -o TARGET -S $dev); findmnt -n -o SOURCE,FSTYPE,OPTIONS -S $dev; "
                 f"echo READ: $(cat \"$m/hello.txt\"); "
                 f"printf 'Lucent wrote this on the {fs} stick\\n' > \"$m/written-by-lucent.txt\"; "
@@ -422,7 +439,7 @@ class Test:
         fake = (f'SUBSYSTEM=="block", ENV{{ID_FS_LABEL}}=="{label}", ENV{{ID_BUS}}="ata"\n')
         script = (f"set -u; echo '{fake.strip()}' > /run/udev/rules.d/61-hwtest-fake-ata.rules; "
                   f"udevadm control --reload; dev=$(readlink -f /dev/disk/by-label/{label}); "
-                  f"udevadm test $dev 2>/dev/null | grep -E '^(ID_BUS|UDISKS_MOUNT_OPTIONS_DEFAULTS)=' ; true")
+                  f"udevadm test --action=add $dev 2>&1 | grep -oE '(ID_BUS|UDISKS_MOUNT_OPTIONS_DEFAULTS)=[a-z]+' | sort -u; true")
         _, shipped = self.ssh(script, root=True)
         repo = ""
         if self.a.repo_rule:
@@ -443,6 +460,7 @@ class Test:
     def bluetooth(self):
         tools = Path(self.a.tools)
         self.scp(tools / "bin" / "btvirt", dest=f"{GUEST_T}/btvirt")
+        before = [round(x) for x, _ in self.tray_icons()]
         rc, out = self.ssh(f"modprobe hci_vhci && modinfo -F signer hci_vhci; chmod +x {GUEST_T}/btvirt; "
                            f"setsid -f {GUEST_T}/btvirt -l2 > {GUEST_T}/btvirt.log 2>&1 < /dev/null; sleep 5; "
                            f"systemctl is-active bluetooth.service; bluetoothctl list", root=True)
@@ -450,29 +468,50 @@ class Test:
         self.check("bluetooth.adapter", len(ctrls) >= 1, f"hci_vhci + btvirt -l2: {out}")
         if not ctrls:
             return
-        time.sleep(3)
+        time.sleep(4)
         self.shot("30-bluetooth-adapter-in-tray")
+        after = self.tray_icons()
         _, show = self.ssh("bluetoothctl show | head -n 12", root=True)
         self.save("bluetooth-show.txt", show)
+        # The new tray icon is Bluetooth's (icons right of it shift left).
+        bt = after[-len(before) - 1] if len(after) == len(before) + 1 else None
+        self.check("bluetooth.tray-icon", bt is not None,
+                   f"tray icons x={before} before the adapter, x={[round(x) for x, _ in after]} after")
+        if bt:
+            self.click(*bt)
+            time.sleep(2)
+            self.shot("31-bluetooth-popup")
+            # The popup's on/off switch: its toolbar's first control, where
+            # the network popup has its Wi-Fi switch.
+            pops = [w for w in self.windows() if "plasmashell" in w[1].lower() and int(w[5]) > 300 and int(w[6]) > 300]
+            if pops:
+                x, y = int(pops[0][3]), int(pops[0][4])
+                states = []
+                for i in (1, 2):
+                    self.click(x + 32, y + 65)
+                    time.sleep(3)
+                    _, st = self.ssh(f"bluetoothctl show {ctrls[0]} | grep -m1 'Powered:'", root=True)
+                    states.append(st.strip())
+                    self.shot(f"32-bluetooth-switch-{i}")
+                self.check("bluetooth.power-switch", states == ["Powered: no", "Powered: yes"],
+                           f"clicked the popup's switch twice: {states}")
+            self.keys("esc")
+            time.sleep(1)
         # Pair the computer's adapter with the second controller as a nearby device.
         if len(ctrls) >= 2:
             rc, out = self.ssh(f"bash {GUEST_T}/bt-pair.sh {ctrls[0]} {ctrls[1]}", root=True, timeout=120)
             self.save("bluetooth-pair.txt", out)
-            paired = re.search(r"Paired: yes", out) is not None
-            self.check("bluetooth.pair", paired, f"bluetoothctl pair {ctrls[1]} from {ctrls[0]}: "
-                       f"{'; '.join(l for l in out.splitlines() if re.search('Pair|Fail|Error|Device', l))[:600]}")
-        self.tray_probe("bt")
-
-    def bluetooth_toggle(self, power_xy):
-        """Click the adapter's power switch in the tray popup, twice."""
-        states = []
-        for _ in range(2):
-            self.click(*power_xy)
-            time.sleep(2)
-            _, s = self.ssh("bluetoothctl show | grep -m1 Powered", root=True)
-            states.append(s.strip())
-            self.shot(f"31-bluetooth-toggle-{len(states)}")
-        return states
+            clean = re.sub(r"\x1b\[[0-9;]*m", "", out)
+            paired = re.search(r"Paired: yes", clean) is not None
+            self.check("bluetooth.pair", paired, f"bluetoothctl pair {ctrls[1]} from {ctrls[0]}: " + "; ".join(
+                ln.strip() for ln in clean.splitlines()
+                if re.search(r"Pair|pair|Fail|Bonded|Confirm|auth", ln) and "bluetoothctl]>" not in ln)[:700])
+            if bt:
+                self.click(*bt)
+                time.sleep(2)
+                self.shot("33-bluetooth-paired-device")
+                self.keys("esc")
+                time.sleep(1)
 
     def wifi(self):
         tools = Path(self.a.tools)
@@ -512,10 +551,10 @@ class Test:
         self.check("wifi.connect-from-tray", ok and gui, f"{'GUI flow done' if gui else 'GUI flow did not finish'}; {con}")
         if not ok:
             rc, out = self.ssh(f"nmcli dev wifi connect {shlex.quote(WIFI_SSID)} password {WIFI_PSK} ifname {wdev}",
-                               timeout=90)
+                               sess=True, timeout=90)
             self.record("wifi.connect-cli-fallback", "INFO", f"nmcli fallback (not what the user does): rc {rc} {out}")
         _, net = self.ssh(f"nmcli networking connectivity check; curl -sS -o /dev/null -w '%{{http_code}} via %{{local_ip}}' "
-                          f"--interface {wdev} --max-time 20 https://fedoraproject.org/")
+                          f"--interface {wdev} --max-time 20 https://fedoraproject.org/", root=True)
         self.check("wifi.internet", re.search(r"\b(200|30\d) via 192\.168\.77\.", net) is not None,
                    f"connectivity, curl over {wdev}: {net}")
         _, kw = self.ssh("pgrep -a -u lucent -f 'kwalletd|ksecretd' ; true")
@@ -524,19 +563,17 @@ class Test:
     def wifi_gui_connect(self, wins):
         """Find 'Lucent Test' in the open popup and connect: click its row,
         type the password, Enter. Returns True when the steps ran."""
-        pops = [w for w in wins if int(w[5]) < 900 and int(w[6]) > 150]
+        pops = [w for w in wins if int(w[5]) > 300 and int(w[6]) > 300]
         if not pops:
             self.record("wifi.gui", "INFO", "no tray popup window found")
             return False
         x, y, w, h = (int(v) for v in pops[0][3:7])
-        # Plasma's network list: the first row is the first network after the
-        # header; hovering it shows "Connect" at its right end.
-        rx, ry = x + w - 80, y + 112
-        self.click(x + w // 2, ry)
-        time.sleep(1.5)
-        self.shot("42a-wifi-row-clicked")
-        self.click(rx, ry)
-        time.sleep(2)
+        # Plasma's network popup (452 px wide at 1080p): title, a toolbar
+        # with the Wi-Fi switch and the search field, "Available", then the
+        # first network's row 140 px below the popup's top, with its
+        # "Connect" button 100 px from the right edge (41-wifi-network-list).
+        self.click(x + w - 102, y + 140)
+        time.sleep(2.5)
         self.shot("42b-wifi-password-field")
         self.type(WIFI_PSK)
         time.sleep(0.5)

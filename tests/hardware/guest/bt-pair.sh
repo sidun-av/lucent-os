@@ -21,7 +21,12 @@ a=$1 d=$2
     echo "scan off"
     echo "devices"
     echo "pair $d"
-    sleep 15
+    # The agent asks to confirm the passkey on each side (Just Works).
+    sleep 4
+    echo "yes"
+    sleep 3
+    echo "yes"
+    sleep 10
     echo "trust $d"
     echo "info $d"
     sleep 2

@@ -88,7 +88,7 @@ def wav_stats(path, freq, start=None, end=None, window_s=0.1):
     return out
 
 
-def tray_icons(f, x0, x1, y0, y1, level=60, gap=3):
+def tray_icons(f, x0, x1, y0, y1, level=15, gap=3):
     """Centres (x, y) of the icons in a strip of the screen (the panel's
     system tray), left to right: runs of columns that hold pixels standing
     out from that column's own background (its median colour)."""
