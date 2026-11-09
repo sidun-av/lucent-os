@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en" class="light" data-dir="prism">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS 2026 · Prism · Settings, Appearance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;650;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="prism.css">
+<script src="../../lucent.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .win.set { left: 380px; top: 64px; width: 1800px; height: 1220px; }
+  .side { width: 300px; }
+  .sside { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; margin: 2px 2px 14px; border-radius: 999px; background: rgba(255,255,255,.6); box-shadow: var(--sh-chip), var(--inner-light); color: var(--text-3); font-size: 15px; }
+  .sside svg { width: 18px; height: 18px; color: var(--text-2); }
+  .me { display: flex; align-items: center; gap: 12px; padding: 8px 10px 14px; }
+  .avatar { width: 46px; height: 46px; border-radius: 999px; display: grid; place-items: center; font-weight: 700; color: #fff; background: linear-gradient(135deg, #ff9a7a, #c45cff); font-size: 15px; box-shadow: 0 0 0 2px rgba(255,255,255,.85); }
+  .me b { display: block; font-size: 15.5px; font-weight: 600; }
+  .me span { font-size: 14px; color: var(--text-2); }
+  .si .ic { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; color: #fff; flex: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 1px 2px rgba(20,30,80,.15); }
+  .si .ic svg { width: 17px; height: 17px; color: #fff; }
+  .si.sel .ic { box-shadow: 0 0 0 1.5px rgba(255,255,255,.7); }
+  .head { height: 74px; display: flex; align-items: center; gap: 14px; padding: 10px 18px 0 22px; }
+  .page { flex: 1; overflow: hidden; padding: 6px 30px 0 34px; position: relative; }
+  .page::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 60px; background: linear-gradient(transparent, rgba(240,243,255,.6)); pointer-events: none; }
+  .lead { font-size: 15.5px; color: var(--text-2); margin: 0 0 18px 4px; }
+  .group { border-radius: 18px; background: var(--glass-content); box-shadow: var(--sh-chip), var(--inner-light); padding: 22px 24px; margin-bottom: 18px; }
+  .gt { font-family: var(--display); font-size: 18px; font-weight: 650; letter-spacing: -.01em; margin-bottom: 4px; }
+  .gs { font-size: 14.5px; color: var(--text-2); margin-bottom: 18px; }
+  .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .mode { border-radius: 16px; padding: 8px 8px 14px; background: rgba(255,255,255,.55); box-shadow: var(--sh-chip), var(--inner-light); }
+  .mode.sel { box-shadow: 0 0 0 2.5px var(--accent), 0 0 0 7px rgba(61,107,255,.14), var(--inner-light); background: rgba(255,255,255,.85); }
+  .mini { position: relative; height: 172px; border-radius: 10px; overflow: hidden; }
+  .mini > div[data-wp] { position: absolute; inset: 0; }
+  .mini > div[data-wp] svg { width: 100%; height: 100%; }
+  .mini .mw { position: absolute; left: 14%; top: 14%; width: 60%; height: 56%; border-radius: 9px; background: rgba(250,251,255,.75); box-shadow: 0 6px 16px rgba(20,30,80,.2), inset 0 1px 0 #fff; display: flex; padding: 6px; gap: 6px; }
+  .mini .mw .ms { width: 28%; border-radius: 6px; background: rgba(255,255,255,.7); }
+  .mini .mw .mc { flex: 1; border-radius: 6px; background: #fff; padding: 8px; }
+  .mini .mw .mc i { display: block; height: 6px; border-radius: 3px; background: #d8dcea; margin-bottom: 6px; }
+  .mini .mw .mc i.a { width: 40%; background: var(--accent); opacity: .8; }
+  .mini .mb { position: absolute; left: 4%; right: 4%; bottom: 5%; height: 11%; border-radius: 7px; background: rgba(250,251,255,.6); box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
+  .mini.dk .mw { background: rgba(28,31,48,.78); box-shadow: 0 6px 16px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12); }
+  .mini.dk .mw .ms { background: rgba(255,255,255,.08); }
+  .mini.dk .mw .mc { background: rgba(20,22,36,.8); }
+  .mini.dk .mw .mc i { background: #3a3f55; }
+  .mini.dk .mb { background: rgba(24,26,42,.6); box-shadow: inset 0 1px 0 rgba(255,255,255,.1); }
+  .mini.auto .half { position: absolute; inset: 0; clip-path: polygon(62% 0, 100% 0, 100% 100%, 38% 100%); }
+  .ml { display: flex; align-items: center; gap: 10px; padding: 14px 8px 0; font-size: 15.5px; font-weight: 600; }
+  .ml small { font-weight: 500; font-size: 14px; color: var(--text-2); margin-left: auto; }
+  .radio { width: 22px; height: 22px; border-radius: 999px; box-shadow: inset 0 0 0 1.5px rgba(16,24,48,.28); background: rgba(255,255,255,.8); }
+  .radio.on { background: var(--accent-grad); box-shadow: inset 0 0 0 6px transparent, 0 2px 6px rgba(61,107,255,.4); position: relative; }
+  .radio.on::after { content: ""; position: absolute; inset: 7px; border-radius: 999px; background: #fff; }
+  .swatches { display: flex; align-items: center; gap: 16px; }
+  .sw { width: 44px; height: 44px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08), inset 0 2px 0 rgba(255,255,255,.35), 0 2px 6px rgba(20,30,80,.15); }
+  .sw.sel { box-shadow: 0 0 0 3px #fff, 0 0 0 5.5px var(--accent), 0 4px 12px rgba(61,107,255,.35); }
+  .sw.multi { background: conic-gradient(#4f7dff, #a46bff, #ff7d9c, #ffb547, #3ed08a, #38d0ff, #4f7dff); }
+  .swl { margin-left: 18px; font-size: 15px; color: var(--text-2); }
+  .swl b { color: var(--text); font-weight: 600; }
+  .row { display: flex; align-items: center; gap: 20px; padding: 14px 0; border-top: 1px solid var(--hair); }
+  .gt + .row { border-top: 0; margin-top: 6px; }
+  .row .t { flex: 1; }
+  .row .t b { display: block; font-size: 15.5px; font-weight: 550; }
+  .row .t span { font-size: 14px; color: var(--text-2); }
+  .tog { width: 50px; height: 30px; border-radius: 999px; background: rgba(120,130,160,.28); position: relative; box-shadow: inset 0 1px 2px rgba(10,20,60,.12); }
+  .tog::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 999px; background: #fff; box-shadow: 0 2px 5px rgba(10,20,60,.25), inset 0 -1px 0 rgba(10,20,60,.06); }
+  .tog.on { background: var(--accent-grad); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 2px 8px rgba(61,107,255,.35); }
+  .tog.on::after { left: 23px; }
+  .slider { width: 420px; display: flex; align-items: center; gap: 14px; font-size: 14px; color: var(--text-2); }
+  .track { flex: 1; height: 6px; border-radius: 999px; background: rgba(120,130,160,.22); position: relative; }
+  .track b { position: absolute; left: 0; top: 0; bottom: 0; width: 62%; border-radius: 999px; background: var(--accent-grad); box-shadow: 0 0 8px rgba(61,107,255,.45); }
+  .track i { position: absolute; left: 62%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 999px; background: #fff;
+    box-shadow: 0 0 0 4px rgba(61,107,255,.30), 0 0 0 1.5px var(--accent), 0 3px 8px rgba(10,20,60,.25); }
+  .walls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .wp { border-radius: 14px; overflow: hidden; height: 132px; position: relative; box-shadow: var(--sh-chip); }
+  .wp > div { position: absolute; inset: 0; }
+  .wp svg { width: 100%; height: 100%; }
+  .wp.sel { box-shadow: 0 0 0 3px #fff, 0 0 0 5.5px var(--accent), 0 6px 16px rgba(61,107,255,.25); }
+  .wp .lab { position: absolute; left: 8px; bottom: 8px; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #fff; background: rgba(10,14,30,.45); backdrop-filter: blur(10px); }
+  .wp.add { display: grid; place-items: center; background: rgba(255,255,255,.5); box-shadow: inset 0 0 0 1.5px rgba(16,24,48,.14); color: var(--text-2); font-size: 15px; font-weight: 550; }
+  .wp.add div { position: static; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .wp.add svg { width: 26px; height: 26px; }
+  .btn { height: 38px; padding: 0 18px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 15px; font-weight: 550; background: rgba(255,255,255,.8); box-shadow: var(--sh-chip), var(--inner-light); }
+</style>
+</head>
+<body>
+<div data-wall></div>
+
+<div class="win set glass">
+  <div class="side">
+    <div class="me"><span class="avatar">AS</span><div><b>Anna Smirnova</b><span>Local account</span></div></div>
+    <div class="sside"><i data-g="search"></i>Find a setting</div>
+    <div class="si"><span class="ic" style="background:#3d8bff"><i data-g="wifi"></i></span>Network &amp; internet</div>
+    <div class="si"><span class="ic" style="background:#4f6bff"><i data-g="bluetooth"></i></span>Bluetooth &amp; devices</div>
+    <div class="si"><span class="ic" style="background:#30b4e8"><i data-g="display"></i></span>Display</div>
+    <div class="si"><span class="ic" style="background:#ff6b8a"><i data-g="volume"></i></span>Sound</div>
+    <div class="si sel"><span class="ic" style="background:linear-gradient(135deg,#ffb547,#ff6b8a,#7b5cff)"><i data-g="palette"></i></span>Appearance</div>
+    <div class="si hover"><span class="ic" style="background:#2fc7a0"><i data-g="image"></i></span>Wallpaper</div>
+    <div class="si"><span class="ic" style="background:#6b7388"><i data-g="desktop"></i></span>Taskbar</div>
+    <div class="si"><span class="ic" style="background:#6b7388"><i data-g="winapp"></i></span>Windows</div>
+    <div class="si"><span class="ic" style="background:#8f5cff"><i data-g="apps"></i></span>Apps</div>
+    <div class="si"><span class="ic" style="background:#ff8a3d"><i data-g="keyboard"></i></span>Keyboard &amp; language</div>
+    <div class="si"><span class="ic" style="background:#3ec06f"><i data-g="refresh"></i></span>Updates</div>
+    <div class="si"><span class="ic" style="background:#3d6bff"><i data-g="shield"></i></span>Privacy &amp; security</div>
+    <div class="si"><span class="ic" style="background:#ff9a3d"><i data-g="users"></i></span>Users</div>
+    <div class="si"><span class="ic" style="background:#8a93a5"><i data-g="info"></i></span>About this PC</div>
+  </div>
+  <div class="main">
+    <div class="head">
+      <div class="cap"><span class="b"><i data-g="left"></i></span><span class="b dim"><i data-g="right"></i></span></div>
+      <div class="title" style="font-size:28px">Appearance</div>
+      <span class="grow"></span>
+      <span class="wb"></span>
+    </div>
+    <div class="page">
+      <div class="lead">Choose how Lucent looks. Changes apply right away to every app.</div>
+
+      <div class="group">
+        <div class="gt">Mode</div>
+        <div class="gs">Light and dark change windows, the taskbar and menus together.</div>
+        <div class="modes">
+          <div class="mode sel">
+            <div class="mini"><div data-wp="prism-light"></div><div class="mw"><div class="ms"></div><div class="mc"><i class="a"></i><i></i><i style="width:70%"></i></div></div><div class="mb"></div></div>
+            <div class="ml"><span class="radio on"></span>Light</div>
+          </div>
+          <div class="mode">
+            <div class="mini dk"><div data-wp="prism-dark"></div><div class="mw"><div class="ms"></div><div class="mc"><i class="a"></i><i></i><i style="width:70%"></i></div></div><div class="mb"></div></div>
+            <div class="ml"><span class="radio"></span>Dark</div>
+          </div>
+          <div class="mode">
+            <div class="mini auto"><div data-wp="prism-light"></div><div class="mw"><div class="ms"></div><div class="mc"><i class="a"></i><i></i><i style="width:70%"></i></div></div><div class="mb"></div>
+              <div class="half mini dk" style="border-radius:0"><div data-wp="prism-dark" style="position:absolute;inset:0"></div><div class="mw"><div class="ms"></div><div class="mc"><i class="a"></i><i></i><i style="width:70%"></i></div></div><div class="mb"></div></div></div>
+            <div class="ml"><span class="radio"></span>Auto<small>Dark from sunset to sunrise</small></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="gt">Accent color</div>
+        <div class="gs">Used for selection, switches, progress and focus.</div>
+        <div class="swatches">
+          <span class="sw multi"></span>
+          <span class="sw sel" style="background:linear-gradient(135deg,#4f8bff,#3d6bff)"></span>
+          <span class="sw" style="background:linear-gradient(135deg,#9a7bff,#7b5cff)"></span>
+          <span class="sw" style="background:linear-gradient(135deg,#ff7db8,#e8508f)"></span>
+          <span class="sw" style="background:linear-gradient(135deg,#ff6b6b,#e5484d)"></span>
+          <span class="sw" style="background:linear-gradient(135deg,#ffa25a,#f0731c)"></span>
+          <span class="sw" style="background:linear-gradient(135deg,#ffd166,#f2b01e)"></span>
+          <span class="sw" style="background:linear-gradient(135deg,#4fd18b,#1f9d55)"></span>
+          <span class="sw" style="background:linear-gradient(135deg,#3fd0e0,#0f9aa8)"></span>
+          <span class="sw" style="background:linear-gradient(135deg,#9aa2b6,#5f677b)"></span>
+          <span class="swl"><b>Blue</b> · the first swatch follows your wallpaper</span>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="gt">Glass</div>
+        <div class="row">
+          <div class="t"><b>Transparency</b><span>How much of the wallpaper shows through windows and the taskbar</span></div>
+          <div class="slider">Clear<div class="track"><b></b><i></i></div>Frosted</div>
+        </div>
+        <div class="row">
+          <div class="t"><b>Tint windows with the wallpaper</b><span>Glass picks up a little color from what is behind it</span></div>
+          <span class="tog on"></span>
+        </div>
+        <div class="row">
+          <div class="t"><b>Reduce transparency</b><span>Solid surfaces; easier to read and lighter on older graphics</span></div>
+          <span class="tog"></span>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="gt" style="display:flex;align-items:center">Wallpaper<span class="grow"></span><span class="btn">Browse…</span></div>
+        <div class="gs">Each Lucent wallpaper has a light and a dark version that follow the mode.</div>
+        <div class="walls">
+          <div class="wp sel"><div data-wp="prism-light"></div><span class="lab">Drift</span></div>
+          <div class="wp"><div data-wp="prism-dark"></div><span class="lab">Drift, night</span></div>
+          <div class="wp"><div data-wp="pebble-light"></div><span class="lab">Clay Hills</span></div>
+          <div class="wp"><div data-wp="pebble-dark"></div><span class="lab">Clay Hills, night</span></div>
+          <div class="wp add"><div><i data-g="plus"></i>Add a picture</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div data-taskbar data-active="settings"></div>
+</body>
+</html>

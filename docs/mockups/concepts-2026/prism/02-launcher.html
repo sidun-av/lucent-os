@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en" class="light" data-dir="prism">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS 2026 · Prism · Launcher</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;650;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="prism.css">
+<script src="../../lucent.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .veil { position: absolute; inset: 0; z-index: 40; background: rgba(236,240,255,.30); backdrop-filter: blur(70px) saturate(185%); }
+  .veil::before { content: ""; position: absolute; inset: 0; background: radial-gradient(1400px 700px at 50% 30%, rgba(255,255,255,.35), transparent 70%); }
+  .lx { position: absolute; z-index: 41; left: 50%; transform: translateX(-50%); width: 1500px; top: 190px; }
+  .bigsearch { margin: 0 auto; width: 780px; height: 64px; border-radius: 999px; display: flex; align-items: center; gap: 14px; padding: 0 12px 0 24px;
+    background: rgba(255,255,255,.78); font-size: 19px; color: var(--text-3);
+    box-shadow: 0 0 0 2px var(--accent), 0 0 0 7px rgba(61,107,255,.18), 0 12px 32px rgba(30,40,110,.16), var(--inner-light); }
+  .bigsearch svg { width: 24px; height: 24px; color: var(--accent); }
+  .bigsearch .caret { width: 2px; height: 26px; background: var(--accent); border-radius: 1px; margin-right: -10px; }
+  .bigsearch .kb { margin-left: auto; font-size: 13.5px; color: var(--text-2); padding: 6px 12px; border-radius: 999px; background: var(--field); font-weight: 500; }
+  .chips { display: flex; justify-content: center; gap: 10px; margin: 32px 0 64px; }
+  .chip { height: 40px; padding: 0 18px; border-radius: 999px; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 550; background: rgba(255,255,255,.48); box-shadow: var(--sh-chip), var(--inner-light); color: var(--text); }
+  .chip svg { width: 18px; height: 18px; color: var(--text-2); }
+  .chip.on { background: var(--accent-grad); color: #fff; box-shadow: 0 6px 16px rgba(61,107,255,.32), inset 0 1px 0 rgba(255,255,255,.4); }
+  .chip.on svg { color: #fff; }
+  .lh { display: flex; align-items: baseline; gap: 12px; font-family: var(--display); font-size: 22px; font-weight: 650; letter-spacing: -.015em; margin: 0 24px 14px; }
+  .lh small { font-family: var(--font); font-size: 14.5px; font-weight: 500; color: var(--text-2); letter-spacing: 0; }
+  .lh .r { margin-left: auto; font-family: var(--font); font-size: 15px; font-weight: 550; color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; margin-bottom: 40px; }
+  .app { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 6px 20px; border-radius: 22px; font-size: 15px; font-weight: 500; text-align: center; }
+  .app .ai { width: 84px; height: 84px; filter: drop-shadow(0 6px 12px rgba(30,40,110,.18)); }
+  .app small { display: block; font-size: 13.5px; color: var(--text-2); margin-top: -8px; }
+  .app.hover { background: rgba(255,255,255,.55); box-shadow: var(--sh-chip), var(--inner-light); }
+  .app.hover .ai { transform: translateY(-2px); }
+  .panel { border-radius: 28px; padding: 24px 18px 6px; background: rgba(255,255,255,.30); box-shadow: 0 0 0 .5px rgba(10,20,60,.08), var(--inner-light); margin-bottom: 34px; }
+  .foot { position: absolute; z-index: 41; left: 50%; transform: translateX(-50%); width: 1500px; bottom: 112px; display: flex; align-items: center; gap: 14px; padding: 0 20px; }
+  .avatar { width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; font-weight: 700; color: #fff; background: linear-gradient(135deg, #ff9a7a, #c45cff); box-shadow: 0 0 0 2px rgba(255,255,255,.8); font-size: 15px; }
+  .foot b { font-size: 16px; font-weight: 600; }
+  .foot .sub { font-size: 14px; color: var(--text-2); }
+  .foot .grow { flex: 1; }
+  .rb { height: 44px; padding: 0 18px; border-radius: 999px; display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 550; background: rgba(255,255,255,.5); box-shadow: var(--sh-chip), var(--inner-light); }
+  .rb svg { width: 19px; height: 19px; }
+  .rb.ic { width: 44px; padding: 0; justify-content: center; }
+</style>
+</head>
+<body>
+<div data-wall></div>
+<div class="veil"></div>
+
+<div class="lx">
+  <div class="bigsearch"><i data-g="search"></i><span class="caret"></span><span>Search apps, files and settings</span><span class="kb">Type to search</span></div>
+  <div class="chips">
+    <span class="chip on"><i data-g="apps"></i>All apps</span>
+    <span class="chip"><i data-g="office"></i>Office</span>
+    <span class="chip"><i data-g="globe"></i>Internet</span>
+    <span class="chip"><i data-g="brush"></i>Graphics</span>
+    <span class="chip"><i data-g="film"></i>Photo &amp; video</span>
+    <span class="chip"><i data-g="game"></i>Games</span>
+    <span class="chip"><i data-g="sliders"></i>System</span>
+  </div>
+
+  <div class="panel">
+    <div class="lh">Pinned <small>Drag to reorder</small></div>
+    <div class="grid">
+      <div class="app"><span data-ai="files"></span>Files</div>
+      <div class="app"><span data-ai="firefox"></span>Firefox</div>
+      <div class="app hover"><span data-ai="docs"></span>Documents</div>
+      <div class="app"><span data-ai="sheets"></span>Spreadsheets</div>
+      <div class="app"><span data-ai="slides"></span>Presentations</div>
+      <div class="app"><span data-ai="gimp"></span>GIMP</div>
+      <div class="app"><span data-ai="store"></span>Software</div>
+      <div class="app"><span data-ai="settings"></span>Settings</div>
+      <div class="app"><span data-ai="migrate"></span>Move from Windows</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="lh">All apps <small>17 apps · A–Z</small></div>
+    <div class="grid">
+      <div class="app"><span data-ai="darktable"></span>darktable</div>
+      <div class="app"><span data-ai="inkscape"></span>Inkscape</div>
+      <div class="app"><span data-ai="kdenlive"></span>Kdenlive</div>
+      <div class="app"><span data-ai="krita"></span>Krita</div>
+      <div class="app"><span data-ai="notepadpp"></span>Notepad++</div>
+      <div class="app"><span data-ai="pdfarranger"></span>PDF Arranger</div>
+      <div class="app"><span data-ai="okular"></span>PDF Viewer</div>
+      <div class="app"><span data-ai="terminal"></span>Terminal</div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <span class="avatar">AS</span><div><b>Anna Smirnova</b><div class="sub">Local account</div></div>
+  <span class="grow"></span>
+  <span class="rb"><i data-g="lock"></i>Lock</span>
+  <span class="rb"><i data-g="refresh"></i>Restart</span>
+  <span class="rb"><i data-g="sun"></i>Sleep</span>
+  <span class="rb" style="background:linear-gradient(135deg,#ff6b6b,#e5484d);color:#fff;box-shadow:0 6px 16px rgba(229,72,77,.3), inset 0 1px 0 rgba(255,255,255,.35)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3.5v8"/><path d="M7 6.5a7.5 7.5 0 1 0 10 0"/></svg>Shut down</span>
+</div>
+
+<div data-taskbar data-start="on"></div>
+</body>
+</html>

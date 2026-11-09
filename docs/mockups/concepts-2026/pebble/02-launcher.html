@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en" class="light" data-dir="pebble">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS 2026 · Pebble · Launcher search</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pebble.css">
+<script src="../../lucent.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .scrim { position: absolute; inset: 0; z-index: 40; background: rgba(246, 236, 226, .50); backdrop-filter: blur(60px) saturate(110%); }
+  .scrim::before { content: ""; position: absolute; inset: 0; background-image: var(--grain); opacity: .08; mix-blend-mode: multiply; }
+  .lx { position: absolute; z-index: 41; left: 50%; top: 230px; transform: translateX(-50%); width: 1480px; }
+  .q { margin: 0 auto 18px; width: 960px; height: 68px; border-radius: 18px; display: flex; align-items: center; gap: 14px; padding: 0 14px 0 24px; font-size: 22px; font-weight: 500; color: var(--text);
+    background: var(--raised); box-shadow: 0 0 0 2px var(--accent), 0 0 0 7px var(--accent-soft), var(--sh-lift); }
+  .q svg { width: 24px; height: 24px; color: var(--accent); }
+  .q .caret { width: 2px; height: 28px; background: var(--accent); margin-left: -12px; }
+  .q .clr { margin-left: auto; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--well); color: var(--text-2); }
+  .q .clr svg { width: 16px; height: 16px; color: var(--text-2); }
+  .tabs { display: flex; justify-content: center; gap: 4px; margin: 0 auto 36px; width: max-content; padding: 4px; border-radius: 14px; background: var(--well); box-shadow: var(--sh-well); }
+  .tabs span { height: 38px; padding: 0 18px; border-radius: 10px; display: flex; align-items: center; gap: 8px; font-size: 15.5px; font-weight: 600; color: var(--text-2); }
+  .tabs span em { font-style: normal; font-size: 13.5px; color: var(--text-3); font-weight: 600; }
+  .tabs span.on { background: linear-gradient(var(--raised), var(--raised-2)); box-shadow: var(--sh-raised), var(--top-light); color: var(--text); }
+  .cols { display: grid; grid-template-columns: 1fr 600px; gap: 24px; }
+  .sheet { border-radius: 22px; background: rgba(255,252,248,.88); box-shadow: var(--sh-raised), var(--top-light); padding: 22px; }
+  .lab { font-size: 14px; font-weight: 700; color: var(--text-3); margin: 0 6px 12px; letter-spacing: .02em; }
+  .best { display: flex; align-items: center; gap: 24px; padding: 22px; border-radius: 16px; background: linear-gradient(#fff7f1, #fbeee4); box-shadow: 0 0 0 2px var(--accent), var(--sh-raised); margin-bottom: 26px; }
+  .best .ai { width: 104px; height: 104px; filter: drop-shadow(0 8px 14px rgba(120,60,30,.22)); }
+  .best h2 { font-size: 28px; font-weight: 750; letter-spacing: -.015em; }
+  .best p { font-size: 15.5px; color: var(--text-2); margin: 4px 0 16px; }
+  .best .acts { display: flex; gap: 10px; }
+  .btn { height: 42px; padding: 0 20px; border-radius: 11px; display: inline-flex; align-items: center; gap: 8px; font-size: 15.5px; font-weight: 650; background: linear-gradient(var(--raised), var(--raised-2)); box-shadow: var(--sh-raised), var(--top-light); color: var(--text); }
+  .btn svg { width: 18px; height: 18px; }
+  .btn.pri { background: linear-gradient(#cc6c45, #b9592f); color: #fff; box-shadow: 0 1px 2px rgba(120,50,20,.3), 0 6px 14px -4px rgba(180,80,40,.45), inset 0 1px 0 rgba(255,255,255,.25); }
+  .enter { margin-left: auto; align-self: flex-start; font-size: 13.5px; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
+  .kbd { padding: 3px 8px; border-radius: 6px; background: var(--raised); box-shadow: var(--sh-raised); font-weight: 650; font-size: 13px; color: var(--text); }
+  .apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .app { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 8px 16px; border-radius: 14px; font-size: 15.5px; font-weight: 550; text-align: center; }
+  .app .ai { width: 72px; height: 72px; }
+  .app small { font-size: 13.5px; color: var(--text-2); font-weight: 500; margin-top: -6px; }
+  .app.hover { background: linear-gradient(var(--raised), var(--raised-2)); box-shadow: var(--sh-raised), var(--top-light); }
+  .row { display: flex; align-items: center; gap: 14px; height: 60px; padding: 0 12px; border-radius: 12px; }
+  .row .fi { width: 38px; height: 38px; flex: none; }
+  .row .fi svg { width: 38px; height: 38px; }
+  .row b { display: block; font-size: 15.5px; font-weight: 600; }
+  .row b mark { background: rgba(192,96,58,.18); color: inherit; border-radius: 3px; padding: 0 1px; }
+  .row span.s { font-size: 14px; color: var(--text-2); }
+  .row .end { margin-left: auto; font-size: 14px; color: var(--text-3); }
+  .row.hover { background: var(--hover); }
+  .row .gi { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--well-strong); flex: none; }
+  .row .gi svg { width: 20px; height: 20px; color: var(--text-2); }
+  .sep { height: 1px; background: var(--line); margin: 16px 6px 18px; }
+  .foot { position: absolute; z-index: 41; left: 50%; transform: translateX(-50%); width: 1480px; bottom: 100px; display: flex; align-items: center; gap: 14px; padding: 0 10px; }
+  .avatar { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-weight: 750; color: #fff; background: linear-gradient(135deg, #e39a6c, #b25a7a); font-size: 15px; }
+  .foot b { font-size: 16px; font-weight: 650; }
+  .foot .sub { font-size: 14px; color: var(--text-2); }
+</style>
+</head>
+<body>
+<div data-wall></div>
+<div class="scrim"></div>
+
+<div class="lx">
+  <div class="q"><i data-g="search"></i><span>pdf</span><span class="caret"></span><span class="clr"><i data-g="x"></i></span></div>
+  <div class="tabs"><span class="on">All <em>13</em></span><span>Apps <em>5</em></span><span>Files <em>6</em></span><span>Settings <em>2</em></span></div>
+
+  <div class="cols">
+    <div class="sheet">
+      <div class="lab">BEST MATCH</div>
+      <div class="best">
+        <span data-ai="okular"></span>
+        <div><h2>PDF Viewer</h2><p>App · Read, sign and fill in PDF forms</p>
+          <div class="acts"><span class="btn pri">Open</span><span class="btn"><i data-g="pin"></i>Pin to taskbar</span><span class="btn"><i data-g="folder"></i>Open a file…</span></div></div>
+        <span class="enter"><span class="kbd">Enter</span>to open</span>
+      </div>
+      <div class="lab">APPS</div>
+      <div class="apps">
+        <div class="app hover"><span data-ai="pdfarranger"></span>PDF Arranger<small>Merge and split</small></div>
+        <div class="app"><span data-ai="docs"></span>Documents<small>Export as PDF</small></div>
+        <div class="app"><span data-ai="firefox"></span>Firefox<small>Opens PDF files</small></div>
+        <div class="app"><span data-ai="files"></span>Files<small>6 PDFs found</small></div>
+      </div>
+    </div>
+    <div class="sheet">
+      <div class="lab">FILES</div>
+      <div class="row hover"><span class="fi" data-fi="pdf"></span><div><b>Electricity bill — October.<mark>pdf</mark></b><span class="s">Downloads · Nov 6</span></div><span class="end">286 KB</span></div>
+      <div class="row"><span class="fi" data-fi="pdf"></span><div><b>Tax return 2025.<mark>pdf</mark></b><span class="s">Documents · Oct 30</span></div><span class="end">1.1 MB</span></div>
+      <div class="row"><span class="fi" data-fi="pdf"></span><div><b>Train tickets — Nov 14.<mark>pdf</mark></b><span class="s">Downloads · Oct 22</span></div><span class="end">94 KB</span></div>
+      <div class="row"><span class="fi" data-fi="pdf"></span><div><b>Washing machine manual.<mark>pdf</mark></b><span class="s">Documents · Sep 3</span></div><span class="end">5.6 MB</span></div>
+      <div style="padding:8px 12px 0;font-size:15px;font-weight:650;color:var(--accent-text)">Show all 6 files</div>
+      <div class="sep"></div>
+      <div class="lab">SETTINGS</div>
+      <div class="row"><span class="gi"><i data-g="apps"></i></span><div><b>Default app for <mark>PDF</mark> files</b><span class="s">Apps › Default apps</span></div></div>
+      <div class="row"><span class="gi"><i data-g="doc"></i></span><div><b>Print to <mark>PDF</mark></b><span class="s">Bluetooth &amp; devices › Printers</span></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <span class="avatar">AS</span><div><b>Anna Smirnova</b><div class="sub">Local account</div></div>
+  <span class="grow"></span>
+  <span class="btn"><i data-g="lock"></i>Lock</span>
+  <span class="btn"><i data-g="refresh"></i>Restart</span>
+  <span class="btn"><i data-g="moon"></i>Sleep</span>
+  <span class="btn pri" style="background:linear-gradient(#d65a4c,#c0453a)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3.5v8"/><path d="M7 6.5a7.5 7.5 0 1 0 10 0"/></svg>Shut down</span>
+</div>
+
+<div data-taskbar data-start="on"></div>
+</body>
+</html>

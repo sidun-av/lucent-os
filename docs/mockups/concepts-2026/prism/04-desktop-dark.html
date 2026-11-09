@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en" class="dark" data-dir="prism">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS 2026 · Prism · Desktop and Files (dark)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;650;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="prism.css">
+<script src="../../lucent.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .win.files { left: 360px; top: 110px; width: 1840px; height: 920px; }
+  .folders { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 38px; }
+  .ft { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+  .ft .fo { width: 54px; height: 54px; flex: none; }
+  .ft .fo svg { width: 54px; height: 54px; filter: drop-shadow(0 3px 6px rgba(70,80,200,.22)); }
+  .ft b { display: block; font-size: 15.5px; font-weight: 600; }
+  .ft span { font-size: 14px; color: var(--text-2); }
+  .drives { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 38px; }
+  .dc { display: flex; gap: 18px; padding: 20px 22px; }
+  .dc .di { width: 60px; height: 60px; flex: none; border-radius: 16px; display: grid; place-items: center; background: linear-gradient(160deg, rgba(255,255,255,.95), rgba(220,228,250,.8)); box-shadow: var(--sh-chip), var(--inner-light); color: var(--accent); }
+  .dark .dc .di { background: linear-gradient(160deg, rgba(255,255,255,.16), rgba(255,255,255,.05)); color: #9db5ff; }
+  .dc .di svg { width: 30px; height: 30px; }
+  .dc .di.grey { color: #6b7388; }
+  .dark .dc .di.grey { color: #b9c0d2; }
+  .dc .meta { flex: 1; min-width: 0; }
+  .dc .name { height: 26px; display: flex; align-items: center; gap: 10px; font-size: 16.5px; font-weight: 650; margin-bottom: 4px; }
+  .dc .desc { font-size: 14px; color: var(--text-2); margin-bottom: 14px; }
+  .dc .free { font-size: 14px; color: var(--text-2); margin-top: 9px; display: flex; justify-content: space-between; }
+  .dc .free b { color: var(--text); font-weight: 600; }
+  .recent { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .rf { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; }
+  .rf.hover { background: var(--hover); box-shadow: var(--sh-chip), var(--inner-light); }
+  .rf .fi { width: 44px; height: 44px; flex: none; }
+  .rf .fi svg { width: 44px; height: 44px; }
+  .rf b { display: block; font-size: 15px; font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rf span { font-size: 14px; color: var(--text-2); }
+  .preview { left: 1030px; bottom: 88px; }
+</style>
+</head>
+<body>
+<div data-wall></div>
+
+<div class="win files glass">
+  <div class="side">
+    <div class="brand"><span data-ai="files"></span>Files</div>
+    <h6>Quick access</h6>
+    <div class="si"><i data-g="clock"></i>Recent</div>
+    <div class="si"><i data-g="desktop"></i>Desktop</div>
+    <div class="si"><i data-g="doc"></i>Documents</div>
+    <div class="si hover"><i data-g="download"></i>Downloads</div>
+    <div class="si"><i data-g="image"></i>Pictures</div>
+    <div class="si"><i data-g="music"></i>Music</div>
+    <div class="si"><i data-g="video"></i>Videos</div>
+    <h6>Devices</h6>
+    <div class="si sel"><i data-g="pc"></i>This PC</div>
+    <div class="si"><i data-g="home"></i>Home</div>
+    <div class="si"><i data-g="drive"></i>Windows (C:)<span class="end"><i data-g="lock"></i></span></div>
+    <div class="si"><i data-g="drive"></i>KINGSTON (D:)<span class="end"><i data-g="eject"></i></span></div>
+    <h6>Other</h6>
+    <div class="si"><i data-g="globe"></i>Network</div>
+    <div class="si"><i data-g="trash"></i>Trash</div>
+  </div>
+  <div class="main">
+    <div class="menurow">
+      <span class="m">File</span><span class="m">Edit</span><span class="m hover">View</span><span class="m">Go</span><span class="m">Tools</span><span class="m">Help</span>
+      <span class="spacer"></span>
+      <span class="wb"></span>
+    </div>
+    <div class="toolrow">
+      <div class="cap"><span class="b"><i data-g="left"></i></span><span class="b dim"><i data-g="right"></i></span></div>
+      <div class="title">This PC</div>
+      <span class="grow"></span>
+      <div class="cap"><span class="b on"><i data-g="grid"></i></span><span class="b"><i data-g="list"></i></span><span class="b"><i data-g="columns"></i></span></div>
+      <div class="cap"><span class="b"><i data-g="split"></i></span><span class="b"><i data-g="more"></i></span></div>
+      <div class="sfield" style="width:320px"><i data-g="search"></i>Search This PC</div>
+    </div>
+    <div class="content">
+      <div class="sec">Folders <small>6 folders</small></div>
+      <div class="folders">
+        <div class="ft card"><span class="fo" data-fo="desk"></span><div><b>Desktop</b><span>14 items</span></div></div>
+        <div class="ft card sel"><span class="fo" data-fo="doc"></span><div><b>Documents</b><span>212 items</span></div></div>
+        <div class="ft card hover"><span class="fo" data-fo="dl"></span><div><b>Downloads</b><span>38 items</span></div></div>
+        <div class="ft card"><span class="fo" data-fo="img"></span><div><b>Pictures</b><span>4,310 items</span></div></div>
+        <div class="ft card"><span class="fo" data-fo="music"></span><div><b>Music</b><span>1,024 items</span></div></div>
+        <div class="ft card"><span class="fo" data-fo="video"></span><div><b>Videos</b><span>57 items</span></div></div>
+      </div>
+
+      <div class="sec">Drives and devices</div>
+      <div class="drives">
+        <div class="dc card">
+          <span class="di"><i data-g="home"></i></span>
+          <div class="meta">
+            <div class="name">Home</div>
+            <div class="desc">Lucent system drive · 512 GB</div>
+            <div class="prog"><b style="width:20%"></b></div>
+            <div class="free"><span><b>410 GB</b> free of 512 GB</span><span>20% used</span></div>
+          </div>
+        </div>
+        <div class="dc card">
+          <span class="di grey"><i data-g="drive"></i></span>
+          <div class="meta">
+            <div class="name">Windows (C:) <span class="pill"><i data-g="lock"></i>Read-only</span></div>
+            <div class="desc">Your files from Windows. Nothing here will change.</div>
+            <div class="prog"><b class="grey" style="width:75%"></b></div>
+            <div class="free"><span><b>121 GB</b> free of 476 GB</span><span>75% used</span></div>
+          </div>
+        </div>
+        <div class="dc card">
+          <span class="di"><i data-g="drive"></i></span>
+          <div class="meta">
+            <div class="name">KINGSTON (D:)</div>
+            <div class="desc">USB flash drive · 32 GB</div>
+            <div class="prog"><b style="width:55%"></b></div>
+            <div class="free"><span><b>14.2 GB</b> free of 32 GB</span><span>55% used</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">Recent files</div>
+      <div class="recent">
+        <div class="rf"><span class="fi" data-fi="docx"></span><div><b>Lease agreement 2026.docx</b><span>Documents · Today, 11:04 AM</span></div></div>
+        <div class="rf hover"><span class="fi" data-fi="xlsx"></span><div><b>Family budget.xlsx</b><span>Documents · Yesterday</span></div></div>
+        <div class="rf"><span class="fi" data-fi="pdf"></span><div><b>Electricity bill — October.pdf</b><span>Downloads · Nov 6</span></div></div>
+        <div class="rf"><span class="fi" data-fi="jpg"></span><div><b>Lake weekend — 014.jpg</b><span>Pictures · Nov 3</span></div></div>
+        <div class="rf"><span class="fi" data-fi="pptx"></span><div><b>School project — Volcanoes.pptx</b><span>Documents · Nov 2</span></div></div>
+        <div class="rf"><span class="fi" data-fi="zip"></span><div><b>Tax forms 2025.zip</b><span>Downloads · Oct 30</span></div></div>
+        <div class="rf"><span class="fi" data-fi="txt"></span><div><b>Wi-Fi password.txt</b><span>Desktop · Oct 28</span></div></div>
+        <div class="rf"><span class="fi" data-fi="exe"></span><div><b>PhotoTool-setup.exe</b><span>Downloads · Oct 27</span></div></div>
+      </div>
+    </div>
+    <div class="status"><span>6 folders, 3 drives</span><span class="grow"></span><span>410 GB free on the system drive</span></div>
+  </div>
+</div>
+
+<div class="preview glass soft">
+  <div class="ph"><span data-ai="docs"></span><span class="t">Cover letter — Anna Smirnova.docx</span><span class="x"><i data-g="x"></i></span></div>
+  <div class="thumb"><div class="tbr"></div><div class="pg"><i class="h"></i><i></i><i style="width:90%"></i><i style="width:75%"></i><i></i><i style="width:40%"></i><i style="width:85%"></i><i style="width:65%"></i></div></div>
+</div>
+
+<div data-taskbar data-active="files" data-run="firefox,docs" data-hover="docs"></div>
+</body>
+</html>
