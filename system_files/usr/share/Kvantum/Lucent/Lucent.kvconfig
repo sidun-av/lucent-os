@@ -79,22 +79,23 @@ opaque=kaffeine,kmplayer,subtitlecomposer,kdenlive,vlc,smplayer,avidemux,kamoso,
 [GeneralColors]
 window.color=#f4f5f8
 base.color=#ffffff
-alt.base.color=#f7f8fa
+# no zebra stripes in lists (the mockups have none)
+alt.base.color=#ffffff
 button.color=#eceef3
 light.color=#ffffff
 mid.light.color=#e4e7ee
 dark.color=#c3c8d2
 mid.color=#dfe3ea
 shadow.color=#000000
-highlight.color=#3b6ef5
-inactive.highlight.color=#3b6ef5
+highlight.color=#c9d7fd
+inactive.highlight.color=#c9d7fd
 text.color=#1b1f27
 window.text.color=#1b1f27
 button.text.color=#1b1f27
 disabled.text.color=#9aa1ae
 tooltip.base.color=#fafbfd
 tooltip.text.color=#1b1f27
-highlight.text.color=#ffffff
+highlight.text.color=#1b1f27
 link.color=#2f5fe0
 link.visited.color=#7c4dc4
 progress.indicator.text.color=#ffffff

@@ -1,6 +1,7 @@
 /*
- Lucent window switcher (Alt+Tab): Windows-style row of thumbnails in the
- Lucent popup frame (frosted, radius 16, from the Plasma theme). Based on
+ Lucent window switcher (Alt+Tab): Windows-style row of thumbnails on a
+ Lucent card (radius 20, popup colour, hairline, soft shadow) drawn here, not
+ by the Plasma theme, so it looks the same in every KWin setup. Based on
  KWin's Thumbnail Grid switcher.
 
  SPDX-FileCopyrightText: 2020 Chris Holland <zrenfire@gmail.com>
@@ -23,6 +24,8 @@ KWin.TabBoxSwitcher {
         active: tabBox.visible
         delegate: PlasmaCore.Dialog {
             location: PlasmaCore.Types.Floating
+            backgroundHints: PlasmaCore.Types.NoBackground
+            type: PlasmaCore.Dialog.OnScreenDisplay
             visible: true
             flags: Qt.ToolTip | Qt.X11BypassWindowManagerHint
             x: tabBox.screenGeometry.x + tabBox.screenGeometry.width * 0.5 - dialogMainItem.width * 0.5
@@ -37,14 +40,33 @@ KWin.TabBoxSwitcher {
                 readonly property int columns: Math.max(1, Math.min(grid.count, Math.floor(maxWidth / grid.cellWidth)))
                 readonly property int rows: Math.ceil(grid.count / columns)
 
-                width: Math.max(grid.cellWidth, columns * grid.cellWidth) + 12
-                height: Math.min(rows * grid.cellHeight, tabBox.screenGeometry.height * 0.7) + 12
-                clip: true
+                readonly property int pad: 40          // room for the shadow
+                width: Math.max(grid.cellWidth, columns * grid.cellWidth) + 2 * 14 + 2 * pad
+                height: Math.min(rows * grid.cellHeight, tabBox.screenGeometry.height * 0.7) + 2 * 14 + 2 * pad
+
+                RectangularShadow {
+                    anchors.fill: card
+                    radius: card.radius
+                    offset.y: 16
+                    blur: 44
+                    spread: 0
+                    color: Qt.rgba(0.04, 0.06, 0.12, Kirigami.Theme.backgroundColor.hslLightness < 0.5 ? 0.45 : 0.24)
+                }
+                Rectangle {
+                    id: card
+                    anchors.fill: parent
+                    anchors.margins: dialogMainItem.pad
+                    radius: 20
+                    color: Qt.rgba(Kirigami.Theme.backgroundColor.r, Kirigami.Theme.backgroundColor.g, Kirigami.Theme.backgroundColor.b, 0.96)
+                    border.width: 1
+                    border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.10)
+                }
 
                 GridView {
                     id: grid
-                    anchors.fill: parent
-                    anchors.margins: 6
+                    anchors.fill: card
+                    anchors.margins: 14
+                    clip: true
                     focus: true
                     model: tabBox.model
                     currentIndex: tabBox.currentIndex
