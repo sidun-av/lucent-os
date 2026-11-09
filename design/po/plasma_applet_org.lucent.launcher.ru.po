@@ -11,20 +11,8 @@ msgstr "Поиск программ, файлов и настроек"
 msgid "All apps"
 msgstr "Все программы"
 
-msgid "open or close this menu"
-msgstr "открыть или закрыть это меню"
-
-msgid "Just start typing — search is ready"
-msgstr "Просто начните печатать — поиск уже ждёт"
-
-msgid "close"
-msgstr "закрыть"
-
 msgid "Nothing found"
 msgstr "Ничего не найдено"
-
-msgid "Power"
-msgstr "Выключение"
 
 msgid "Files"
 msgstr "Файлы"
@@ -56,3 +44,21 @@ msgstr "Текстовый редактор"
 
 msgid "Screenshot"
 msgstr "Снимок экрана"
+
+msgid "Clear"
+msgstr "Очистить"
+
+msgid "Local account"
+msgstr "Локальная учётная запись"
+
+msgid "Lock"
+msgstr "Заблокировать"
+
+msgid "Restart"
+msgstr "Перезагрузить"
+
+msgid "Sleep"
+msgstr "Спящий режим"
+
+msgid "Shut down"
+msgstr "Выключить"

@@ -1,7 +1,7 @@
 /*
-    Lucent taskbar search field (lucent.css #taskbar .tsearch): a 300 x 42
-    rounded field. Clicking it, or typing while it has focus, opens the
-    launcher (the panel applet that provides org.kde.plasma.launchermenu) with
+    Lucent taskbar search field (pebble-drift.css .tb-search): a 300 x 44
+    sunken well (--surface-sunken, --shadow-sunken), radius 12. Clicking it,
+    or typing while it has focus, opens the launcher (the panel applet that provides org.kde.plasma.launchermenu) with
     its search field focused, like the search box on the Windows taskbar.
 
     SPDX-License-Identifier: Apache-2.0
@@ -20,6 +20,7 @@ PlasmoidItem {
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
 
     readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
+    readonly property color text2: dark ? "#bcc1d6" : "#474d66"
 
     P5Support.DataSource {
         id: exec
@@ -49,13 +50,20 @@ PlasmoidItem {
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width
-            height: 42
+            height: 44
             radius: 12
-            color: root.dark ? Qt.rgba(1, 1, 1, field.containsMouse ? 0.10 : 0.06)
-                             : Qt.rgba(1, 1, 1, field.containsMouse ? 0.75 : 0.55)
-            border.width: 1
-            border.color: root.dark ? Qt.rgba(1, 1, 1, 0.09) : Qt.rgba(20 / 255, 28 / 255, 45 / 255, 0.10)
+            // --surface-sunken, a touch deeper on hover (--surface-sunken-strong)
+            color: root.dark ? Qt.rgba(0, 0, 10 / 255, field.containsMouse ? 0.30 : 0.20)
+                             : Qt.rgba(48 / 255, 58 / 255, 120 / 255, field.containsMouse ? 0.11 : 0.065)
+            border.width: 1     // --shadow-sunken: inset 0 0 0 1px
+            border.color: root.dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.04) : Qt.rgba(30 / 255, 40 / 255, 100 / 255, 0.05)
             Behavior on color { ColorAnimation { duration: Kirigami.Units.shortDuration } }
+            Rectangle {         // --shadow-sunken: inset 0 1px 2px
+                x: 8; y: 1
+                width: parent.width - 16
+                height: 1
+                color: root.dark ? Qt.rgba(0, 0, 0, 0.35) : Qt.rgba(25 / 255, 35 / 255, 90 / 255, 0.10)
+            }
 
             RowLayout {
                 anchors.fill: parent
@@ -66,17 +74,15 @@ PlasmoidItem {
                     source: "search-symbolic"
                     Layout.preferredWidth: 18
                     Layout.preferredHeight: 18
-                    color: Kirigami.Theme.textColor
+                    color: root.text2
                     isMask: true
-                    opacity: 0.75
                 }
                 Text {
                     Layout.fillWidth: true
                     text: i18n("Search")
-                    color: Kirigami.Theme.textColor
-                    opacity: 0.72
+                    color: root.text2           // --text-secondary
                     font.family: Kirigami.Theme.defaultFont.family
-                    font.pixelSize: 15
+                    font.pixelSize: 15.5        // --type-body
                     elide: Text.ElideRight
                 }
             }

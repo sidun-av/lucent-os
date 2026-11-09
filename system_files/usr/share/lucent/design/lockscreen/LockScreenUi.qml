@@ -3,12 +3,14 @@
     package (installed by build_files/design.sh); the authentication flow is
     Plasma's own (kscreenlocker's `authenticator`), the look is Lucent's:
 
-      idle      the Lucent wallpaper, dimmed, with a large clock
-      unlocking blurred + darker wallpaper, initials avatar, the name, one
-                340 px rounded translucent field with the unlock arrow inside,
-                caps-lock / error line, and a row of round session actions
-    The same dark treatment in light and dark mode, so white text always has
-    contrast. No on-screen-keyboard button (Lucent ships none).
+      idle      the night Drift wallpaper, dimmed, with a large clock
+      unlocking blurred + darker wallpaper, the avatar (a rounded square on the
+                design's gradient), the name, one 360 px matte field (radius
+                14) with the indigo unlock button inside, caps-lock / error
+                line, and a row of rounded session actions
+    Drift night (pebble-drift.css .dark) in light and dark mode, so the
+    light text always has contrast; the same look as the login screen.
+    No on-screen-keyboard button (Lucent ships none).
 
     Based on Plasma's LockScreenUi.qml (SPDX-FileCopyrightText: 2014 Aleix Pol
     Gonzalez, 2026 Kristen McWilliam).
@@ -42,7 +44,13 @@ Item {
     property string pendingPassword
 
     // Lucent tokens (docs/mockups/lucent.css), on a dark scrim in both modes
-    readonly property color accent: "#5b8bff"
+    // Drift night tokens (pebble-drift.css .dark)
+    readonly property color accent: "#7088ff"                          // --accent
+    readonly property color onAccent: "#0e1230"                        // --text-on-accent
+    readonly property color text1: "#eef0fa"                           // --text-primary
+    readonly property color text2: "#bcc1d6"                           // --text-secondary
+    readonly property color surface: Qt.rgba(29 / 255, 31 / 255, 46 / 255, 0.72)   // --surface-window, see-through
+    readonly property color line: Qt.rgba(220 / 255, 228 / 255, 1, 0.14)          // --line-strong
     readonly property string uiFont: "Inter"
 
     function handleMessage(msg) {
@@ -238,7 +246,7 @@ Item {
         }
         Rectangle { // dark scrim: white text keeps 4.5:1 on any wallpaper
             anchors.fill: parent
-            color: "#0b0f1a"
+            color: "#0e1020"
             opacity: lockScreenRoot.uiVisible ? 0.55 : 0.38
             Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.InOutQuad } }
         }
@@ -263,17 +271,17 @@ Item {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: Qt.formatTime(clock.now, Qt.locale().timeFormat(Locale.ShortFormat).replace(/:ss|\.ss/, ""))
-                color: "white"
+                color: lockScreenUi.text1
                 font.family: lockScreenUi.uiFont
                 font.pixelSize: 112
-                font.weight: Font.DemiBold
+                font.weight: Font.Bold
                 font.letterSpacing: -2
                 font.features: { "tnum": 1 }
             }
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: clock.now.toLocaleDateString(Qt.locale(), "dddd, d MMMM")
-                color: Qt.rgba(1, 1, 1, 0.86)
+                color: lockScreenUi.text2
                 font.family: lockScreenUi.uiFont
                 font.pixelSize: 24
                 font.weight: Font.Medium
@@ -286,7 +294,7 @@ Item {
             property bool passwordVisible: true
             anchors.horizontalCenter: parent.horizontalCenter
             y: parent.height * 0.42
-            width: 340
+            width: 360
             spacing: 0
             opacity: lockScreenRoot.uiVisible ? 1 : 0
             visible: opacity > 0
@@ -305,23 +313,24 @@ Item {
                 Layout.alignment: Qt.AlignHCenter
                 implicitWidth: 104
                 implicitHeight: 104
-                Rectangle {
+                Rectangle {     // .avatar: radius 12 at 44 px, scaled
                     anchors.fill: parent
-                    radius: width / 2
+                    radius: 28
                     gradient: Gradient {
-                        orientation: Gradient.Vertical
-                        GradientStop { position: 0; color: "#ffb37a" }
-                        GradientStop { position: 1; color: "#f2668b" }
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0; color: "#6a86ff" }
+                        GradientStop { position: 0.6; color: "#9a62e0" }
+                        GradientStop { position: 1; color: "#d0679c" }
                     }
-                    border.color: Qt.rgba(1, 1, 1, 0.35)
-                    border.width: 2
+                    border.color: Qt.rgba(220 / 255, 228 / 255, 1, 0.20)
+                    border.width: 1
                     Text {
                         anchors.centerIn: parent
                         visible: face.status !== Image.Ready
                         text: kscreenlocker_userName.charAt(0).toUpperCase()
                         color: "white"
                         font.family: lockScreenUi.uiFont
-                        font.pixelSize: 46
+                        font.pixelSize: 42
                         font.weight: Font.Bold
                     }
                 }
@@ -344,7 +353,7 @@ Item {
                 Rectangle {
                     id: faceMask
                     anchors.fill: face
-                    radius: width / 2
+                    radius: 27
                     visible: false
                     layer.enabled: true
                 }
@@ -354,7 +363,7 @@ Item {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 14
                 text: kscreenlocker_userName
-                color: "white"
+                color: lockScreenUi.text1
                 font.family: lockScreenUi.uiFont
                 font.pixelSize: 22
                 font.weight: Font.DemiBold
@@ -365,14 +374,21 @@ Item {
                 id: pill
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 22
-                Layout.preferredWidth: 340
-                Layout.preferredHeight: 50
-                radius: 25
+                Layout.preferredWidth: 360
+                Layout.preferredHeight: 52
+                radius: 14                                           // --radius-card
                 visible: prompt.passwordVisible && !lockScreenUi.noPasswordUnlock
-                color: Qt.rgba(1, 1, 1, passwordBox.activeFocus ? 0.20 : 0.14)
-                border.width: 1
-                border.color: passwordBox.activeFocus ? Qt.rgba(1, 1, 1, 0.55) : Qt.rgba(1, 1, 1, 0.25)
-                Behavior on color { ColorAnimation { duration: 150 } }
+                color: lockScreenUi.surface
+                border.width: passwordBox.activeFocus ? 2 : 1        // --focus-ring / --line-strong
+                border.color: passwordBox.activeFocus ? lockScreenUi.accent : lockScreenUi.line
+                Rectangle {     // --focus-ring halo: 6 px --accent-soft
+                    anchors.fill: parent
+                    anchors.margins: -6
+                    z: -1
+                    radius: 20
+                    color: Qt.rgba(112 / 255, 136 / 255, 1, 0.18)
+                    visible: passwordBox.activeFocus
+                }
 
                 T.TextField {
                     id: passwordBox
@@ -386,14 +402,14 @@ Item {
                     echoMode: TextInput.Password
                     passwordCharacter: "●"
                     passwordMaskDelay: 0
-                    color: "white"
+                    color: lockScreenUi.text1
                     selectionColor: lockScreenUi.accent
-                    selectedTextColor: "white"
+                    selectedTextColor: lockScreenUi.onAccent
                     font.family: lockScreenUi.uiFont
                     font.pixelSize: 17
                     font.letterSpacing: text.length > 0 ? 2 : 0
                     placeholderText: i18ndc("plasma_shell_org.kde.plasma.desktop", "@info:placeholder in text field", "Password")
-                    placeholderTextColor: Qt.rgba(1, 1, 1, 0.62)
+                    placeholderTextColor: lockScreenUi.text2
                     text: PasswordSync.password
                     focus: true
                     cursorVisible: visible && activeFocus
@@ -429,10 +445,10 @@ Item {
                     Keys.onReturnPressed: clicked()
                     Keys.onEnterPressed: clicked()
                     background: Rectangle {
-                        radius: width / 2
-                        color: unlockButton.pressed ? Qt.darker(lockScreenUi.accent, 1.15)
-                             : unlockButton.hovered || unlockButton.activeFocus ? Qt.lighter(lockScreenUi.accent, 1.08)
-                             : passwordBox.text.length > 0 ? lockScreenUi.accent : Qt.rgba(1, 1, 1, 0.18)
+                        radius: 10                                       // --radius-control
+                        color: unlockButton.pressed ? "#5f77f0"         // --accent-pressed
+                             : unlockButton.hovered || unlockButton.activeFocus ? "#8297ff"   // --accent-hover
+                             : passwordBox.text.length > 0 ? lockScreenUi.accent : Qt.rgba(220 / 255, 228 / 255, 1, 0.14)
                         Behavior on color { ColorAnimation { duration: 150 } }
                     }
                     contentItem: Item {
@@ -442,7 +458,7 @@ Item {
                             onPaint: {
                                 const c = getContext("2d");
                                 c.reset();
-                                c.strokeStyle = "white";
+                                c.strokeStyle = passwordBox.text.length > 0 || unlockButton.hovered ? lockScreenUi.onAccent : lockScreenUi.text1;
                                 c.lineWidth = 2;
                                 c.lineCap = "round";
                                 c.lineJoin = "round";
@@ -470,10 +486,10 @@ Item {
                 onClicked: Qt.quit()
                 Keys.onReturnPressed: clicked()
                 Keys.onEnterPressed: clicked()
-                background: Rectangle { radius: 23; color: lockScreenUi.accent }
+                background: Rectangle { radius: 11; color: lockScreenUi.accent }
                 contentItem: Text {
                     text: i18ndc("plasma_shell_org.kde.plasma.desktop", "@action:button", "Unlock")
-                    color: "white"
+                    color: lockScreenUi.onAccent
                     font.family: lockScreenUi.uiFont
                     font.pixelSize: 16
                     font.weight: Font.DemiBold
@@ -485,10 +501,10 @@ Item {
             Text { // caps lock, slow keys, PAM messages
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 14
-                Layout.preferredWidth: 340
+                Layout.preferredWidth: 360
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
-                color: Qt.rgba(1, 1, 1, 0.9)
+                color: lockScreenUi.text1
                 font.family: lockScreenUi.uiFont
                 font.pixelSize: 15
                 text: {
@@ -538,12 +554,13 @@ Item {
                             lockScreenUi.showPrompt = showPrompt;
                         }
                         background: Rectangle {
-                            radius: 20
-                            color: authButton.checked ? Qt.rgba(1, 1, 1, 0.28) : Qt.rgba(1, 1, 1, authButton.hovered ? 0.18 : 0.10)
+                            radius: 10
+                            color: authButton.checked ? Qt.rgba(51 / 255, 54 / 255, 77 / 255, 0.95)
+                                 : authButton.hovered ? Qt.rgba(44 / 255, 47 / 255, 68 / 255, 0.92) : lockScreenUi.surface
                         }
                         contentItem: Kirigami.Icon {
                             source: authButton.iconName
-                            color: "white"
+                            color: lockScreenUi.text1
                             isMask: true
                             implicitWidth: 20
                             implicitHeight: 20
@@ -574,22 +591,23 @@ Item {
                     spacing: 8
                     Rectangle {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        width: 52; height: 52; radius: 26
-                        color: Qt.rgba(1, 1, 1, action.pressed ? 0.30 : action.hovered || action.activeFocus ? 0.22 : 0.13)
+                        width: 52; height: 52; radius: 14              // rounded square, --radius-card
+                        color: action.pressed ? Qt.rgba(51 / 255, 54 / 255, 77 / 255, 0.95)
+                             : action.hovered || action.activeFocus ? Qt.rgba(44 / 255, 47 / 255, 68 / 255, 0.92) : lockScreenUi.surface
                         border.width: 1
-                        border.color: Qt.rgba(1, 1, 1, 0.20)
+                        border.color: lockScreenUi.line
                         Kirigami.Icon {
                             anchors.centerIn: parent
                             width: 22; height: 22
                             source: action.iconName
-                            color: "white"
+                            color: lockScreenUi.text1
                             isMask: true
                         }
                     }
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: action.text.replace("&", "")
-                        color: "white"
+                        color: lockScreenUi.text1
                         font.family: lockScreenUi.uiFont
                         font.pixelSize: 14
                         font.weight: Font.Medium
@@ -630,13 +648,15 @@ Item {
             onClicked: keyboardLayout.switchToNextLayout()
             Rectangle {
                 anchors.fill: parent
-                radius: 16
-                color: Qt.rgba(1, 1, 1, 0.14)
+                radius: 10
+                color: lockScreenUi.surface
+                border.width: 1
+                border.color: lockScreenUi.line
                 Text {
                     id: layoutLabel
                     anchors.centerIn: parent
                     text: keyboardLayoutSwitcher.layoutNames.shortName.toUpperCase()
-                    color: "white"
+                    color: lockScreenUi.text1
                     font.family: lockScreenUi.uiFont
                     font.pixelSize: 14
                     font.weight: Font.Bold

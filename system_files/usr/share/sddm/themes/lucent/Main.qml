@@ -1,9 +1,11 @@
 /*
-    Lucent login screen (SDDM, Qt 6 greeter). Same language as the Lucent
-    lock screen: the Drift night wallpaper, blurred and dimmed; a large
-    clock; the user's picture or initial on Lucent's gradient; one 340 px
-    rounded translucent password field with the sign-in arrow inside it; a
-    row of round power actions. No on-screen keyboard button.
+    Lucent login screen (SDDM, Qt 6 greeter) in Drift night, the dark side
+    of Pebble Drift (docs/mockups/concepts-2026/pebble-drift/pebble-drift.css
+    .dark): the night Drift wallpaper, blurred and dimmed; a large clock; the
+    user's picture or initial on the design's avatar gradient (a rounded
+    square, not a circle); one 360 px matte password field (radius 14) with
+    the indigo sign-in button inside it; a row of rounded power actions.
+    Same language as the Lucent lock screen. No on-screen keyboard button.
 
     Uses only QtQuick, so it doesn't depend on Plasma's QML being installed
     for the sddm user. SPDX-License-Identifier: Apache-2.0
@@ -16,9 +18,16 @@ Rectangle {
     id: root
     width: 1920
     height: 1080
-    color: "#10131c"
+    color: "#070a18"
 
-    readonly property color accent: config.accent || "#5b8bff"
+    // Drift night tokens (pebble-drift.css .dark)
+    readonly property color accent: config.accent || "#7088ff"       // --accent
+    readonly property color onAccent: "#0e1230"                        // --text-on-accent
+    readonly property color text1: "#eef0fa"                           // --text-primary
+    readonly property color text2: "#bcc1d6"                           // --text-secondary
+    readonly property color surface: Qt.rgba(29 / 255, 31 / 255, 46 / 255, 0.72)   // --surface-window, see-through
+    readonly property color line: Qt.rgba(220 / 255, 228 / 255, 1, 0.14)          // --line-strong
+    readonly property color hover: Qt.rgba(220 / 255, 228 / 255, 1, 0.07)         // --state-hover
     readonly property string uiFont: config.font || "Inter"
     readonly property real s: Math.max(0.8, Math.min(1.25, height / 1440)) // scale with the screen
     property int userIndex: userModel.lastIndex >= 0 ? userModel.lastIndex : 0
@@ -73,9 +82,9 @@ Rectangle {
         blur: 0.9
         autoPaddingEnabled: false
     }
-    Rectangle {
+    Rectangle {     // a Drift-night veil: the white text keeps its contrast on any wallpaper
         anchors.fill: parent
-        color: "#0b0f1a"
+        color: "#0e1020"
         opacity: 0.45
     }
 
@@ -113,17 +122,17 @@ Rectangle {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Qt.formatTime(clock.now, Qt.locale().timeFormat(Locale.ShortFormat).replace(/:ss|\.ss/, ""))
-            color: "white"
+            color: root.text1
             font.family: root.uiFont
             font.pixelSize: 84 * root.s
-            font.weight: Font.DemiBold
+            font.weight: Font.Bold
             font.letterSpacing: -1.5
             font.features: { "tnum": 1 }
         }
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: clock.now.toLocaleDateString(Qt.locale(), "dddd, d MMMM")
-            color: Qt.rgba(1, 1, 1, 0.86)
+            color: root.text2
             font.family: root.uiFont
             font.pixelSize: 19 * root.s
             font.weight: Font.Medium
@@ -135,7 +144,7 @@ Rectangle {
         id: prompt
         anchors.horizontalCenter: parent.horizontalCenter
         y: root.height * 0.38
-        width: 340 * root.s
+        width: 360 * root.s
         spacing: 0
         transform: Translate { id: shakeX }
 
@@ -158,10 +167,10 @@ Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             topPadding: 14 * root.s
             text: users.currentItem ? users.currentItem.displayName : ""
-            color: "white"
+            color: root.text1
             font.family: root.uiFont
             font.pixelSize: 22 * root.s
-            font.weight: Font.DemiBold
+            font.weight: Font.Bold
         }
 
         Item { width: 1; height: 22 * root.s }
@@ -169,12 +178,19 @@ Rectangle {
         Rectangle {
             id: pill
             width: parent.width
-            height: 50 * root.s
-            radius: height / 2
-            color: Qt.rgba(1, 1, 1, password.activeFocus ? 0.20 : 0.14)
-            border.width: 1
-            border.color: password.activeFocus ? Qt.rgba(1, 1, 1, 0.55) : Qt.rgba(1, 1, 1, 0.25)
-            Behavior on color { ColorAnimation { duration: 150 } }
+            height: 52 * root.s
+            radius: 14 * root.s                                  // --radius-card
+            color: root.surface
+            border.width: password.activeFocus ? 2 : 1           // --focus-ring / --line-strong
+            border.color: password.activeFocus ? root.accent : root.line
+            Rectangle {     // --focus-ring halo: 6 px --accent-soft
+                anchors.fill: parent
+                anchors.margins: -6
+                z: -1
+                radius: parent.radius + 6
+                color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.18)
+                visible: password.activeFocus
+            }
 
             T.TextField {
                 id: password
@@ -187,9 +203,9 @@ Rectangle {
                 echoMode: TextInput.Password
                 passwordCharacter: "●"
                 passwordMaskDelay: 0
-                color: "white"
+                color: root.text1
                 selectionColor: root.accent
-                selectedTextColor: "white"
+                selectedTextColor: root.onAccent
                 font.family: root.uiFont
                 font.pixelSize: 17 * root.s
                 font.letterSpacing: text.length > 0 ? 2 : 0
@@ -211,7 +227,7 @@ Rectangle {
                 anchors.verticalCenter: password.verticalCenter
                 visible: password.text.length === 0 && !password.preeditText
                 text: users.currentItem && !users.currentItem.passwordNeeded ? qsTr("Press Enter to sign in") : qsTr("Password")
-                color: Qt.rgba(1, 1, 1, 0.62)
+                color: root.text2
                 font.family: root.uiFont
                 font.pixelSize: 17 * root.s
             }
@@ -229,10 +245,10 @@ Rectangle {
                 Keys.onReturnPressed: clicked()
                 Keys.onEnterPressed: clicked()
                 background: Rectangle {
-                    radius: width / 2
-                    color: go.pressed ? Qt.darker(root.accent, 1.15)
-                         : go.hovered || go.activeFocus ? Qt.lighter(root.accent, 1.08)
-                         : password.text.length > 0 ? root.accent : Qt.rgba(1, 1, 1, 0.18)
+                    radius: 10 * root.s                              // --radius-control
+                    color: go.pressed ? "#5f77f0"                   // --accent-pressed
+                         : go.hovered || go.activeFocus ? "#8297ff"  // --accent-hover
+                         : password.text.length > 0 ? root.accent : Qt.rgba(220 / 255, 228 / 255, 1, 0.14)
                     Behavior on color { ColorAnimation { duration: 150 } }
                 }
                 contentItem: Item {
@@ -243,7 +259,7 @@ Rectangle {
                         onPaint: {
                             const c = getContext("2d");
                             c.reset();
-                            c.strokeStyle = "white";
+                            c.strokeStyle = password.text.length > 0 || go.hovered ? root.onAccent : root.text1;
                             c.lineWidth = 2;
                             c.lineCap = "round";
                             c.lineJoin = "round";
@@ -258,7 +274,7 @@ Rectangle {
                         visible: root.busy
                         color: "transparent"
                         border.width: 2
-                        border.color: Qt.rgba(1, 1, 1, 0.9)
+                        border.color: root.text1
                         RotationAnimation on rotation { from: 0; to: 360; duration: 900; loops: Animation.Infinite; running: root.busy }
                         Rectangle { width: 8; height: 8; color: root.accent; anchors.right: parent.right; anchors.top: parent.top }
                     }
@@ -272,7 +288,7 @@ Rectangle {
             topPadding: 14 * root.s
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
-            color: Qt.rgba(1, 1, 1, 0.92)
+            color: root.text1
             font.family: root.uiFont
             font.pixelSize: 15 * root.s
             text: {
@@ -320,7 +336,7 @@ Rectangle {
                             elide: Text.ElideRight
                             horizontalAlignment: Text.AlignHCenter
                             text: other.label
-                            color: "white"
+                            color: root.text1
                             font.family: root.uiFont
                             font.pixelSize: 13 * root.s
                         }
@@ -367,11 +383,16 @@ Rectangle {
         width: layoutText.implicitWidth + 28
         height: 34 * root.s
         onClicked: keyboard.currentLayout = (keyboard.currentLayout + 1) % keyboard.layouts.length
-        background: Rectangle { radius: height / 2; color: Qt.rgba(1, 1, 1, layoutButton.hovered ? 0.22 : 0.14) }
+        background: Rectangle {
+            radius: 10 * root.s
+            color: layoutButton.hovered ? Qt.rgba(36 / 255, 38 / 255, 56 / 255, 0.9) : root.surface
+            border.width: 1
+            border.color: root.line
+        }
         contentItem: Text {
             id: layoutText
             text: keyboard.layouts.length > 0 ? keyboard.layouts[keyboard.currentLayout].shortName.toUpperCase() : ""
-            color: "white"
+            color: root.text1
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             font.family: root.uiFont
@@ -390,22 +411,24 @@ Rectangle {
         readonly property bool hasFace: face !== "" && face.indexOf("/sddm/faces/") < 0
         implicitWidth: size
         implicitHeight: size
-        Rectangle {
+        Rectangle {     // .avatar: radius 12 at 44 px, scaled
             anchors.fill: parent
-            radius: width / 2
+            radius: width * 0.27
             gradient: Gradient {
-                GradientStop { position: 0; color: "#ffb37a" }
-                GradientStop { position: 1; color: "#f2668b" }
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0; color: "#6a86ff" }
+                GradientStop { position: 0.6; color: "#9a62e0" }
+                GradientStop { position: 1; color: "#d0679c" }
             }
-            border.color: Qt.rgba(1, 1, 1, 0.35)
-            border.width: 2
+            border.color: Qt.rgba(220 / 255, 228 / 255, 1, 0.20)
+            border.width: 1
             Text {
                 anchors.centerIn: parent
                 visible: img.status !== Image.Ready
                 text: av.name.charAt(0).toUpperCase()
                 color: "white"
                 font.family: root.uiFont
-                font.pixelSize: av.size * 0.44
+                font.pixelSize: av.size * 0.40
                 font.weight: Font.Bold
             }
         }
@@ -421,7 +444,7 @@ Rectangle {
         Rectangle {
             id: mask
             anchors.fill: img
-            radius: width / 2
+            radius: width * 0.27
             visible: false
             layer.enabled: true
         }
@@ -445,10 +468,11 @@ Rectangle {
             spacing: 8
             Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: 52 * root.s; height: width; radius: width / 2
-                color: Qt.rgba(1, 1, 1, pb.pressed ? 0.30 : pb.hovered || pb.activeFocus ? 0.22 : 0.13)
+                width: 52 * root.s; height: width; radius: 14 * root.s   // rounded square, --radius-card
+                color: pb.pressed ? Qt.rgba(51 / 255, 54 / 255, 77 / 255, 0.95)
+                     : pb.hovered || pb.activeFocus ? Qt.rgba(44 / 255, 47 / 255, 68 / 255, 0.92) : root.surface
                 border.width: 1
-                border.color: Qt.rgba(1, 1, 1, 0.20)
+                border.color: root.line
                 Image { // Lucent line glyphs (design/lucent_extra_icons.py), light variant
                     anchors.centerIn: parent
                     width: 22 * root.s; height: width
@@ -459,7 +483,7 @@ Rectangle {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: pb.text
-                color: "white"
+                color: root.text1
                 font.family: root.uiFont
                 font.pixelSize: 14 * root.s
                 font.weight: Font.Medium

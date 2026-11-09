@@ -1,6 +1,6 @@
-# Lock screen on the night rendering of the Drift wallpaper (Lucent's
-# default) in both light and dark mode (same as the login screen); Lucent's
-# LockScreenUi.qml dims and blurs it so the white clock and prompt always
+# Lock screen on Drift night (the night image of the default Drift wallpaper)
+# in both light and dark mode, the same as the login screen; Lucent's
+# LockScreenUi.qml dims and blurs it so the light clock and prompt always
 # have contrast.
 [Greeter]
 WallpaperPlugin=org.kde.image

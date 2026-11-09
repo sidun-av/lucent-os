@@ -35,9 +35,9 @@ PlasmoidItem {
         id: button
         MouseArea {
             id: area
-            Layout.minimumWidth: 50
-            Layout.preferredWidth: 50
-            Layout.maximumWidth: 50
+            Layout.minimumWidth: 52
+            Layout.preferredWidth: 52
+            Layout.maximumWidth: 52
             Layout.fillHeight: true
             hoverEnabled: true
             activeFocusOnTab: true
@@ -47,15 +47,44 @@ PlasmoidItem {
             Keys.onSpacePressed: dash.toggle()
             onClicked: dash.toggle()
 
+            // .tb-start: 48 px, radius 12; hover = --state-hover, open = a raised pillow
             Rectangle {
                 anchors.centerIn: parent
-                width: 46
-                height: 46
-                radius: 13
-                color: kicker.dark ? Qt.rgba(1, 1, 1, area.pressed ? 0.14 : 0.08)
-                                   : Qt.rgba(1, 1, 1, area.pressed ? 0.9 : 0.6)
-                opacity: area.containsMouse || area.pressed || dash.visible ? 1 : 0
+                width: 48
+                height: 48
+                radius: 12
+                color: kicker.dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.07) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.065)
+                opacity: area.containsMouse && !dash.visible && !area.pressed ? 1 : 0
+            }
+            Item {
+                anchors.centerIn: parent
+                width: 48
+                height: 48
+                opacity: area.pressed || dash.visible ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
+                Rectangle {     // --shadow-raised drop
+                    anchors.fill: parent
+                    anchors.topMargin: 1
+                    anchors.bottomMargin: -1
+                    radius: 12
+                    color: kicker.dark ? Qt.rgba(0, 0, 0, 0.3) : Qt.rgba(25 / 255, 35 / 255, 90 / 255, 0.10)
+                }
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 12
+                    border.width: 1
+                    border.color: kicker.dark ? Qt.rgba(0, 0, 0, 0.35) : Qt.rgba(30 / 255, 40 / 255, 100 / 255, 0.08)
+                    gradient: Gradient {
+                        GradientStop { position: 0; color: kicker.dark ? "#33364d" : "#fdfdff" }
+                        GradientStop { position: 1; color: kicker.dark ? "#2c2f44" : "#f3f4fb" }
+                    }
+                }
+                Rectangle {     // --highlight-top
+                    x: 6; y: 1
+                    width: parent.width - 12
+                    height: 1
+                    color: kicker.dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.08) : Qt.rgba(1, 1, 1, 0.9)
+                }
             }
             Kirigami.Icon {
                 anchors.centerIn: parent

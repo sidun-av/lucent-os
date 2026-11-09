@@ -1,8 +1,10 @@
 /*
  Lucent window switcher (Alt+Tab): Windows-style row of thumbnails on a
- Lucent card (radius 20, popup colour, hairline, soft shadow) drawn here, not
- by the Plasma theme, so it looks the same in every KWin setup. Based on
- KWin's Thumbnail Grid switcher.
+ Drift night card in both modes (pebble-drift.css .dark: --surface-popover,
+ radius 18, hairline, --shadow-popover), drawn here, not by the Plasma theme,
+ so it looks the same in every KWin setup. The current window gets the
+ selected-card treatment (.card.sel: --surface-selected + 2 px accent ring).
+ Based on KWin's Thumbnail Grid switcher.
 
  SPDX-FileCopyrightText: 2020 Chris Holland <zrenfire@gmail.com>
  SPDX-FileCopyrightText: 2023 Nate Graham <nate@kde.org>
@@ -35,6 +37,12 @@ KWin.TabBoxSwitcher {
                 id: dialogMainItem
                 focus: true
 
+                // Drift night tokens (pebble-drift.css .dark)
+                readonly property color accent: "#7088ff"      // --accent-ring is #7f95ff
+                readonly property color text1: "#eef0fa"
+                readonly property color selected: "#343b6a"    // --surface-selected
+                readonly property color hover: Qt.rgba(220 / 255, 228 / 255, 1, 0.07)
+
                 readonly property real screenFactor: tabBox.screenGeometry.width / tabBox.screenGeometry.height
                 readonly property int maxWidth: tabBox.screenGeometry.width * 0.9
                 readonly property int columns: Math.max(1, Math.min(grid.count, Math.floor(maxWidth / grid.cellWidth)))
@@ -50,16 +58,22 @@ KWin.TabBoxSwitcher {
                     offset.y: 16
                     blur: 44
                     spread: 0
-                    color: Qt.rgba(0.04, 0.06, 0.12, Kirigami.Theme.backgroundColor.hslLightness < 0.5 ? 0.45 : 0.24)
+                    color: Qt.rgba(0, 0, 0, 0.6)                 // --shadow-popover (dark)
                 }
                 Rectangle {
                     id: card
                     anchors.fill: parent
                     anchors.margins: dialogMainItem.pad
-                    radius: 20
-                    color: Qt.rgba(Kirigami.Theme.backgroundColor.r, Kirigami.Theme.backgroundColor.g, Kirigami.Theme.backgroundColor.b, 0.96)
+                    radius: 18                                   // --radius-window
+                    color: Qt.rgba(36 / 255, 38 / 255, 56 / 255, 0.97)   // --surface-popover
                     border.width: 1
-                    border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.10)
+                    border.color: Qt.rgba(0, 0, 0, 0.45)         // --shadow-popover ring
+                    Rectangle {                                  // --highlight-top
+                        x: 12; y: 1
+                        width: parent.width - 24
+                        height: 1
+                        color: Qt.rgba(220 / 255, 228 / 255, 1, 0.08)
+                    }
                 }
 
                 GridView {
@@ -94,11 +108,11 @@ KWin.TabBoxSwitcher {
                         Rectangle {      // card: hover fill, accent ring when selected
                             anchors.fill: parent
                             anchors.margins: 4
-                            radius: 16
-                            color: item.current ? Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.14)
-                                                : (item.containsMouse ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06) : "transparent")
-                            border.width: item.current ? 2.5 : 0
-                            border.color: Kirigami.Theme.highlightColor
+                            radius: 14                                   // --radius-card
+                            color: item.current ? dialogMainItem.selected
+                                                : (item.containsMouse ? dialogMainItem.hover : "transparent")
+                            border.width: item.current ? 2 : 0
+                            border.color: "#7f95ff"                      // --accent-ring
                         }
 
                         Item {
@@ -143,8 +157,8 @@ KWin.TabBoxSwitcher {
                             Text {
                                 Layout.fillWidth: true
                                 text: item.model.caption
-                                color: Kirigami.Theme.textColor
-                                font.pointSize: 11
+                                color: dialogMainItem.text1
+                                font.pixelSize: 15.5                     // --type-body
                                 font.weight: item.current ? Font.DemiBold : Font.Normal
                                 elide: Text.ElideRight
                                 textFormat: Text.PlainText

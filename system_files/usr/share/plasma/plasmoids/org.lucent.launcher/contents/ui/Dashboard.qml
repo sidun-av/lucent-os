@@ -1,8 +1,12 @@
 /*
-    Full-screen launcher, laid out after docs/mockups/02-launcher.html
-    (2560x1440 reference; geometry scales down on smaller screens, text
-    sizes don't). KWin blurs what's behind the window; a light veil on top
-    gives the frosted look of the mockup.
+    Full-screen launcher in Pebble Drift
+    (docs/mockups/concepts-2026/pebble-drift/03-launcher.html, 2560x1440
+    reference; geometry scales down on smaller screens, text sizes don't):
+    a near-opaque matte scrim (--surface-scrim, light blur only), the raised
+    68 px query field with the focus ring, a sunken segmented track for the
+    categories, raised "pillow" tiles on hover, and the account and power
+    row at the bottom. Colours are pebble-drift.css tokens; the accent is
+    the colour scheme's (it follows the one chosen in Settings).
 
     SPDX-License-Identifier: GPL-2.0-or-later
 */
@@ -34,10 +38,26 @@ Kicker.DashboardWindow {
     readonly property bool searching: search.text.length > 0
     property int category: 0          // row in rootModel; 0 = all apps
 
+    // ---- pebble-drift.css tokens -------------------------------------------
     readonly property color accent: Kirigami.Theme.highlightColor
-    readonly property color textColor: dark ? "#eef0f5" : "#1b1f27"
-    readonly property color text2: dark ? "#b4bac6" : "#4c5463"
-    readonly property color text3: dark ? "#959cab" : "#6a7282"
+    // --accent-text: the design's own for Indigo, else Settings' formula
+    readonly property bool indigo: Qt.colorEqual(accent, dark ? "#7088ff" : "#4257e8")
+    readonly property color accentText: indigo ? (dark ? "#9aabff" : "#3346cf")
+                                               : (dark ? Qt.lighter(accent, 1.35) : Qt.darker(accent, 1.15))
+    readonly property color onAccent: indigo && dark ? "#0e1230" : "#ffffff"
+    readonly property color textColor: dark ? "#eef0fa" : "#171a2b"          // --text-primary
+    readonly property color text2: dark ? "#bcc1d6" : "#474d66"              // --text-secondary
+    readonly property color text3: dark ? "#9ca2bb" : "#525972"              // --text-tertiary
+    readonly property color raised: dark ? "#33364d" : "#fdfdff"            // --surface-raised
+    readonly property color raised2: dark ? "#2c2f44" : "#f3f4fb"           // --surface-raised-2
+    readonly property color sunken: dark ? Qt.rgba(0, 0, 10 / 255, 0.20) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.065)
+    readonly property color sunkenStrong: dark ? Qt.rgba(0, 0, 10 / 255, 0.30) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.11)
+    readonly property color hover: dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.07) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.065)
+    readonly property color ring: dark ? Qt.rgba(0, 0, 0, 0.35) : Qt.rgba(30 / 255, 40 / 255, 100 / 255, 0.08)
+    readonly property color drop: dark ? Qt.rgba(0, 0, 0, 0.30) : Qt.rgba(25 / 255, 35 / 255, 90 / 255, 0.10)
+    readonly property color topLight: dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.08) : Qt.rgba(1, 1, 1, 0.9)
+    readonly property color sheet: dark ? Qt.rgba(36 / 255, 38 / 255, 56 / 255, 0.92) : Qt.rgba(252 / 255, 252 / 255, 1, 0.92)
+    readonly property color danger: dark ? "#ef5f6b" : "#cf3a48"            // --status-danger
 
     backgroundColor: "transparent"
     keyEventProxy: search
@@ -103,6 +123,16 @@ Kicker.DashboardWindow {
         "org.kde.spectacle.desktop": i18n("Screenshot"),
     })
 
+    function systemRow(id, generation) {
+        for (let i = 0; i < sysEntries.count; ++i) {
+            const o = sysEntries.objectAt(i)
+            if (o && o.favoriteId === id) {
+                return o.index
+            }
+        }
+        return -1
+    }
+
     function launch(i) {
         const e = entries[i]
         if (e && sourceModel) {
@@ -163,82 +193,82 @@ Kicker.DashboardWindow {
             }
         }
 
-        Rectangle {
+        Rectangle {     // --surface-scrim: near-opaque, so the light blur behind it is enough
             anchors.fill: parent
-            color: root.dark ? Qt.rgba(16 / 255, 18 / 255, 26 / 255, 0.62) : Qt.rgba(246 / 255, 248 / 255, 252 / 255, 0.58)
+            color: root.dark ? Qt.rgba(14 / 255, 16 / 255, 32 / 255, 0.84) : Qt.rgba(230 / 255, 233 / 255, 248 / 255, 0.78)
         }
 
-        // ---- user + power, top right ----------------------------------------
-        RowLayout {
-            anchors.top: parent.top
-            anchors.right: parent.right
-            anchors.topMargin: 40
-            anchors.rightMargin: 48
-            spacing: 14
-
+        // A raised "pillow" (.btn / .tabs span.on / .app.hover): --surface-raised
+        // gradient, --shadow-raised ring and drop, --highlight-top.
+        component Pillow: Item {
+            property real radius: 10
+            Rectangle {     // 0 1px 2px drop
+                anchors.fill: parent
+                anchors.topMargin: 1
+                anchors.bottomMargin: -1
+                radius: parent.radius
+                color: root.drop
+            }
             Rectangle {
-                Layout.preferredWidth: 42
-                Layout.preferredHeight: 42
-                radius: 21
+                anchors.fill: parent
+                radius: parent.radius
+                border.width: 1
+                border.color: root.ring
                 gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0; color: "#ffb37a" }
-                    GradientStop { position: 1; color: "#f2668b" }
+                    GradientStop { position: 0; color: root.raised }
+                    GradientStop { position: 1; color: root.raised2 }
+                }
+            }
+            Rectangle {     // top light
+                x: parent.radius / 2; y: 1
+                width: parent.width - parent.radius
+                height: 1
+                color: root.topLight
+            }
+        }
+        // A pillow button with a glyph and a label (.foot .btn, .btn.danger)
+        component PillButton: MouseArea {
+            id: pb
+            property alias text: pbLabel.text
+            property string iconName
+            property bool danger: false
+            implicitWidth: pbRow.implicitWidth + 40
+            implicitHeight: 42
+            hoverEnabled: true
+            activeFocusOnTab: true
+            Accessible.role: Accessible.Button
+            Accessible.name: text
+            Pillow { anchors.fill: parent; radius: 11; visible: !pb.danger }
+            Rectangle {
+                anchors.fill: parent
+                radius: 11
+                visible: pb.danger
+                color: pb.pressed ? Qt.darker(root.danger, 1.12) : root.danger
+            }
+            Rectangle {     // hover / press veil
+                anchors.fill: parent
+                radius: 11
+                visible: !pb.danger
+                color: root.hover
+                opacity: pb.pressed ? 1.6 : (pb.containsMouse || pb.activeFocus ? 1 : 0)
+            }
+            Row {
+                id: pbRow
+                anchors.centerIn: parent
+                spacing: 8
+                Kirigami.Icon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 18; height: 18
+                    source: pb.iconName
+                    isMask: true
+                    color: pb.danger ? "white" : root.textColor
                 }
                 Text {
-                    anchors.centerIn: parent
-                    visible: face.status !== Image.Ready
-                    text: (kuser.fullName || kuser.loginName).charAt(0).toUpperCase()
-                    color: "white"
-                    font.pixelSize: 17
-                    font.weight: Font.Bold
-                }
-                Image {
-                    id: face
-                    anchors.fill: parent
-                    source: kuser.faceIconUrl
-                    visible: false
-                    sourceSize: Qt.size(84, 84)
-                    fillMode: Image.PreserveAspectCrop
-                }
-                MultiEffect {
-                    anchors.fill: parent
-                    source: face
-                    visible: face.status === Image.Ready
-                    maskEnabled: true
-                    maskSource: faceMask
-                }
-                Rectangle { id: faceMask; anchors.fill: parent; radius: 21; visible: false; layer.enabled: true }
-            }
-            Text {
-                text: kuser.fullName || kuser.loginName
-                color: root.textColor
-                font.pixelSize: 16
-                font.weight: Font.DemiBold
-            }
-            MouseArea {
-                id: powerButton
-                Layout.preferredWidth: 42
-                Layout.preferredHeight: 42
-                hoverEnabled: true
-                Accessible.role: Accessible.Button
-                Accessible.name: i18n("Power")
-                onClicked: powerMenu.visible = !powerMenu.visible
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 21
-                    color: root.dark ? Qt.rgba(1, 1, 1, powerButton.containsMouse ? 0.16 : 0.08)
-                                     : Qt.rgba(1, 1, 1, powerButton.containsMouse ? 0.85 : 0.55)
-                    border.width: 1
-                    border.color: root.dark ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(1, 1, 1, 0.8)
-                }
-                Kirigami.Icon {
-                    anchors.centerIn: parent
-                    width: 20
-                    height: 20
-                    source: "system-shutdown-symbolic"
-                    isMask: true
-                    color: root.textColor
+                    id: pbLabel
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: pb.danger ? "white" : root.textColor
+                    font.pixelSize: 15
+                    font.weight: Font.DemiBold
                 }
             }
         }
@@ -248,22 +278,21 @@ Kicker.DashboardWindow {
             id: powerMenu
             visible: false
             z: 10
-            anchors.top: parent.top
-            anchors.right: parent.right
-            anchors.topMargin: 92
-            anchors.rightMargin: 48
-            width: 220
+            anchors.bottom: foot.top
+            anchors.left: foot.left
+            anchors.bottomMargin: 12
+            width: 240
             height: powerColumn.implicitHeight + 16
-            radius: 14
-            color: root.dark ? "#22252d" : "#fafbfd"
+            radius: 16                                       // popover
+            color: root.dark ? Qt.rgba(36 / 255, 38 / 255, 56 / 255, 0.97) : Qt.rgba(248 / 255, 249 / 255, 253 / 255, 0.96)
             border.width: 1
-            border.color: root.dark ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(20 / 255, 28 / 255, 45 / 255, 0.10)
+            border.color: root.ring
             layer.enabled: true
-            layer.effect: MultiEffect {
+            layer.effect: MultiEffect {                      // --shadow-popover
                 shadowEnabled: true
-                shadowColor: Qt.rgba(10 / 255, 15 / 255, 30 / 255, 0.25)
-                shadowBlur: 0.8
-                shadowVerticalOffset: 10
+                shadowColor: root.dark ? Qt.rgba(0, 0, 0, 0.6) : Qt.rgba(25 / 255, 35 / 255, 90 / 255, 0.35)
+                shadowBlur: 1.0
+                shadowVerticalOffset: 14
             }
             MouseArea { anchors.fill: parent }      // swallow clicks
             ColumnLayout {
@@ -287,8 +316,8 @@ Kicker.DashboardWindow {
                         }
                         Rectangle {
                             anchors.fill: parent
-                            radius: 9
-                            color: pItem.containsMouse ? (root.dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(20 / 255, 28 / 255, 45 / 255, 0.06)) : "transparent"
+                            radius: 10
+                            color: pItem.containsMouse ? root.hover : "transparent"
                         }
                         RowLayout {
                             anchors.fill: parent
@@ -311,33 +340,31 @@ Kicker.DashboardWindow {
             }
         }
 
-        // ---- search field ----------------------------------------------------
+        // ---- search field (.q): raised, focus ring, lifted ---------------------
         Item {
             id: searchBox
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.topMargin: Math.round(150 * root.s)
-            width: Math.min(760, parent.width - 96)
-            height: 64
+            anchors.topMargin: Math.round(230 * root.s)
+            width: Math.min(Math.round(960 * Math.max(root.s, 0.8)), parent.width - 96)
+            height: 68
 
-            Rectangle {      // focus ring: 0 0 0 3px accent/.35
+            Rectangle {      // --focus-ring outer halo: 6 px --accent-soft
                 anchors.fill: parent
-                anchors.margins: -3
-                radius: 23
-                color: "transparent"
-                border.width: 3
-                border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.35)
+                anchors.margins: -6
+                radius: 24
+                color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, root.dark ? 0.18 : 0.12)
             }
             Rectangle {
                 anchors.fill: parent
-                radius: 20
-                color: root.dark ? Qt.rgba(40 / 255, 44 / 255, 54 / 255, 0.92) : Qt.rgba(1, 1, 1, 0.9)
-                border.width: 1
+                radius: 18
+                color: root.raised
+                border.width: 2                              // --focus-ring: 2 px --accent-ring
                 border.color: root.accent
                 layer.enabled: true
-                layer.effect: MultiEffect {
+                layer.effect: MultiEffect {                  // --shadow-lift
                     shadowEnabled: true
-                    shadowColor: Qt.rgba(20 / 255, 30 / 255, 60 / 255, 0.12)
+                    shadowColor: root.dark ? Qt.rgba(0, 0, 0, 0.5) : Qt.rgba(25 / 255, 35 / 255, 90 / 255, 0.22)
                     shadowBlur: 0.7
                     shadowVerticalOffset: 10
                 }
@@ -345,22 +372,23 @@ Kicker.DashboardWindow {
             Kirigami.Icon {
                 id: searchIcon
                 anchors.left: parent.left
-                anchors.leftMargin: 22
+                anchors.leftMargin: 24
                 anchors.verticalCenter: parent.verticalCenter
                 width: 24
                 height: 24
                 source: "search-symbolic"
                 isMask: true
-                color: root.accent
+                color: root.accentText
             }
             TextInput {
                 id: search
                 anchors.left: searchIcon.right
                 anchors.leftMargin: 14
                 anchors.right: parent.right
-                anchors.rightMargin: 22
+                anchors.rightMargin: clearButton.visible ? 64 : 24
                 anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 19
+                font.pixelSize: 22                         // --type-title
+                font.weight: Font.Medium
                 color: root.textColor
                 selectionColor: root.accent
                 cursorDelegate: Rectangle { width: 2; color: root.accent; radius: 1 }
@@ -377,19 +405,58 @@ Kicker.DashboardWindow {
                     visible: search.text.length === 0
                     text: i18n("Search apps, files and settings")
                     color: root.text3
-                    font.pixelSize: 19
+                    font.pixelSize: 22
+                    font.weight: Font.Medium
                     elide: Text.ElideRight
+                }
+            }
+            MouseArea {      // .clr: clear the query
+                id: clearButton
+                anchors.right: parent.right
+                anchors.rightMargin: 16
+                anchors.verticalCenter: parent.verticalCenter
+                width: 36; height: 36
+                visible: root.searching
+                hoverEnabled: true
+                Accessible.role: Accessible.Button
+                Accessible.name: i18n("Clear")
+                onClicked: { search.text = ""; search.forceActiveFocus() }
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 10
+                    color: clearButton.containsMouse ? root.sunkenStrong : root.sunken
+                }
+                Kirigami.Icon {
+                    anchors.centerIn: parent
+                    width: 16; height: 16
+                    source: "edit-clear-symbolic"
+                    isMask: true
+                    color: root.text2
                 }
             }
         }
 
-        // ---- category chips --------------------------------------------------
+        // ---- category chips (.tabs): a sunken track with a raised "on" chip --
+        Rectangle {
+            anchors.fill: chips
+            anchors.margins: -4
+            radius: 14
+            color: root.sunkenStrong
+            opacity: chips.opacity
+            visible: chips.visible
+            Rectangle {      // --shadow-sunken: inner top shade
+                x: 10; y: 1
+                width: parent.width - 20
+                height: 1
+                color: root.dark ? Qt.rgba(0, 0, 0, 0.35) : Qt.rgba(25 / 255, 35 / 255, 90 / 255, 0.10)
+            }
+        }
         Row {
             id: chips
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: searchBox.bottom
-            anchors.topMargin: 30
-            spacing: 10
+            anchors.topMargin: 22
+            spacing: 4
             opacity: root.searching ? 0 : 1
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
@@ -403,20 +470,22 @@ Kicker.DashboardWindow {
                     readonly property bool on: root.category === index
                     readonly property string label: index === 0 ? i18n("All apps") : (model.display ?? "")
                     width: visible ? chipRow.implicitWidth + 36 : 0
-                    height: 40
+                    height: 38
                     hoverEnabled: true
                     // Categories with one or two apps (Help...) aren't worth a chip.
                     visible: label.length > 0 && (index === 0 || (root.rootModel.modelForRow(index)?.count ?? 0) > 2)
                     onClicked: { root.category = index; search.forceActiveFocus() }
 
+                    Pillow {
+                        anchors.fill: parent
+                        radius: 10
+                        visible: chip.on
+                    }
                     Rectangle {
                         anchors.fill: parent
-                        radius: 20
-                        color: chip.on ? root.textColor
-                                       : (root.dark ? Qt.rgba(1, 1, 1, chip.containsMouse ? 0.14 : 0.08)
-                                                    : Qt.rgba(1, 1, 1, chip.containsMouse ? 0.75 : 0.45))
-                        border.width: chip.on ? 0 : 1
-                        border.color: root.dark ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(1, 1, 1, 0.7)
+                        radius: 10
+                        visible: !chip.on && chip.containsMouse
+                        color: root.hover
                     }
                     Row {
                         id: chipRow
@@ -428,14 +497,14 @@ Kicker.DashboardWindow {
                             height: 18
                             source: chip.index === 0 ? "view-app-grid-symbolic" : chip.model.decoration
                             isMask: true    // one-colour glyphs, readable in light and dark
-                            color: chip.on ? (root.dark ? "#1b1f27" : "white") : root.text2
+                            color: chip.on ? root.accentText : root.text2
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: chip.label
-                            color: chip.on ? (root.dark ? "#1b1f27" : "white") : root.textColor
-                            font.pointSize: 11.625
-                            font.weight: Font.Medium
+                            color: chip.on ? root.textColor : root.text2
+                            font.pixelSize: 15.5                // --type-body
+                            font.weight: Font.DemiBold
                         }
                     }
                 }
@@ -446,9 +515,9 @@ Kicker.DashboardWindow {
         GridView {
             id: grid
             anchors.top: chips.bottom
-            anchors.topMargin: Math.round(110 * root.s) - Math.round(root.cellH - root.iconSize - 70 * root.s) / 2
+            anchors.topMargin: Math.round(40 * root.s)
             // whole rows only, so no half-cut icons peek in at the bottom
-            height: Math.max(1, Math.floor((hints.y - 24 - y) / root.cellH)) * root.cellH
+            height: Math.max(1, Math.floor((foot.y - 24 - y) / root.cellH)) * root.cellH
             anchors.horizontalCenter: parent.horizontalCenter
             width: root.cellW * root.columns
             cellWidth: root.cellW
@@ -490,15 +559,12 @@ Kicker.DashboardWindow {
                 readonly property bool lit: containsMouse || (grid.currentIndex === index && (grid.activeFocus || root.searching))
                 onClicked: root.launch(index)
 
-                Rectangle {     // hover/focus: rgba(255,255,255,.55), radius 30, -10 px around the icon
-                    x: (parent.width - width) / 2
-                    y: 6 + root.iconSize * 0.1 - 10
-                    width: root.iconSize * 0.8 + 20
-                    height: root.iconSize * 0.8 + 20
-                    radius: 30
-                    color: root.dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.55)
-                    border.width: 1
-                    border.color: root.dark ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.9)
+                Pillow {        // hover/focus: .app.hover, a raised tile around icon and name
+                    x: 10
+                    y: 0
+                    width: parent.width - 20
+                    height: parent.height - 14
+                    radius: 14                              // --radius-card
                     opacity: cell.lit ? 1 : 0
                     Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
                 }
@@ -517,7 +583,7 @@ Kicker.DashboardWindow {
                     anchors.fill: appIcon
                     source: appIcon
                     shadowEnabled: true
-                    shadowColor: Qt.rgba(20 / 255, 30 / 255, 60 / 255, root.dark ? 0.45 : 0.18)
+                    shadowColor: root.dark ? Qt.rgba(0, 0, 0, 0.45) : Qt.rgba(25 / 255, 35 / 255, 90 / 255, 0.22)
                     shadowBlur: 0.6
                     shadowVerticalOffset: 8
                     autoPaddingEnabled: true
@@ -585,8 +651,8 @@ Kicker.DashboardWindow {
                     horizontalAlignment: Text.AlignHCenter
                     text: cell.modelData.name
                     color: root.textColor
-                    font.pointSize: 12.375
-                    font.weight: Font.Medium
+                    font.pixelSize: 15.5                        // --type-body
+                    font.weight: Font.DemiBold
                     lineHeight: 1.3
                     wrapMode: Text.Wrap
                     maximumLineCount: 2
@@ -603,54 +669,122 @@ Kicker.DashboardWindow {
             font.pixelSize: 17
         }
 
-        // ---- key hints ---------------------------------------------------------
-        Row {
-            id: hints
+        // ---- account and power (.foot) --------------------------------------
+        RowLayout {
+            id: foot
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: Math.round(64 * root.s)
-            spacing: 34
+            anchors.bottomMargin: Math.round(100 * root.s)
+            width: Math.min(Math.round(1480 * root.s), parent.width - 96)
+            spacing: 14
 
-            component Kbd: Rectangle {
-                property alias label: kbdText.text
-                width: kbdText.implicitWidth + 18
-                height: kbdText.implicitHeight + 8
-                radius: 7
-                color: root.dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.8)
-                border.width: 1
-                border.color: root.dark ? Qt.rgba(1, 1, 1, 0.15) : Qt.rgba(20 / 255, 28 / 255, 45 / 255, 0.16)
-                Rectangle {   // border-bottom 2.5px
-                    anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
-                    anchors.leftMargin: 3; anchors.rightMargin: 3
-                    height: 1.5
-                    color: parent.border.color
+            MouseArea {      // the account; click: every session action (incl. Sign out)
+                id: account
+                Layout.preferredWidth: accountRow.implicitWidth + 16
+                Layout.preferredHeight: 56
+                hoverEnabled: true
+                Accessible.role: Accessible.Button
+                Accessible.name: kuser.fullName || kuser.loginName
+                onClicked: powerMenu.visible = !powerMenu.visible
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 14
+                    color: account.containsMouse || powerMenu.visible ? root.hover : "transparent"
                 }
-                Text {
-                    id: kbdText
-                    anchors.centerIn: parent
-                    anchors.verticalCenterOffset: -1
-                    color: root.textColor
-                    font.pixelSize: 14
-                    font.weight: Font.DemiBold
+                RowLayout {
+                    id: accountRow
+                    anchors.left: parent.left
+                    anchors.leftMargin: 8
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 14
+                    Rectangle {      // .avatar: 44 px, radius 12
+                        Layout.preferredWidth: 44
+                        Layout.preferredHeight: 44
+                        radius: 12
+                        gradient: Gradient {
+                            orientation: Gradient.Horizontal
+                            GradientStop { position: 0; color: "#6a86ff" }
+                            GradientStop { position: 0.6; color: "#9a62e0" }
+                            GradientStop { position: 1; color: "#d0679c" }
+                        }
+                        Text {
+                            anchors.centerIn: parent
+                            visible: face.status !== Image.Ready
+                            text: (kuser.fullName || kuser.loginName).charAt(0).toUpperCase()
+                            color: "white"
+                            font.pixelSize: 17
+                            font.weight: Font.Bold
+                        }
+                        Image {
+                            id: face
+                            anchors.fill: parent
+                            source: kuser.faceIconUrl
+                            visible: false
+                            sourceSize: Qt.size(88, 88)
+                            fillMode: Image.PreserveAspectCrop
+                        }
+                        MultiEffect {
+                            anchors.fill: parent
+                            source: face
+                            visible: face.status === Image.Ready
+                            maskEnabled: true
+                            maskSource: faceMask
+                        }
+                        Rectangle { id: faceMask; anchors.fill: parent; radius: 12; visible: false; layer.enabled: true }
+                    }
+                    ColumnLayout {
+                        spacing: 0
+                        Text {
+                            text: kuser.fullName || kuser.loginName
+                            color: root.textColor
+                            font.pixelSize: 16
+                            font.weight: Font.DemiBold
+                        }
+                        Text {
+                            text: i18n("Local account")
+                            color: root.text2
+                            font.pixelSize: 14                  // --type-caption
+                        }
+                    }
                 }
             }
-            component Hint: Text {
-                anchors.verticalCenter: parent.verticalCenter
-                color: root.text2
-                font.pointSize: 11.625
+            Item { Layout.fillWidth: true }
+            Repeater {
+                // Lock, Restart, Sleep, Shut down: Plasma's own session actions
+                model: [["lock-screen", i18n("Lock"), "system-lock-screen-symbolic"],
+                        ["reboot", i18n("Restart"), "system-reboot-symbolic"],
+                        ["suspend", i18n("Sleep"), "system-suspend-symbolic"],
+                        ["shutdown", i18n("Shut down"), "system-shutdown-symbolic"]]
+                delegate: PillButton {
+                    required property var modelData
+                    readonly property int row: root.systemRow(modelData[0], rootItem.sysGen)
+                    visible: row >= 0
+                    text: modelData[1]
+                    iconName: modelData[2]
+                    danger: modelData[0] === "shutdown"
+                    onClicked: {
+                        root.rootModel.systemFavoritesModel.trigger(row, "", null)
+                        root.toggle()
+                    }
+                }
             }
-
-            Row {
-                spacing: 10
-                Kbd { label: "⊞ Win" }
-                Hint { text: i18n("open or close this menu") }
+        }
+        // the session actions' rows (an entry is missing when it isn't allowed)
+        property int sysGen: 0
+        Connections {
+            target: root.rootModel.systemFavoritesModel
+            function onCountChanged() { rootItem.sysGen++ }
+        }
+        Instantiator {
+            id: sysEntries
+            model: root.rootModel.systemFavoritesModel
+            delegate: QtObject {
+                required property int index
+                required property var model
+                readonly property string favoriteId: String(model.favoriteId ?? "")
             }
-            Hint { text: i18n("Just start typing — search is ready") }
-            Row {
-                spacing: 10
-                Kbd { label: "Esc" }
-                Hint { text: i18n("close") }
-            }
+            onObjectAdded: rootItem.sysGen++
+            onObjectRemoved: rootItem.sysGen++
         }
     }
 }
