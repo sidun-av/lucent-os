@@ -124,15 +124,19 @@ try {
             # into a terminating error under "Stop".
             $ErrorActionPreference = "Continue"
             $global:LASTEXITCODE = 0
-            $null = & $cosign.Source verify-blob --bundle $Bundle `
+            $said = @(& $cosign.Source verify-blob --bundle $Bundle `
                 --certificate-identity-regexp $IdentityRegexp `
-                --certificate-oidc-issuer $Issuer $SumsFile 2>&1
+                --certificate-oidc-issuer $Issuer $SumsFile 2>&1)
             $code = $LASTEXITCODE
             $ErrorActionPreference = "Stop"
             if ($code -ne 0) {
+                $last = ""
+                if ($said.Count -gt 0) { $last = "$($said[-1])" }
                 Stop-WithProblem "The signature check failed: SHA256SUMS was not signed by Lucent OS's release workflow." @(
+                    "cosign said: $last",
                     "Do not use these files. Download them again from",
-                    "  https://github.com/sidun-av/lucent-os/releases")
+                    "  https://github.com/sidun-av/lucent-os/releases",
+                    "(The signature needs cosign 3 or newer; an older cosign can fail on it.)")
             }
             Write-Host "Signature verified: SHA256SUMS was made by Lucent OS's release workflow on GitHub." -ForegroundColor Green
         } else {

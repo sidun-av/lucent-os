@@ -451,8 +451,10 @@ There is no local build requirement; CI does it all.
 
 | Workflow | What |
 | --- | --- |
-| `build` | pytest → `podman build` natively on `ubuntu-24.04` (amd64) and `ubuntu-24.04-arm` (arm64) → push `ghcr.io/sidun-av/lucent-os:latest-<arch>` → multi-arch `:latest` |
-| `iso` (manual) | offline app bundle → bootc-image-builder `anaconda-iso` from `:latest` → bundle added to the ISO → optional unattended offline install test in QEMU/KVM; ISO uploaded as a workflow artifact, sizes in the run summary |
+| `build` | pytest → `podman build` natively on `ubuntu-24.04` (amd64) and `ubuntu-24.04-arm` (arm64) → smoke and signature-policy tests in the image → multi-arch `ghcr.io/sidun-av/lucent-os:testing` (and `:latest`, the same image), signed with Sigstore ([docs/updates.md](docs/updates.md)) |
+| `iso` (manual, or from `release`) | offline app bundle → bootc-image-builder `anaconda-iso` from an image tag (default `:latest`; the installed system follows it) → system image recompressed with zstd, bundle added → optional unattended offline install test in QEMU/KVM; ISO uploaded as a workflow artifact, sizes in the run summary |
+| `release` (tag `vX.Y.Z`, or manual dry run) | image `:X.Y.Z` + `:stable` → both ISOs → a **draft** GitHub release: each ISO in parts under 2 GiB, `SHA256SUMS` signed with Sigstore, join scripts ([docs/distribution.md](docs/distribution.md), [docs/install-usb.md](docs/install-usb.md)) |
+| `release-tools` | the join scripts' tests on Windows (PowerShell 5.1 and 7, cmd), Linux and macOS |
 | `acceptance` (after `iso`, or manual) | installs the amd64 ISO in QEMU/KVM with no network and checks the Windows double-click flow in the real Plasma session; screenshots, numbers ([above](#acceptance-test-x86_64)) |
 | `vm` (after `build`, or manual) | **test-only** qcow2 (autologin user, SSH key) + fake Windows disk for `tools/vm/`; never a release artifact |
 
@@ -462,11 +464,16 @@ Locally, on any Linux with podman:
 sudo podman build -t lucent-os .
 ```
 
-Switch an existing Fedora Atomic / bootc system to Lucent:
+Switch an existing Fedora Atomic / bootc system to Lucent (`:testing`
+follows `main`; `:stable` exists from the first release on):
 
 ```sh
-sudo bootc switch ghcr.io/sidun-av/lucent-os:latest
+sudo bootc switch ghcr.io/sidun-av/lucent-os:testing
 ```
+
+Updates then download in the background and start at the next restart;
+channels, signatures and the commands behind Settings → Updates are in
+[docs/updates.md](docs/updates.md).
 
 ## Repository layout
 
@@ -483,8 +490,10 @@ apps/lucent-store/            the Store (lucent_store, catalog.toml, po/, tests)
 apps/lucent-settings/         Settings (lucent_settings: backends/, qml/, po/, tests)
 apps/lucent-bridge-sheet/     "Preparing Windows program" sheet for lucent-bridge (po/, tests)
 tools/vm/                     boot the real image in QEMU (test-only VM images from CI)
-iso/                          installer ISO: offline app bundle, kickstart, config
+tools/release/                release assets: ISO parts, SHA256SUMS, join scripts for users
+iso/                          installer ISO: offline app bundle, kickstart, config, zstd
 tests/acceptance/             CI: install the ISO, double-click a Windows installer
+tests/release/, tests/iso/    tests of the release and ISO tools
 .github/workflows/            CI
 ```
 
