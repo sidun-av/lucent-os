@@ -89,14 +89,16 @@ done
 if [ -f SHA256SUMS.sigstore.json ]; then
     if command -v cosign >/dev/null 2>&1; then
         say "Checking the signature of SHA256SUMS with cosign..."
-        if cosign verify-blob --bundle SHA256SUMS.sigstore.json \
+        if out=$(cosign verify-blob --bundle SHA256SUMS.sigstore.json \
             --certificate-identity-regexp "$IDENTITY_RE" \
-            --certificate-oidc-issuer "$ISSUER" SHA256SUMS >/dev/null 2>&1; then
+            --certificate-oidc-issuer "$ISSUER" SHA256SUMS 2>&1); then
             say "Signature verified: SHA256SUMS was made by Lucent OS's release workflow on GitHub."
         else
             fail "The signature check failed: SHA256SUMS was not signed by Lucent OS's release workflow." \
+                "cosign said: $(printf '%s\n' "$out" | tail -n 1)" \
                 "Do not use these files. Download them again from" \
-                "  https://github.com/sidun-av/lucent-os/releases"
+                "  https://github.com/sidun-av/lucent-os/releases" \
+                "(The signature needs cosign 3 or newer; an older cosign can fail on it.)"
         fi
     else
         say "Note: the signature was not checked (cosign is not installed). The checksums"
