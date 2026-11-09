@@ -125,7 +125,11 @@ ISO carries the system image recompressed (bootc-image-builder writes it
 again from local storage, and the `iso` workflow recompresses it with zstd
 to make the ISO smaller), so its digests are not the registry's: right
 after an ISO install, the check above reports an update even when the
-registry has the same build, and the first update downloads the image's
-layers. The `iso` run summary shows how much ("First update after
-installing ..."), measured for the layers as bootc-image-builder wrote them
-and after zstd.
+registry has the same build, and the first update downloads the whole
+image. Measured ([iso run 42676756681](https://github.com/sidun-av/lucent-os/actions/runs/42676756681),
+amd64): with the layers as bootc-image-builder wrote them, 2 of 261 layers
+match the registry and the first update downloads 4.59 GB; with zstd
+layers, 0 of 261 and the same 4.59 GB. So the smaller ISO costs nothing
+here; the full first download is bootc-image-builder's doing. Updates
+after that download only changed layers. Settings could say "Lucent is
+being brought up to date with the latest build" for that first one.
