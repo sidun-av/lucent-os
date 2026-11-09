@@ -80,8 +80,11 @@ finish() {
 trap finish EXIT
 
 as_user() { # run inside the Plasma session (the user's systemd manager)
+    # Through pipes only: --pipe hands our stdio to the unit over D-Bus, and
+    # the bus may not touch files on the payload disk (that's an AVC).
     systemd-run --quiet --user --machine="$U@.host" --wait --pipe --collect \
-        -p RuntimeMaxSec=600 -- "$@"
+        -p RuntimeMaxSec=600 -- "$@" < /dev/null 2> >(cat >&2) | cat
+    return "${PIPESTATUS[0]}"
 }
 kwin() { as_user /usr/bin/python3 -I "$BIN/kwin.py" "$@" 2>>"$LOGS/kwin.log"; }
 # First usable window whose caption matches the ERE $1 (TSV, see kwin.py).
@@ -121,6 +124,14 @@ else
     exit 1
 fi
 as_user systemctl --user show-environment > "$LOGS/session-environment.txt" 2>&1
+# A test sits idle for minutes (waiting for the template): keep the screen
+# on and unlocked, as a user working at the machine would.
+if systemd-run --quiet --user --machine="$U@.host" --unit=lucent-acceptance-inhibit --collect \
+        -- kde-inhibit --power --screenSaver sleep infinity < /dev/null 2>/dev/null; then
+    record session.inhibit INFO "screen locking and power management inhibited for the test (kde-inhibit)"
+else
+    record session.inhibit INFO "kde-inhibit unavailable; the screen may lock while the test waits"
+fi
 loginctl show-session "$(loginctl list-sessions --no-legend | awk -v u="$U" '$3 == u {print $1; exit}')" \
     > "$LOGS/session.txt" 2>&1
 sleep 25
@@ -275,6 +286,7 @@ fi
 
 # The installer's own GUI: the default button on every page, as a user would.
 INST_RE='^(Installer Language|Notepad\+\+ .*Setup)'
+PROMPT_RE='^Wine (Mono|Gecko) Installer'
 installer_alive() {
     local p
     for p in $(user_pids "${NPP//./\\.}"); do
@@ -282,10 +294,30 @@ installer_alive() {
     done
     return 1
 }
-inst_window() { find_window "$INST_RE" | grep -q .; }
-t_inst=$SECONDS
-if wait_until 240 inst_window; then
-    record installer.window INFO "installer window after $((SECONDS - t_inst)) s"
+# Wait for the installer's window (lucent-bridge may first set up the
+# Windows environment). Wine must never ask to download anything.
+t_inst=$SECONDS prompted=""
+while ((SECONDS - t_inst < 600)); do
+    find_window "$INST_RE" | grep -q . && break
+    p=$(find_window "$PROMPT_RE")
+    if [ -n "$p" ] && [ -z "$prompted" ]; then
+        prompted=$(cut -f1 <<<"$p")
+        shot 03-wine-download-prompt
+        kwin activate "$PROMPT_RE" >/dev/null
+        sleep 1
+        keys esc    # Cancel (there is no network anyway)
+    fi
+    pgrep -u "$U" -x lucent-bridge >/dev/null || break
+    sleep 3
+done
+if [ -n "$prompted" ]; then
+    record wine.no-download-prompt FAIL "Wine asked to download: '$prompted' window $((SECONDS - t_inst)) s after the double-click"
+else
+    record wine.no-download-prompt PASS "no Wine Mono/Gecko download dialog"
+fi
+if find_window "$INST_RE" | grep -q .; then
+    metric installer_window_after_s $((SECONDS - t_inst))
+    record installer.window INFO "installer window $((SECONDS - t_inst)) s after the double-click"
 fi
 pages=0 focus_note="" step=0
 while installer_alive && ((step < 30)); do
@@ -443,9 +475,11 @@ if rpm -q wine-systemd >/dev/null 2>&1; then
 else
     record wine-systemd.absent PASS "$(rpm -q wine-systemd 2>&1)"
 fi
-mz=$(grep -l '^magic 4d5a' /proc/sys/fs/binfmt_misc/* 2>/dev/null | xargs -r -n1 basename | tr '\n' ' ')
-if [ "$mz" = "lucent-bridge " ]; then
-    record binfmt.mz INFO "the only MZ binfmt handler is lucent-bridge"
+mz=$(for f in $(grep -l '^magic 4d5a' /proc/sys/fs/binfmt_misc/* 2>/dev/null); do
+    printf '%s=%s ' "${f##*/}" "$(sed -n 's/^interpreter //p' "$f")"
+done)
+if [[ "$mz" =~ ^[A-Za-z]+=/usr/libexec/lucent-bridge/lucent-bridge-binfmt\ $ ]]; then
+    record binfmt.mz INFO "the only MZ (.exe) binfmt handler: $mz"
 else
     record binfmt.mz FAIL "MZ binfmt handlers: '${mz:-none}'"
 fi

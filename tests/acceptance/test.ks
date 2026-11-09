@@ -27,14 +27,18 @@ poweroff
 set -x
 if [ -c /dev/ttyS0 ]; then exec > >(tee -a /dev/ttyS0) 2>&1; fi
 root=/mnt/sysroot
-mkdir -p "$root/etc/plasmalogin.conf.d" "$root/etc/lucent-acceptance"
-cat > "$root/etc/plasmalogin.conf.d/zz-lucent-acceptance-autologin.conf" <<'EOF'
+mkdir -p "$root/etc/plasmalogin.conf.d" "$root/etc/sddm.conf.d" "$root/etc/lucent-acceptance"
+# Both login managers (Lucent uses SDDM; Fedora's default is Plasma Login Manager).
+for f in "$root/etc/plasmalogin.conf.d/zz-lucent-acceptance-autologin.conf" \
+         "$root/etc/sddm.conf.d/zz-lucent-acceptance-autologin.conf"; do
+    cat > "$f" <<'EOF'
 # TEST-ONLY (acceptance test install). Never part of a release.
 [Autologin]
 User=anna
 Session=plasma.desktop
 Relogin=false
 EOF
+done
 # Waits for the payload disk the CI harness attaches and runs the test from it.
 cat > "$root/etc/lucent-acceptance/start.sh" <<'EOF'
 #!/usr/bin/bash
@@ -69,8 +73,8 @@ chroot "$root" /usr/bin/bash -c '
     sel=/etc/selinux/${policy:-targeted}
     bin=$(ls "$sel"/policy/policy.* 2>/dev/null | sort -V | tail -n1)
     setfiles -F -c "$bin" "$sel/contexts/files/file_contexts" \
-        /etc/plasmalogin.conf.d /etc/lucent-acceptance /etc/systemd/system ||
+        /etc/plasmalogin.conf.d /etc/sddm.conf.d /etc/lucent-acceptance /etc/systemd/system ||
         echo "setfiles failed"
-    ls -lZ /etc/plasmalogin.conf.d /etc/lucent-acceptance /etc/systemd/system/lucent-acceptance.service'
+    ls -lZ /etc/plasmalogin.conf.d /etc/sddm.conf.d /etc/lucent-acceptance /etc/systemd/system/lucent-acceptance.service'
 echo "lucent-acceptance: test setup done"
 %end
