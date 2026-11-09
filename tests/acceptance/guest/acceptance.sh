@@ -70,7 +70,7 @@ finish() {
     log "collecting system logs"
     journalctl -b --no-pager -o short-monotonic > "$LOGS/journal.txt" 2>&1
     systemctl list-units --failed --no-pager > "$LOGS/failed-units.txt" 2>&1
-    as_user journalctl --user -b --no-pager -o short-monotonic > "$LOGS/journal-user.txt" 2>&1
+    as_user journalctl --user -b --no-pager -o short-monotonic 2>&1 | cat > "$LOGS/journal-user.txt"
     ls -la "$BIN" "${HOMEDIR:-/nonexistent}/.local/share/applications" > "$LOGS/files.txt" 2>&1
     sync
     ctl "DONE $FAILED" >/dev/null
@@ -80,13 +80,16 @@ finish() {
 trap finish EXIT
 
 as_user() { # run inside the Plasma session (the user's systemd manager)
-    # Through pipes only: --pipe hands our stdio to the unit over D-Bus, and
-    # the bus may not touch files on the payload disk (that's an AVC).
+    # --pipe hands our stdio to the unit over D-Bus, and the bus may not
+    # touch files on the payload disk (an AVC): stdout always goes through a
+    # pipe, and callers never point stderr at a file (2>&1 | cat > file).
+    # stdin stays the service's (an explicit </dev/null made systemd-run fail
+    # with "Bad message").
     systemd-run --quiet --user --machine="$U@.host" --wait --pipe --collect \
-        -p RuntimeMaxSec=600 -- "$@" < /dev/null 2> >(cat >&2) | cat
+        -p RuntimeMaxSec=600 -- "$@" | cat
     return "${PIPESTATUS[0]}"
 }
-kwin() { as_user /usr/bin/python3 -I "$BIN/kwin.py" "$@" 2>>"$LOGS/kwin.log"; }
+kwin() { as_user /usr/bin/python3 -I "$BIN/kwin.py" "$@"; }   # errors: the journal
 # First usable window whose caption matches the ERE $1 (TSV, see kwin.py).
 find_window() { kwin list | RE=$1 awk -F'\t' '$9 == 1 && $1 ~ ENVIRON["RE"]' | head -n1; }
 find_class() { kwin list | C=$1 awk -F'\t' '$9 == 1 && tolower($2) == tolower(ENVIRON["C"])' | head -n1; }
@@ -123,7 +126,7 @@ else
     shot 00-no-session
     exit 1
 fi
-as_user systemctl --user show-environment > "$LOGS/session-environment.txt" 2>&1
+as_user systemctl --user show-environment 2>&1 | cat > "$LOGS/session-environment.txt"
 # A test sits idle for minutes (waiting for the template): keep the screen
 # on and unlocked, as a user working at the machine would.
 if systemd-run --quiet --user --machine="$U@.host" --unit=lucent-acceptance-inhibit --collect \
@@ -176,7 +179,7 @@ xml=/usr/share/plasma/plasmoids/org.lucent.launcher/contents/config/main.xml
 pinned=$(sed -n 's:.*<default>\(.*\)</default>.*:\1:p' "$xml" | head -n1)
 override=$(grep -h '^pinned=' "$HOMEDIR/.config/plasma-org.kde.plasma.desktop-appletsrc" 2>/dev/null | head -n1)
 [ -n "$override" ] && pinned=${override#pinned=}
-menu=$(as_user kbuildsycoca6 --menutest 2>"$LOGS/menutest.err")
+menu=$(as_user kbuildsycoca6 --menutest 2>/dev/null)
 printf '%s\n' "$menu" > "$LOGS/menutest.txt"
 session_dirs=$(sed -n 's/^XDG_DATA_DIRS=//p' "$LOGS/session-environment.txt")
 miss_inst=() miss_pin=() miss_menu=()
@@ -266,9 +269,9 @@ done
 # What a double-click in Dolphin does: KIO's OpenUrlJob for the file.
 log "opening $DL/$NPP with ${opener:-gio open}"
 if [ -n "$opener" ]; then
-    as_user "$opener" exec "$DL/$NPP" > "$LOGS/open.txt" 2>&1
+    as_user "$opener" exec "$DL/$NPP" 2>&1 | cat > "$LOGS/open.txt"
 else
-    as_user gio open "$DL/$NPP" > "$LOGS/open.txt" 2>&1
+    as_user gio open "$DL/$NPP" 2>&1 | cat > "$LOGS/open.txt"
 fi
 bridge_pid() { user_pids "lucent-bridge run .*${NPP//./\\.}" | head -n1; }
 if wait_until 60 bridge_pid; then
@@ -437,7 +440,7 @@ else
     record launch.from-entry FAIL "no entry"
 fi
 ls -la "$APPDIR" > "$LOGS/applications.txt" 2>&1
-as_user lucent-bridge list > "$LOGS/bridge-list.txt" 2>&1
+as_user lucent-bridge list 2>&1 | cat > "$LOGS/bridge-list.txt"
 
 # ---------------------------------------------------------------------------
 # 6. SELinux, wine-systemd, binfmt
