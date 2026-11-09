@@ -33,11 +33,16 @@ on:
         description: "Offline install test of the amd64 ISO"
         type: boolean
         default: true
+      iso_run_id:
+        description: "Reuse the ISOs of an earlier release run (its run ID) instead of building them again"
+        type: string
+        default: ""
 
 permissions:
   contents: write   # the draft release
   packages: write   # the image, on a tag
   id-token: write   # Sigstore keyless signing
+  actions: read     # ISOs of an earlier run (iso_run_id)
 
 concurrency:
   group: release-${{ github.ref }}
@@ -88,7 +93,7 @@ jobs:
 
   iso:
     needs: [meta, tools, image]
-    if: ${{ !cancelled() && needs.meta.result == 'success' && needs.tools.result == 'success' && (needs.image.result == 'success' || needs.image.result == 'skipped') }}
+    if: ${{ !cancelled() && !inputs.iso_run_id && needs.meta.result == 'success' && needs.tools.result == 'success' && (needs.image.result == 'success' || needs.image.result == 'skipped') }}
     strategy:
       fail-fast: true
       matrix:
@@ -104,8 +109,8 @@ jobs:
       packages: read
 
   publish:
-    needs: [meta, iso]
-    if: ${{ !cancelled() && needs.iso.result == 'success' }}
+    needs: [meta, tools, iso]
+    if: ${{ !cancelled() && needs.meta.result == 'success' && needs.tools.result == 'success' && (needs.iso.result == 'success' || (needs.iso.result == 'skipped' && inputs.iso_run_id != '')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     env:
@@ -114,6 +119,7 @@ jobs:
       IMAGE_TAG: ${{ needs.meta.outputs.image_tag }}
       OUT: /mnt/release
       GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}   # gh runs outside the checkout
       # Who signs SHA256SUMS: this workflow, at a v* tag or (dry runs) on main.
       # The join scripts check the same identity.
       IDENTITY_RE: '^https://github\.com/sidun-av/lucent-os/\.github/workflows/release\.yml@refs/(tags/v.+|heads/main)$'
@@ -126,10 +132,19 @@ jobs:
           sudo mkdir -p "$OUT" && sudo chown "$USER" "$OUT"
           df -h / /mnt
       - name: Download the ISOs
+        if: ${{ !inputs.iso_run_id }}
         uses: actions/download-artifact@v4
         with:
           pattern: lucent-os-*-iso
           path: ${{ env.OUT }}/iso
+      - name: Download the ISOs of release run ${{ inputs.iso_run_id }}
+        if: ${{ inputs.iso_run_id }}
+        uses: actions/download-artifact@v4
+        with:
+          pattern: lucent-os-*-iso
+          path: ${{ env.OUT }}/iso
+          run-id: ${{ inputs.iso_run_id }}
+          github-token: ${{ github.token }}
       - name: Split into parts (under 2 GiB each) and write SHA256SUMS
         run: |
           python3 tools/release/make-release-assets.py "$VERSION" "$OUT/iso" "$OUT/assets"
