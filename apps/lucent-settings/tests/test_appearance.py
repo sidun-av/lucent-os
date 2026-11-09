@@ -96,6 +96,8 @@ def test_wallpapers(tmp_path, monkeypatch, xdg_config):
     assert [(w.name, w.ours) for w in walls] == [("Lucent", True), ("Mountain", True),
                                                 ("forest", False), ("beach", False)]
     assert walls[0].thumbnail.endswith("images/3840x2160.jpg")
+    assert walls[0].thumbnail_dark.endswith("images_dark/3840x2160.jpg")
+    assert walls[1].thumbnail_dark == ""  # Mountain has no night version
     assert a.current_wallpaper() == "/usr/share/wallpapers/Lucent"
     r = FakeRunner()
     appearance.Appearance(r).set_wallpaper(str(sysw / "Lucent"))
@@ -118,18 +120,3 @@ def test_animations_and_text_size(xdg_config):
     assert fonts["activeFont"].startswith("Inter,13,") and ",600," in fonts["activeFont"]
     assert r.called("busctl", "--user", "emit", "/KDEPlatformTheme")
 
-
-def test_transparency(xdg_config):
-    shell = ("busctl", "--user", "--json=short", "call", "org.kde.plasmashell")
-    r = FakeRunner().on(*shell, out='{"type":"s","data":["adaptive"]}\n')
-    a = appearance.Appearance(r)
-    assert a.transparency() is True
-    r.on(*shell, out='{"type":"s","data":["opaque"]}\n')
-    assert a.transparency() is False
-    r.calls.clear()
-    a.set_transparency(False)
-    script = r.calls[0][-1]
-    assert r.calls[0][-3:-1] == ["evaluateScript", "s"] and "p.opacity = 'opaque'" in script
-    assert ["kwriteconfig6", "--file", "kwinrc", "--group", "Plugins", "--key", "blurEnabled", "--notify",
-            "--type", "bool", "false"] in r.calls
-    assert r.calls[-1][-3:] == ["/KWin", "org.kde.KWin", "reconfigure"]

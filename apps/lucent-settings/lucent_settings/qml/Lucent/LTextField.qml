@@ -1,22 +1,33 @@
 import QtQuick
 import QtQuick.Controls.Basic as C
 
+// .field: a sunken well; focused = raised surface with an accent ring.
 C.TextField {
     id: f
-    implicitHeight: Theme.controlHeight
+    implicitHeight: Theme.fieldHeight
     implicitWidth: 280
     font.family: Theme.font
     font.pixelSize: Theme.fontBody
     color: Theme.text
     placeholderTextColor: Theme.text3
-    selectionColor: Theme.sel
+    selectionColor: Theme.accentSoft
     selectedTextColor: Theme.text
-    leftPadding: 12
-    rightPadding: 12
-    background: Rectangle {
-        radius: Theme.radiusControl
-        color: Theme.field
-        border.width: f.activeFocus ? 2 : 1
-        border.color: f.activeFocus ? Theme.accent : Theme.line
+    leftPadding: 14
+    rightPadding: 14
+    background: Item {
+        Rectangle {
+            anchors.fill: parent; anchors.margins: -6
+            radius: Theme.radiusControl + 6
+            color: Theme.accentSoft
+            visible: f.activeFocus
+        }
+        Rectangle {
+            anchors.fill: parent; anchors.margins: -2
+            radius: Theme.radiusControl + 2
+            color: Theme.accent
+            visible: f.activeFocus
+        }
+        Rectangle { anchors.fill: parent; radius: Theme.radiusControl; color: Theme.raised; visible: f.activeFocus }
+        Well { anchors.fill: parent; visible: !f.activeFocus }
     }
 }

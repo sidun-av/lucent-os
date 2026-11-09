@@ -14,8 +14,10 @@ file, so it goes through Lucent's small polkit helper (pkexec).
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import platform
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -26,6 +28,24 @@ from ..run import Result, Runner
 
 RPM_OSTREED_CONF = Path("/etc/rpm-ostreed.conf")
 HELPER = "/usr/libexec/lucent/settings-helper"
+GOARCH = {"x86_64": "amd64", "aarch64": "arm64", "arm64": "arm64", "amd64": "amd64"}
+
+
+def registry_ref(origin: str) -> str | None:
+    """'ostree-unverified-registry:ghcr.io/x:tag' -> 'docker://ghcr.io/x:tag';
+    None for an origin that is not a registry (oci dir, local storage)."""
+    if not origin:
+        return None
+    if "docker://" in origin:
+        return "docker://" + origin.split("docker://", 1)[1]
+    for prefix in ("ostree-unverified-registry:", "ostree-image-signed:registry:",
+                   "ostree-remote-registry:"):
+        if origin.startswith(prefix):
+            rest = origin[len(prefix):]
+            if prefix == "ostree-remote-registry:":
+                rest = rest.split(":", 1)[1]
+            return "docker://" + rest
+    return None
 
 
 @dataclass
@@ -82,15 +102,19 @@ def _state_file() -> Path:
 
 
 class Updates:
-    def __init__(self, runner: Runner):
+    def __init__(self, runner: Runner, machine: str | None = None):
         self.r = runner
+        self.machine = machine or platform.machine()
 
-    def status(self) -> Status:
+    def _status_json(self) -> dict:
         res = self.r.run(["rpm-ostree", "status", "--json"])
         try:
-            data = json.loads(res.out) if res.ok else {}
+            return json.loads(res.out) if res.ok else {}
         except json.JSONDecodeError:
-            data = {}
+            return {}
+
+    def status(self) -> Status:
+        data = self._status_json()
         deps = data.get("deployments") or []
         st = Status()
         booted_i = next((i for i, d in enumerate(deps) if d.get("booted")), None)
@@ -113,16 +137,51 @@ class Updates:
         if cached and cached.get("checksum") != booted.get("checksum"):
             st.available = Version("available", cached.get("version") or "", int(cached.get("timestamp", 0)),
                                    cached.get("checksum", ""))
+        seen = self._state().get("available")
+        on_disk = {d.get("container-image-reference-digest") for d in deps}
+        if st.available is None and seen and seen not in on_disk:
+            st.available = Version("available", "", 0, seen)
         return st
 
     def check(self) -> tuple[bool, bool, str]:
-        """(worked, update_available, error). Exit 77 means "no updates"."""
-        res = self.r.run(["rpm-ostree", "upgrade", "--check"], timeout=300)
-        if res.code == 77:
-            return True, False, ""
-        if res.ok:
-            return True, True, ""
-        return False, False, res.message
+        """(worked, update_available, error).
+
+        For a registry image the registry's manifest digest for this CPU is
+        compared with the digests of the versions on disk (rpm-ostree's own
+        --check is unreliable for container images: coreos/rpm-ostree#1579).
+        Otherwise rpm-ostree decides (exit 77 = no updates)."""
+        data = self._status_json()
+        deps = data.get("deployments") or []
+        booted = next((d for d in deps if d.get("booted")), {})
+        ref = registry_ref(booted.get("container-image-reference", ""))
+        if ref is None:
+            res = self.r.run(["rpm-ostree", "upgrade", "--check"], timeout=300)
+            if res.code == 77:
+                return True, False, ""
+            return (True, True, "") if res.ok else (False, False, res.message)
+        res = self.r.run(["skopeo", "inspect", "--raw", ref], timeout=90)
+        if not res.ok:
+            return False, False, res.message
+        digest = self._arch_digest(res.out)
+        if not digest:
+            return False, False, "no image for this processor"
+        on_disk = {d.get("container-image-reference-digest") for d in deps}
+        available = digest not in on_disk
+        self._save_state(available=digest if available else "")
+        return True, available, ""
+
+    def _arch_digest(self, raw: str) -> str:
+        try:
+            doc = json.loads(raw)
+        except json.JSONDecodeError:
+            return ""
+        if "manifests" in doc:  # an index (multi-arch tag): this CPU's entry
+            want = GOARCH.get(self.machine, self.machine)
+            for m in doc["manifests"]:
+                if m.get("platform", {}).get("architecture") == want:
+                    return m.get("digest", "")
+            return ""
+        return "sha256:" + hashlib.sha256(raw.encode()).hexdigest()
 
     def apply(self) -> Result:
         """Download and stage the new version; it starts at the next restart."""
@@ -160,14 +219,23 @@ class Updates:
     def flatpak_update(self) -> Result:
         return self.r.run(["flatpak", "update", "--system", "-y", "--noninteractive"], timeout=3600)
 
-    # --- when we last looked -------------------------------------------------
+    # --- what we saw last time -----------------------------------------------
+    def _state(self) -> dict:
+        try:
+            return json.loads(_state_file().read_text())
+        except (OSError, ValueError):
+            return {}
+
+    def _save_state(self, **kw) -> None:
+        f = _state_file()
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(json.dumps({**self._state(), **kw}))
+
     def last_check(self) -> int | None:
         try:
-            return int(json.loads(_state_file().read_text())["last_check"])
-        except (OSError, ValueError, KeyError):
+            return int(self._state()["last_check"])
+        except (KeyError, TypeError, ValueError):
             return None
 
     def remember_check(self, when: int | None = None) -> None:
-        f = _state_file()
-        f.parent.mkdir(parents=True, exist_ok=True)
-        f.write_text(json.dumps({"last_check": int(when if when is not None else time.time())}))
+        self._save_state(last_check=int(when if when is not None else time.time()))

@@ -5,27 +5,30 @@ import QtQuick.Window
 import Lucent
 import "pages"
 
-// docs/mockups/03-settings: 340 px sidebar (account, search, sections,
-// "About" in the footer) and the page on the right.
+// Pebble structure (docs/mockups/concepts-2026/pebble/03-settings): a header
+// row (back / forward, centred search), then a sunken sidebar well (account,
+// sections) and the page of cards. Window title and buttons come from KWin.
 C.ApplicationWindow {
     id: win
     title: System.tr("Settings")
     visible: true
-    width: Math.min(1900, Screen.desktopAvailableWidth * 0.86)
-    height: Math.min(1016, Screen.desktopAvailableHeight * 0.86)
-    minimumWidth: 980
-    minimumHeight: 620
-    color: Theme.winBg
+    width: Math.min(1840, Screen.desktopAvailableWidth * 0.86)
+    height: Math.min(1116, Screen.desktopAvailableHeight * 0.88)
+    minimumWidth: 1000
+    minimumHeight: 640
+    color: Theme.surface
     font.family: Theme.font
     font.pixelSize: Theme.fontBody
 
     property string page: System.startPage
     property string query: ""
+    property var back: []
+    property var forward: []
 
     readonly property var sectionList: [
-        { id: "network", icon: "wifi", title: System.tr("Wi-Fi & Network"),
+        { id: "network", icon: "wifi", title: System.tr("Network & internet"),
           keys: "wifi wi-fi wlan internet network ethernet cable lan " + System.tr("internet network cable password") },
-        { id: "bluetooth", icon: "bluetooth", title: System.tr("Bluetooth"),
+        { id: "bluetooth", icon: "bluetooth", title: System.tr("Bluetooth & devices"),
           keys: "bluetooth headphones mouse keyboard speaker pair " + System.tr("headphones mouse speaker pair") },
         { id: "display", icon: "display", title: System.tr("Display"),
           keys: "screen monitor resolution scale size night light hdmi " + System.tr("screen resolution scale night light") },
@@ -35,12 +38,14 @@ C.ApplicationWindow {
           keys: "theme dark light mode colour color accent wallpaper background animations text size font " + System.tr("theme dark light accent wallpaper text size") },
         { id: "habits", icon: "keyboard", title: System.tr("Like Windows"),
           keys: "windows shortcuts keyboard layout language double click buttons win key " + System.tr("shortcuts keyboard layout language double-click") },
-        { id: "users", icon: "users", title: System.tr("Users"),
-          keys: "user account name password picture avatar " + System.tr("account name password picture") },
+        { id: "winapps", icon: "winapp", title: System.tr("Windows programs"),
+          keys: "windows programs exe wine apps remove uninstall " + System.tr("programs exe remove uninstall") },
         { id: "updates", icon: "refresh", title: System.tr("Updates"),
           keys: "update upgrade version rollback restore apps " + System.tr("update version roll back apps") },
-        { id: "winapps", icon: "winapp", title: System.tr("Windows Programs"),
-          keys: "windows programs exe wine apps remove uninstall " + System.tr("programs exe remove uninstall") }
+        { id: "users", icon: "users", title: System.tr("Users"),
+          keys: "user account name password picture avatar " + System.tr("account name password picture") },
+        { id: "about", icon: "info", title: System.tr("About this PC"),
+          keys: "about version computer hardware memory processor advanced kde system settings " + System.tr("version computer hardware advanced") }
     ]
 
     function matches(s) {
@@ -49,148 +54,174 @@ C.ApplicationWindow {
         return (s.title + " " + s.keys).toLowerCase().indexOf(q) >= 0
     }
     function open(id) {
+        if (id !== page) {
+            back = back.concat([page])
+            forward = []
+        }
         page = id
-        query = ""
         search.text = ""
+    }
+    function goBack() {
+        if (!back.length) return
+        forward = forward.concat([page])
+        page = back[back.length - 1]
+        back = back.slice(0, -1)
+    }
+    function goForward() {
+        if (!forward.length) return
+        back = back.concat([page])
+        page = forward[forward.length - 1]
+        forward = forward.slice(0, -1)
     }
 
     Component.onCompleted: {
         UsersPage.refresh(); NetworkPage.refresh(); UpdatesPage.refresh(); AboutPage.refresh()
     }
+    Shortcut { sequences: [StandardKey.Back]; onActivated: win.goBack() }
+    Shortcut { sequences: [StandardKey.Forward]; onActivated: win.goForward() }
+    Shortcut { sequences: [StandardKey.Find]; onActivated: search.forceActiveFocus() }
 
-    RowLayout {
+    // fine grain over the matte surface
+    Image {
+        anchors.fill: parent
+        source: "Lucent/grain.png"
+        fillMode: Image.Tile
+        opacity: Theme.grainOpacity
+        smooth: false
+    }
+
+    ColumnLayout {
         anchors.fill: parent
         spacing: 0
 
-        // ---------------- sidebar ----------------
-        Rectangle {
-            Layout.preferredWidth: Theme.sidebarWidth
-            Layout.fillHeight: true
-            color: Theme.winSide
-            Rectangle { anchors.right: parent.right; width: 1; height: parent.height; color: Theme.line }
-
-            ColumnLayout {
-                anchors { fill: parent; topMargin: Theme.sidebarPadV; bottomMargin: Theme.sidebarPadV; leftMargin: Theme.sidebarPadH; rightMargin: Theme.sidebarPadH + 1 }
-                spacing: 3
-
-                // account
-                Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: me.implicitHeight + 24
-                    color: meMouse.containsMouse ? Theme.hover : "transparent"
-                    radius: Theme.radiusControl
-                    RowLayout {
-                        id: me
-                        anchors { left: parent.left; right: parent.right; top: parent.top; leftMargin: 10; topMargin: 8 }
-                        spacing: 14
-                        Avatar { size: Theme.avatarSide; source: UsersPage.s.icon || ""; initials: UsersPage.s.initials || "?" }
-                        ColumnLayout {
-                            spacing: 1
-                            Layout.fillWidth: true
-                            LText { text: UsersPage.s.name || ""; px: Theme.fontName; weight: Theme.weightH1; Layout.fillWidth: true }
-                            LText {
-                                text: UsersPage.s.loaded ? (UsersPage.s.admin ? System.tr("Administrator") : System.tr("Standard user")) : ""
-                                px: Theme.fontSub; color: Theme.text2
-                            }
-                        }
-                    }
-                    MouseArea { id: meMouse; anchors.fill: parent; hoverEnabled: true; onClicked: win.open("users") }
+        // ---------------- header row ----------------
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredHeight: Theme.headerHeight
+            RowLayout {
+                anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: Theme.bodyPad + 4 }
+                spacing: 2
+                LButton { flat: true; icon: "left"; text: ""; enabled: win.back.length > 0; onClicked: win.goBack() }
+                LButton { flat: true; icon: "right"; text: ""; enabled: win.forward.length > 0; onClicked: win.goForward() }
+            }
+            C.TextField {
+                id: search
+                anchors.centerIn: parent
+                width: Math.min(Theme.searchWidth, parent.width - 300)
+                height: Theme.fieldHeight
+                leftPadding: 42
+                rightPadding: 14
+                placeholderText: System.tr("Find a setting")
+                placeholderTextColor: Theme.text3
+                color: Theme.text
+                font.family: Theme.font
+                font.pixelSize: Theme.fontBody
+                onTextChanged: win.query = text
+                onAccepted: {
+                    for (var i = 0; i < win.sectionList.length; i++)
+                        if (win.matches(win.sectionList[i])) { win.open(win.sectionList[i].id); return }
                 }
-
-                // search (.search: 40 px, field, 10 px corners)
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: 2
-                    Layout.rightMargin: 2
-                    Layout.topMargin: 4
-                    Layout.bottomMargin: 14
-                    implicitHeight: Theme.controlHeight
-                    radius: Theme.radiusControl
-                    color: Theme.field
-                    border.width: search.activeFocus ? 2 : 0
-                    border.color: Theme.accent
-                    RowLayout {
-                        anchors { fill: parent; leftMargin: 12; rightMargin: 8 }
-                        spacing: 8
-                        Sym { name: "search"; size: 18; color: Theme.text3 }
-                        C.TextField {
-                            id: search
-                            Layout.fillWidth: true
-                            placeholderText: System.tr("Find a setting")
-                            placeholderTextColor: Theme.text3
-                            color: Theme.text
-                            font.family: Theme.font
-                            font.pixelSize: Theme.fontBody
-                            background: null
-                            leftPadding: 0
-                            onTextChanged: win.query = text
-                            onAccepted: {
-                                for (var i = 0; i < win.sectionList.length; i++)
-                                    if (win.matches(win.sectionList[i])) { win.open(win.sectionList[i].id); return }
-                            }
-                            Keys.onEscapePressed: text = ""
-                        }
+                Keys.onEscapePressed: text = ""
+                background: Item {
+                    Rectangle {
+                        anchors.fill: parent; anchors.margins: -6
+                        radius: Theme.radiusControl + 6; color: Theme.accentSoft; visible: search.activeFocus
                     }
-                }
-
-                Repeater {
-                    model: win.sectionList
-                    SideItem {
-                        required property var modelData
-                        visible: win.matches(modelData)
-                        icon: modelData.icon
-                        tint: Theme.sq[modelData.id]
-                        text: modelData.title
-                        selected: win.page === modelData.id
-                        value: modelData.id === "network" ? (NetworkPage.s.sideValue || "") : ""
-                        count: modelData.id === "updates" ? (UpdatesPage.s.count || 0) : 0
-                        onClicked: win.open(modelData.id)
+                    Rectangle {
+                        anchors.fill: parent; anchors.margins: -2
+                        radius: Theme.radiusControl + 2; color: Theme.accent; visible: search.activeFocus
                     }
-                }
-                LText {
-                    visible: {
-                        for (var i = 0; i < win.sectionList.length; i++) if (win.matches(win.sectionList[i])) return false
-                        return true
-                    }
-                    text: System.tr("Nothing found. More settings are in Advanced settings (About).")
-                    px: Theme.fontSub; color: Theme.text2; wrapMode: Text.WordWrap; elide: Text.ElideNone
-                    Layout.fillWidth: true; Layout.margins: 10
-                }
-
-                Item { Layout.fillHeight: true }
-
-                // footer: "Lucent OS 0.1 · About"
-                Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: 38
-                    radius: Theme.radiusItem
-                    color: win.page === "about" ? Theme.sel : (footMouse.containsMouse ? Theme.hover : "transparent")
-                    RowLayout {
-                        anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
-                        spacing: 10
-                        Sym { name: "info"; size: 18; color: Theme.text2 }
-                        LText {
-                            text: (AboutPage.s.osName || "Lucent OS") + " · " + System.tr("About")
-                            px: Theme.fontSub; color: Theme.text2; Layout.fillWidth: true
-                        }
-                    }
-                    MouseArea { id: footMouse; anchors.fill: parent; hoverEnabled: true; onClicked: win.open("about") }
+                    Rectangle { anchors.fill: parent; radius: Theme.radiusControl; color: Theme.raised; visible: search.activeFocus }
+                    Well { anchors.fill: parent; visible: !search.activeFocus }
+                    Sym { x: 14; anchors.verticalCenter: parent.verticalCenter; name: "search"; size: 18; color: Theme.text2 }
                 }
             }
         }
 
-        // ---------------- page ----------------
-        Item {
+        // ---------------- body ----------------
+        RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Repeater {
-                model: ["network", "bluetooth", "display", "sound", "appearance", "habits", "users", "updates", "winapps", "about"]
-                Loader {
-                    required property string modelData
-                    anchors.fill: parent
-                    active: win.page === modelData
-                    visible: active
-                    source: "pages/" + modelData + ".qml"
+            Layout.leftMargin: Theme.bodyPad
+            Layout.rightMargin: Theme.bodyPad
+            Layout.bottomMargin: Theme.bodyPad
+            spacing: Theme.bodyPad
+
+            // sunken sidebar well
+            Well {
+                Layout.preferredWidth: Theme.sidebarWidth
+                Layout.fillHeight: true
+                radius: Theme.radiusCard
+
+                ColumnLayout {
+                    anchors { fill: parent; topMargin: Theme.sidebarPadV; bottomMargin: Theme.sidebarPadV
+                              leftMargin: Theme.sidebarPadH; rightMargin: Theme.sidebarPadH }
+                    spacing: 1
+
+                    // account (.me), a hairline under it
+                    Item {
+                        Layout.fillWidth: true
+                        implicitHeight: me.implicitHeight + 20
+                        Layout.bottomMargin: 6
+                        Rectangle { anchors.fill: parent; anchors.bottomMargin: 1; radius: Theme.radiusItem; color: Theme.hover; visible: meMouse.containsMouse }
+                        RowLayout {
+                            id: me
+                            anchors { left: parent.left; right: parent.right; top: parent.top; leftMargin: 8; topMargin: 6 }
+                            spacing: 12
+                            Avatar { size: Theme.avatarSide; source: UsersPage.s.icon || ""; initials: UsersPage.s.initials || "?" }
+                            ColumnLayout {
+                                spacing: 1
+                                Layout.fillWidth: true
+                                LText { text: UsersPage.s.name || ""; px: Theme.fontName; weight: Theme.weightCardTitle; Layout.fillWidth: true }
+                                LText {
+                                    text: UsersPage.s.loaded ? (UsersPage.s.admin ? System.tr("Administrator") : System.tr("Standard user")) : ""
+                                    px: Theme.fontSub; color: Theme.text2
+                                }
+                            }
+                        }
+                        Rectangle { anchors { left: parent.left; right: parent.right; bottom: parent.bottom } height: 1; color: Theme.line }
+                        MouseArea { id: meMouse; anchors.fill: parent; hoverEnabled: true; onClicked: win.open("users") }
+                    }
+
+                    Repeater {
+                        model: win.sectionList
+                        SideItem {
+                            required property var modelData
+                            visible: win.matches(modelData)
+                            icon: modelData.icon
+                            text: modelData.title
+                            selected: win.page === modelData.id
+                            value: modelData.id === "network" ? (NetworkPage.s.sideValue || "") : ""
+                            count: modelData.id === "updates" ? (UpdatesPage.s.count || 0) : 0
+                            onClicked: win.open(modelData.id)
+                        }
+                    }
+                    LText {
+                        visible: {
+                            for (var i = 0; i < win.sectionList.length; i++) if (win.matches(win.sectionList[i])) return false
+                            return true
+                        }
+                        text: System.tr("Nothing found. More settings are in Advanced settings (About this PC).")
+                        px: Theme.fontSub; color: Theme.text2; wrapMode: Text.WordWrap; elide: Text.ElideNone
+                        Layout.fillWidth: true; Layout.margins: 10
+                    }
+                    Item { Layout.fillHeight: true }
+                }
+            }
+
+            // page
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Repeater {
+                    model: ["network", "bluetooth", "display", "sound", "appearance", "habits", "users", "updates", "winapps", "about"]
+                    Loader {
+                        required property string modelData
+                        anchors.fill: parent
+                        active: win.page === modelData
+                        visible: active
+                        source: "pages/" + modelData + ".qml"
+                    }
                 }
             }
         }

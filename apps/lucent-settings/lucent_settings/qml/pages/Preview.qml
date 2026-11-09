@@ -1,66 +1,58 @@
 import QtQuick
-import QtQuick.Shapes
 import Lucent
 
-// The mockup's miniature desktop (.pv.light / .pv.dark): wallpaper
-// gradient, a window with a sidebar and three text bars, a taskbar.
+// The mode tile's miniature desktop: the person's own wallpaper (day or
+// night image), a window with a sidebar and an accent line, a taskbar.
+// These are pictures of light and dark, so their colours are fixed per mode.
 Item {
     id: p
     property bool dark: false
-    Shape {
+    property string wallpaper
+    Rectangle { anchors.fill: parent; color: p.dark ? "#141829" : "#e4ebff" }
+    Image {
         anchors.fill: parent
-        preferredRendererType: Shape.CurveRenderer
-        ShapePath {
-            strokeWidth: -1
-            fillGradient: LinearGradient {
-                x1: 0; y1: 0; x2: p.width; y2: p.height
-                GradientStop { position: 0; color: p.dark ? "#1b2350" : "#bcd0ff" }
-                GradientStop { position: 0.6; color: p.dark ? "#3b1d5e" : "#ffd3e4" }
-                GradientStop { position: 1; color: p.dark ? "#0d2a40" : "#cfeaff" }
-            }
-            PathRectangle { x: 0; y: 0; width: p.width; height: p.height }
-        }
+        source: p.wallpaper
+        sourceSize: Qt.size(640, 360)
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
     }
-    // box-shadow: 0 6px 16px rgba(0,0,0,.18), drawn as soft rings (this
-    // picture is itself a layer, where a nested blur effect doesn't render)
-    Repeater {
-        model: 6
+    Repeater {   // the window's soft shadow
+        model: 5
         Rectangle {
             required property int index
-            readonly property real spread: 1 + index * 1.6
-            x: w.x - spread; y: w.y + 5 - spread
-            width: w.width + 2 * spread; height: w.height + 2 * spread
-            radius: w.radius + spread
-            color: Qt.rgba(0, 0, 0, (p.dark ? 0.06 : 0.035) * (6 - index) / 6)
+            readonly property real s: 1 + index * 2
+            x: w.x - s; y: w.y + 6 - s
+            width: w.width + 2 * s; height: w.height + 2 * s
+            radius: w.radius + s
+            color: Qt.rgba(0.08, 0.1, 0.3, (p.dark ? 0.14 : 0.06) * (5 - index) / 5)
         }
     }
     Rectangle {
         id: w
-        x: 24; y: 22
-        width: p.width - 24 - 60
-        height: p.height - 22 - 44
+        x: p.width * 0.14; y: p.height * 0.12
+        width: p.width * 0.62; height: p.height * 0.58
         radius: 8
-        color: p.dark ? "#23262e" : "#ffffff"
+        color: p.dark ? "#262a39" : "#fbfcff"
         Rectangle {
-            width: parent.width * 0.3; height: parent.height
-            radius: 8
-            color: p.dark ? "#1a1c22" : "#f1f3f7"
-            Rectangle { anchors.right: parent.right; width: 8; height: parent.height; color: parent.color }
+            x: 6; y: parent.height * 0.16
+            width: parent.width * 0.28 - 6; height: parent.height * 0.84 - 6
+            radius: 5
+            color: p.dark ? Qt.rgba(0, 0, 0, 0.25) : Qt.rgba(60 / 255, 80 / 255, 140 / 255, 0.08)
         }
         Repeater {
-            model: [[18, 0.40], [36, 0.50], [54, 0.30]]
+            model: [[0.40, true], [0.55, false], [0.38, false]]
             Rectangle {
                 required property var modelData
-                x: w.width * 0.36; y: modelData[0]
-                width: w.width * modelData[1]; height: 8; radius: 4
-                color: p.dark ? "#3a3f4a" : "#dfe3ea"
+                required property int index
+                x: w.width * 0.28 + 10; y: w.height * 0.16 + 6 + index * 12
+                width: (w.width * 0.72 - 18) * modelData[0]; height: 6; radius: 3
+                color: modelData[1] ? Theme.accent : (p.dark ? "#454a5e" : "#dde3f0")
             }
         }
     }
     Rectangle {
-        x: 10; width: p.width - 20; height: 22
-        y: p.height - 8 - height
-        radius: 8
-        color: p.dark ? Qt.rgba(40 / 255, 44 / 255, 54 / 255, 0.75) : Qt.rgba(1, 1, 1, 0.7)
+        anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+        height: parent.height * 0.11
+        color: p.dark ? Qt.rgba(27 / 255, 30 / 255, 43 / 255, 0.92) : Qt.rgba(246 / 255, 248 / 255, 253 / 255, 0.9)
     }
 }

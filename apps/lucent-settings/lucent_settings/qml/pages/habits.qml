@@ -10,37 +10,35 @@ Page {
     lead: System.tr("The familiar buttons and keyboard shortcuts are already on. Check or change them here.")
     Component.onCompleted: HabitsPage.refresh()
 
-    component ButtonsCard: Rectangle {
+    // A choice tile like the Mode tiles on Appearance: sunken, or (chosen)
+    // a light card with an accent ring.
+    component ButtonsCard: Item {
         id: wbo
         property string side
         property string caption
         property string hint
         readonly property bool on: page.st.buttons === side
         Layout.fillWidth: true
-        implicitHeight: 18 + 46 + 14 + 22 + 18
-        radius: Theme.radiusChoice
-        color: Theme.card
-        border.width: 2
-        border.color: on ? Theme.accent : Theme.line
-        Rectangle {
+        implicitHeight: 16 + 46 + 14 + 22 + 16
+        Well { anchors.fill: parent; radius: Theme.radiusChoice; visible: !wbo.on }
+        Item {
+            anchors.fill: parent
             visible: wbo.on
-            anchors.fill: parent; anchors.margins: -Theme.ringWidth
-            radius: Theme.radiusChoice + Theme.ringWidth; color: "transparent"
-            border.width: Theme.ringWidth; border.color: Theme.accentSoft
+            Shadow { anchors.fill: parent; radius: Theme.radiusChoice }
+            Rectangle { anchors.fill: parent; anchors.margins: -Theme.ringWidth; radius: Theme.radiusChoice + Theme.ringWidth; color: Theme.accent }
+            Rectangle { anchors.fill: parent; radius: Theme.radiusChoice; color: Theme.selectedCard }
         }
-        Rectangle {  // .bar
-            x: 20; y: 18
-            width: parent.width - 40; height: 46
+        Raised {  // a miniature title bar
+            x: 16; y: 16
+            width: parent.width - 32; height: 46
             radius: Theme.radiusControl
-            color: Theme.winSide
-            border.color: Theme.line
             RowLayout {
                 anchors { fill: parent; leftMargin: wbo.side === "left" ? 14 : 16; rightMargin: 6 }
                 spacing: 0
                 Row {
                     visible: wbo.side === "left"
                     spacing: 8
-                    Repeater { model: 3; Rectangle { width: 13; height: 13; radius: 6.5; color: Theme.lineStrong } }
+                    Repeater { model: 3; Rectangle { width: 13; height: 13; radius: 6.5; color: Theme.line2 } }
                 }
                 LText {
                     Layout.leftMargin: wbo.side === "left" ? 16 : 0
@@ -58,26 +56,30 @@ Page {
             }
         }
         RowLayout {
-            x: 20; y: 18 + 46 + 14
-            spacing: 12
+            x: 18; y: 16 + 46 + 14
+            spacing: 10
             Radio { checked: wbo.on }
-            LText { text: wbo.caption; px: Theme.fontLabel; weight: Theme.weightStrong }
+            LText { text: wbo.caption; px: Theme.fontLabel; weight: Theme.weightHeading }
             LText { text: wbo.hint; px: Theme.fontSub; color: Theme.text2; visible: text !== "" }
         }
         MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: HabitsPage.setButtons(wbo.side) }
     }
 
-    GridLayout {
-        Layout.fillWidth: true
-        Layout.topMargin: Theme.sectionTop
-        columns: 2
-        columnSpacing: Theme.choiceGap
-        ButtonsCard { side: "right"; caption: System.tr("Window buttons on the right"); hint: System.tr("— like Windows") }
-        ButtonsCard { side: "left"; caption: System.tr("Window buttons on the left") }
+    Card {
+        title: System.tr("Window buttons")
+        GridLayout {
+            Layout.fillWidth: true
+            Layout.topMargin: 12
+            columns: 2
+            columnSpacing: Theme.choiceGap
+            uniformCellWidths: true
+            ButtonsCard { side: "right"; caption: System.tr("Window buttons on the right"); hint: System.tr("— like Windows") }
+            ButtonsCard { side: "left"; caption: System.tr("Window buttons on the left") }
+        }
     }
 
-    GroupHeader { text: System.tr("Keyboard shortcuts") }
     Card {
+        title: System.tr("Keyboard shortcuts")
         Item {
             Layout.fillWidth: true
             implicitHeight: grid.implicitHeight
@@ -115,8 +117,8 @@ Page {
         }
     }
 
-    GroupHeader { text: System.tr("Keyboard and mouse") }
     Card {
+        title: System.tr("Keyboard and mouse")
         SettingRow {
             label: System.tr("Switch keyboard layout")
             sub: page.st.layoutCount > 1 ? System.tr("Win + Space always works too. The current layout shows on the taskbar.")

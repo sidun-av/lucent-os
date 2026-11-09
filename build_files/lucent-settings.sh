@@ -34,7 +34,7 @@ fi
 
 # Checks: the tools the backends drive are in the image, and every page's
 # QML loads offscreen with this image's Qt (no QML warning allowed).
-for tool in nmcli busctl kscreen-doctor wpctl pactl rpm-ostree flatpak kwriteconfig6 \
+for tool in nmcli busctl kscreen-doctor wpctl pactl rpm-ostree skopeo flatpak kwriteconfig6 \
             plasma-apply-lookandfeel plasma-apply-colorscheme plasma-apply-wallpaperimage lscpu pkexec; do
     command -v "$tool"
 done

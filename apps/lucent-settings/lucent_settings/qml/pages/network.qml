@@ -16,13 +16,13 @@ Page {
 
     Banner { text: NetworkPage.error; onDismissed: NetworkPage.clearError() }
 
-    GroupHeader { text: System.tr("Wi-Fi"); Layout.topMargin: Theme.sectionTop }
     Card {
+        title: System.tr("Wi-Fi")
         SettingRow {
             label: System.tr("Wi-Fi")
             sub: !page.st.loaded ? "" : !page.st.wifiHardware ? System.tr("This computer has no Wi-Fi adapter.")
                  : !page.st.wifiEnabled ? System.tr("Off") : page.st.wifiCurrent ? System.tr("Connected to “{name}”").replace("{name}", page.st.wifiCurrent) : System.tr("Not connected")
-            leading: IconTile { icon: "wifi"; tint: Theme.sq.network }
+            leading: IconTile { icon: "wifi"; glyph: Theme.accent }
             LSwitch {
                 visible: page.st.wifiHardware === true
                 checked: page.st.wifiEnabled === true
@@ -95,8 +95,8 @@ Page {
         }
     }
 
-    GroupHeader { text: System.tr("Network cable"); visible: (page.st.wired || []).length > 0 }
     Card {
+        title: System.tr("Network cable")
         visible: (page.st.wired || []).length > 0
         Repeater {
             model: page.st.wired || []
@@ -116,8 +116,8 @@ Page {
         }
     }
 
-    GroupHeader { text: System.tr("More") }
     Card {
+        title: System.tr("More")
         SettingRow {
             label: System.tr("Advanced network settings")
             sub: System.tr("VPN, proxy, work and school networks, IP addresses")

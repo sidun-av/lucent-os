@@ -14,7 +14,6 @@ Page {
     Banner { text: UsersPage.error; onDismissed: UsersPage.clearError() }
 
     Card {
-        Layout.topMargin: Theme.sectionTop
         SettingRow {
             minHeight: 112
             label: page.st.name || ""
@@ -53,8 +52,8 @@ Page {
         }
     }
 
-    GroupHeader { text: System.tr("More") }
     Card {
+        title: System.tr("More")
         SettingRow {
             label: System.tr("Other people and sign-in options")
             sub: System.tr("Add a user for someone else, automatic sign-in")

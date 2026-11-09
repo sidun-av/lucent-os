@@ -357,19 +357,34 @@ class SoundSection(Section):
 
 
 # ---------------------------------------------------------------------------
+def wall_tiles(walls, current: str) -> list[dict]:
+    """The Appearance page's row: the wallpaper in use (day and night, if it
+    has both), Lucent's own, then the person's pictures, then the rest."""
+    current = current.rstrip("/")
+    order = sorted(walls, key=lambda w: (w.path.rstrip("/") != current, w.name != "Lucent", w.ours))
+    tiles = []
+    for w in order:
+        if w.thumbnail_dark:
+            tiles.append({"path": w.path, "name": w.name, "thumb": "file://" + w.thumbnail, "variant": "day"})
+            tiles.append({"path": w.path, "name": w.name, "thumb": "file://" + w.thumbnail_dark, "variant": "night"})
+        else:
+            tiles.append({"path": w.path, "name": w.name, "thumb": "file://" + w.thumbnail,
+                          "variant": "" if w.ours else "picture"})
+    return tiles
+
+
 class AppearanceSection(Section):
     def __init__(self, runner, parent=None):
         super().__init__(runner, parent)
         self.b = appearance.Appearance(runner)
         self.set(mode="light", accent=appearance.ACCENTS[0], accents=appearance.ACCENTS, wallpaper="",
-                 wallpaperThumb="", wallpaperName="", wallpapers=[], animations="fast", transparency=True, textSize=11,
+                 wallpaperThumb="", wallpaperName="", wallpapers=[], wallTiles=[], animations="fast", textSize=11,
                  textSizes=appearance.TEXT_SIZES, loaded=False)
 
     def _load(self):
         walls = self.b.wallpapers()
         current = self.b.current_wallpaper()
         return dict(mode=self.b.mode(), accent=self.b.accent(), animations=self.b.animations(),
-                    transparency=self.b.transparency(),
                     textSize=self.b.text_size(), walls=walls, current=current)
 
     def _apply(self, d):
@@ -386,7 +401,7 @@ class AppearanceSection(Section):
                  if appearance.thumbnail(current, dark=True) else "",
                  wallpaperName=name, wallpaperOurs=bool(cur and cur.ours),
                  wallpapers=[{"path": w.path, "name": w.name, "thumb": "file://" + w.thumbnail, "ours": w.ours}
-                             for w in walls], loaded=True)
+                             for w in walls], wallTiles=wall_tiles(walls, current), loaded=True)
 
     @Slot()
     def refresh(self):
@@ -409,11 +424,6 @@ class AppearanceSection(Section):
         path = local_path(path)
         self.task("wallpaper", lambda: self.b.set_wallpaper(path), lambda _r: self.refresh(),
                   _("Couldn't change the wallpaper."))
-
-    @Slot(bool)
-    def setTransparency(self, on):
-        self.set(transparency=on)
-        tasks.run(lambda: self.b.set_transparency(on))
 
     @Slot(str)
     def setAnimations(self, speed):
@@ -520,8 +530,8 @@ class UpdatesSection(Section):
                  "previous": _("Previous version")}[v.role]
         built = _("built {date}").format(date=nice_date(v.timestamp))
         sub = {"current": _("Installed and running · {built}"),
-               "update": _("Downloaded · {built} · starts at the next restart"),
-               "rollback": _("{built} · starts at the next restart"),
+               "update": _("Downloaded · {built}"),
+               "rollback": _("Used before the last update · {built}"),
                "previous": _("Kept so you can go back · {built}")}[v.role].format(built=built)
         pill = {"current": _("running now"), "update": _("starts after restart"),
                 "rollback": _("starts after restart"), "previous": ""}[v.role]

@@ -17,7 +17,6 @@ Page {
     Rectangle {
         id: hero
         Layout.fillWidth: true
-        Layout.topMargin: Theme.sectionTop
         implicitHeight: heroRow.implicitHeight + 56
         radius: Theme.radiusHero
         readonly property bool good: page.st.state === "uptodate" || page.st.state === "unknown" || page.st.state === "error"
@@ -93,8 +92,8 @@ Page {
         }
     }
 
-    GroupHeader { text: System.tr("System versions on this computer") }
     Card {
+        title: System.tr("System versions on this computer")
         Repeater {
             model: page.st.versions || []
             // .ver .row: dot, name and pill on one line, the details under it
@@ -143,8 +142,8 @@ Page {
         }
     }
 
-    GroupHeader { text: System.tr("Apps") }
     Card {
+        title: System.tr("Apps")
         SettingRow {
             label: System.tr("App updates")
             sub: page.busy === "apps-check" ? System.tr("Checking…") : (page.st.appsText || "")
@@ -157,8 +156,8 @@ Page {
         }
     }
 
-    GroupHeader { text: System.tr("Options") }
     Card {
+        title: System.tr("Options")
         SettingRow {
             label: System.tr("Download updates automatically")
             sub: System.tr("In the background, once a day. A new version starts when you restart.")

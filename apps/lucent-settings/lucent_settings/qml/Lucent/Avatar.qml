@@ -7,21 +7,22 @@ Item {
     property string source
     property string initials: "?"
     property int size: 52
+    property real corner: size * 0.28     // Pebble: rounded square
     width: size; height: size
     Rectangle {
         anchors.fill: parent
-        radius: width / 2
+        radius: av.corner
         visible: img.status !== Image.Ready
         gradient: Gradient {
-            orientation: Gradient.Horizontal
+            orientation: Gradient.Horizontal  // 135deg in the mockup
             GradientStop { position: 0; color: Theme.avatarFrom }
             GradientStop { position: 1; color: Theme.avatarTo }
         }
         LText {
             anchors.centerIn: parent
             text: av.initials
-            px: Math.round(av.size * 0.38)
-            weight: 700
+            px: Math.round(av.size * 0.33)
+            weight: 750
             color: "#ffffff"
         }
     }
@@ -48,6 +49,6 @@ Item {
         anchors.fill: parent
         layer.enabled: true
         visible: false
-        Rectangle { anchors.fill: parent; radius: width / 2; color: "black" }
+        Rectangle { anchors.fill: parent; radius: av.corner; color: "black" }
     }
 }

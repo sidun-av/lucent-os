@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic as C
 import QtQuick.Layouts
 
-// A small modal sheet: title, plain-words text, optional content, buttons.
+// A small modal sheet: a lifted pillow with title, plain words, buttons.
 C.Popup {
     id: d
     property string title
@@ -17,18 +17,14 @@ C.Popup {
     modal: true
     focus: true
     anchors.centerIn: C.Overlay.overlay
-    width: 520
+    width: 540
     padding: 28
     closePolicy: C.Popup.CloseOnEscape | C.Popup.CloseOnPressOutside
     C.Overlay.modal: Rectangle { color: Theme.scrim }
-    background: Rectangle {
-        radius: Theme.radiusDialog
-        color: Theme.popup
-        border.color: Theme.line
-    }
+    background: Raised { radius: Theme.radiusDialog; lifted: true }
     contentItem: ColumnLayout {
         spacing: 0
-        LText { text: d.title; px: Theme.fontDialogTitle; weight: Theme.weightHeading; Layout.fillWidth: true; wrapMode: Text.WordWrap; elide: Text.ElideNone }
+        LText { text: d.title; px: Theme.fontDialogTitle; weight: Theme.weightCardTitle; Layout.fillWidth: true; wrapMode: Text.WordWrap; elide: Text.ElideNone }
         LText {
             text: d.text
             visible: text !== ""
@@ -40,7 +36,7 @@ C.Popup {
             Layout.fillWidth: true
             Layout.topMargin: 10
         }
-        ColumnLayout { id: more; Layout.fillWidth: true; Layout.topMargin: children.length ? 18 : 0; spacing: 10 }
+        ColumnLayout { id: more; Layout.fillWidth: true; Layout.topMargin: children.length ? 18 : 0; spacing: 12 }
         RowLayout {
             Layout.topMargin: 24
             Layout.alignment: Qt.AlignRight

@@ -33,12 +33,12 @@ Page {
         LText { text: Math.round(vr.dev.volume || 0) + "%"; px: Theme.fontBody; color: Theme.text2; Layout.preferredWidth: 46; horizontalAlignment: Text.AlignRight }
     }
 
-    GroupHeader { text: System.tr("Output"); Layout.topMargin: Theme.sectionTop }
     Card {
+        title: System.tr("Output")
         SettingRow {
             label: System.tr("Play sound through")
             sub: page.st.noHardware ? System.tr("No speakers or headphones found. Connect some, or check that the sound card is enabled in the firmware.") : ""
-            leading: IconTile { icon: "volume"; tint: Theme.sq.sound }
+            leading: IconTile { icon: "volume"; glyph: Theme.accent }
             LCombo {
                 implicitWidth: 340
                 model: (page.st.outputs || []).map(d => ({ value: d.name, label: d.label }))
@@ -49,8 +49,8 @@ Page {
         VolumeRow { kind: "output"; dev: page.st.output || ({}); visible: (page.st.outputs || []).length > 0 }
     }
 
-    GroupHeader { text: System.tr("Input") }
     Card {
+        title: System.tr("Input")
         SettingRow {
             label: System.tr("Microphone")
             sub: (page.st.inputs || []).length === 0 ? System.tr("No microphone found.") : ""

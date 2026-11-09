@@ -28,9 +28,9 @@ from ..run import Result, Runner
 
 LIGHT = "org.lucent.desktop"
 DARK = "org.lucent.desktop.dark"
-# The mockup's swatches (docs/mockups/03-settings.html); the first is the
-# theme's own blue, i.e. "no custom accent".
-ACCENTS = ["#3b6ef5", "#7c4dff", "#e5487d", "#ef6a2e", "#e0a400", "#1f9d55", "#0f9fb0", "#64748b"]
+# The swatches of the 2026 design (Prism's colours, qml/Lucent/Theme.qml
+# `accents`); the first is the theme's own blue, i.e. "no custom accent".
+ACCENTS = ["#3d6bff", "#7b5cff", "#e8508f", "#e5484d", "#f0731c", "#f2b01e", "#1f9d55", "#0f9aa8", "#5f677b"]
 ANIMATIONS = {"off": "0", "fast": "0.7", "normal": "1"}
 TEXT_SIZES = [10, 11, 12, 13]
 SYSTEM_WALLPAPERS = Path("/usr/share/wallpapers")
@@ -51,6 +51,7 @@ class Wallpaper:
     name: str
     thumbnail: str
     ours: bool
+    thumbnail_dark: str = ""   # a package's night image, if it has one
 
 
 def _own_get(key: str, default: str = "") -> str:
@@ -183,7 +184,8 @@ class Appearance:
                 continue
             thumb = thumbnail(str(meta.parent))
             if thumb:
-                packages.append(Wallpaper(str(meta.parent), name, thumb, True))
+                night = thumbnail(str(meta.parent), dark=True)
+                packages.append(Wallpaper(str(meta.parent), name, thumb, True, night if night != thumb else ""))
         packages.sort(key=lambda w: (w.name != "Lucent", w.name.lower()))
         out += packages
         seen = set()
@@ -214,28 +216,6 @@ class Appearance:
 
     def set_wallpaper(self, path: str) -> Result:
         return self.r.run(["plasma-apply-wallpaperimage", path], timeout=30)
-
-    # --- transparency ---------------------------------------------------------
-    def _shell(self, script: str):
-        return self.r.run(dbus.call(dbus.SESSION, "org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell",
-                                    "evaluateScript", "s", script))
-
-    def transparency(self) -> bool:
-        """Taskbar see-through (Plasma's adaptive or translucent) and KWin blur."""
-        res = self._shell("print(panels().map(function (p) { return p.opacity; }).join(','))")
-        try:
-            values = dbus.values(res.out)[0][0].split(",") if res.ok else []
-        except (IndexError, ValueError, AttributeError):
-            values = []
-        blur = kconfig.read("kwinrc", "Plugins", "blurEnabled", "true").lower() != "false"
-        return blur and all(v.strip() != "opaque" for v in values if v.strip())
-
-    def set_transparency(self, on: bool) -> Result:
-        mode = "adaptive" if on else "opaque"
-        res = self._shell(f"panels().forEach(function (p) {{ p.opacity = '{mode}'; }})")
-        kconfig.write(self.r, "kwinrc", "Plugins", "blurEnabled", on)
-        self.r.run(dbus.call(dbus.SESSION, "org.kde.KWin", "/KWin", "org.kde.KWin", "reconfigure"))
-        return res
 
     # --- motion and text -----------------------------------------------------
     def animations(self) -> str:

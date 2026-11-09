@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic as C
 
-// A field-coloured drop-down (model: [{value, label}]).
+// A drop-down on a raised pillow (model: [{value, label}]).
 C.ComboBox {
     id: c
     property string current
@@ -18,16 +18,13 @@ C.ComboBox {
         return -1
     }
     onActivated: (i) => c.picked(model[i].value)
-    background: Rectangle {
-        radius: Theme.radiusControl
-        color: c.hovered ? Qt.darker(Theme.field, Theme.dark ? 0.9 : 1.03) : Theme.field
-        border.color: Theme.line
-    }
+    background: Raised { radius: Theme.radiusControl; lifted: c.hovered }
     contentItem: LText {
         leftPadding: 14
         rightPadding: 36
         text: c.displayText
         px: Theme.fontBody
+        weight: Theme.weightButton
     }
     indicator: Sym {
         x: c.width - width - 12
@@ -43,16 +40,17 @@ C.ComboBox {
         x: 6
         height: 38
         highlighted: c.highlightedIndex === index
-        background: Rectangle { radius: Theme.radiusItem - 1; color: parent.highlighted ? Theme.sel : "transparent" }
+        background: Rectangle { radius: Theme.radiusControl - 2; color: parent.highlighted ? Theme.hover : "transparent" }
         contentItem: LText {
             text: modelData.label
             px: Theme.fontBody
             weight: c.currentIndex === index ? Theme.weightStrong : 400
+            color: c.currentIndex === index ? Theme.accentText : Theme.text
             leftPadding: 4
         }
     }
     popup: C.Popup {
-        y: c.height + 4
+        y: c.height + 6
         width: Math.max(c.width, 220)
         implicitHeight: Math.min(contentItem.implicitHeight + 12, 420)
         padding: 6
@@ -63,10 +61,6 @@ C.ComboBox {
             currentIndex: c.highlightedIndex
             C.ScrollBar.vertical: C.ScrollBar {}
         }
-        background: Rectangle {
-            radius: Theme.radiusPopup
-            color: Theme.popup
-            border.color: Theme.line
-        }
+        background: Raised { radius: Theme.radiusPopup; lifted: true }
     }
 }

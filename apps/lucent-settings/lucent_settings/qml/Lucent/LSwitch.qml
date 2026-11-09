@@ -1,6 +1,6 @@
 import QtQuick
 
-// .switch: 44 x 26, knob 20, accent when on.
+// .tog: 52 x 30 rounded-rect well, 24 px pillow knob; accent when on.
 Item {
     id: sw
     property bool checked: false
@@ -8,21 +8,19 @@ Item {
     implicitWidth: Theme.switchWidth
     implicitHeight: Theme.switchHeight
     opacity: enabled ? 1 : 0.45
-    Rectangle {
+    Well {
         anchors.fill: parent
-        radius: height / 2
-        color: sw.checked ? Theme.accent : Theme.lineStrong
-        Behavior on color { ColorAnimation { duration: 120 } }
+        radius: Theme.radiusSwitch
+        tint: sw.checked ? Theme.accent : Theme.wellStrong
+        border.color: sw.checked ? "transparent" : Qt.rgba(Theme.wellTop.r, Theme.wellTop.g, Theme.wellTop.b, 0.04)
     }
-    Rectangle {
-        width: sw.height - 6; height: width; radius: width / 2
+    Raised {
+        width: sw.height - 6; height: width
         y: 3
         x: sw.checked ? sw.width - width - 3 : 3
-        color: "#ffffff"
+        radius: Theme.radiusKnob
+        topColor: "#ffffff"; bottomColor: Theme.dark ? "#e3e6ef" : "#eef1f8"
         Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-        layer.enabled: true
-        border.color: Qt.rgba(0, 0, 0, 0.12)
-        border.width: 0.5
     }
     MouseArea {
         anchors.fill: parent

@@ -24,3 +24,5 @@ Constructed (a VM can't produce them), in the tools' documented formats:
 - `rpm-ostree-staged.json`: the booted deployment plus a staged update and a rollback
   deployment, same keys as the captured one.
 - `pactl-sinks-laptop.json`: two real-looking sinks (speakers, HDMI) for device choice.
+- `skopeo-index.json`, `skopeo-arm64-manifest.json` (`skopeo inspect --raw docker://ghcr.io/sidun-av/lucent-os:latest`
+  and `:latest-arm64`, build 5e52d69): what the update check compares with the deployment's digest.

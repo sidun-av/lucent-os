@@ -14,22 +14,18 @@ Page {
     Banner { text: WinappsPage.error; onDismissed: WinappsPage.clearError() }
 
     Card {
-        Layout.topMargin: Theme.sectionTop
         SettingRow {
             label: page.st.mode === "native" ? System.tr("Runs directly on this processor")
                  : page.st.mode === "translated" ? System.tr("Translated for this ARM processor") : System.tr("Not available on this processor")
             sub: page.st.mode === "native" ? System.tr("This computer has an Intel or AMD (x86-64) processor, like most Windows PCs, so Windows programs run at full speed.")
                : page.st.mode === "translated" ? System.tr("This computer has an ARM processor. Programs made for Intel/AMD PCs are translated while they run, so heavy programs and games can be slower.")
                : System.tr("Windows programs need an Intel/AMD or ARM processor.")
-            leading: Rectangle {
-                width: Theme.iconTile; height: Theme.iconTile; radius: Theme.radiusControl; color: Theme.sq.winapps
-                Sym { anchors.centerIn: parent; name: "chip"; size: 20; color: "#ffffff" }
-            }
+            leading: IconTile { icon: "chip"; glyph: Theme.accent }
         }
     }
 
-    GroupHeader { text: System.tr("Installed programs"); visible: (page.st.apps || []).length > 0 }
     Card {
+        title: System.tr("Installed programs")
         visible: (page.st.apps || []).length > 0
         Repeater {
             model: page.st.apps || []
@@ -40,11 +36,7 @@ Page {
                 leading: Item {
                     width: Theme.iconTile; height: Theme.iconTile
                     Image { anchors.fill: parent; source: modelData.icon; sourceSize: Qt.size(72, 72); visible: status === Image.Ready }
-                    Rectangle {
-                        anchors.fill: parent; radius: Theme.radiusControl; color: Theme.field
-                        visible: modelData.icon === ""
-                        Sym { anchors.centerIn: parent; name: "winapp"; size: 20 }
-                    }
+                    IconTile { anchors.fill: parent; visible: modelData.icon === ""; icon: "winapp" }
                 }
                 Pill {
                     visible: modelData.status === "works" || modelData.status === "broken"

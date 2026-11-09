@@ -1,7 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 
-// .row: label + optional sub line on the left, controls on the right.
+// .row inside a card: label + optional sub line, controls on the right,
+// a hairline between rows.
 Item {
     id: row
     property string label
@@ -26,6 +27,8 @@ Item {
     Rectangle {
         anchors.fill: parent
         anchors.topMargin: row.separator ? 1 : 0
+        anchors.leftMargin: -10; anchors.rightMargin: -10
+        radius: Theme.radiusControl
         color: Theme.hover
         visible: row.clickable && mouse.containsMouse
     }
@@ -46,13 +49,12 @@ Item {
             id: lead
             spacing: 14
             visible: children.length > 0
-            // a row without label/sub gives its leading content the room
             Layout.fillWidth: !texts.visible
         }
         ColumnLayout {
             id: texts
             visible: row.label !== "" || row.sub !== ""
-            spacing: 3
+            spacing: 2
             Layout.fillWidth: true
             Layout.minimumWidth: 120
             LText {
@@ -68,7 +70,6 @@ Item {
                 color: Theme.text2
                 wrapMode: Text.WordWrap
                 elide: Text.ElideNone
-                lineHeight: 1.15
                 Layout.fillWidth: true
                 visible: text !== ""
             }

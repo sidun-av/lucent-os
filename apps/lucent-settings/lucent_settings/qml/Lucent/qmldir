@@ -23,3 +23,6 @@ EmptyState 1.0 EmptyState.qml
 SideItem 1.0 SideItem.qml
 Avatar 1.0 Avatar.qml
 IconTile 1.0 IconTile.qml
+Shadow 1.0 Shadow.qml
+Raised 1.0 Raised.qml
+Well 1.0 Well.qml

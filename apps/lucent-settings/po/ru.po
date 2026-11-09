@@ -229,8 +229,8 @@ msgstr "Скачайте её сейчас — она установится п�
 msgid "Download updates automatically"
 msgstr "Скачивать обновления автоматически"
 
-msgid "Downloaded · {built} · starts at the next restart"
-msgstr "Скачана · {built} · включится при следующем перезапуске"
+msgid "Downloaded · {built}"
+msgstr "Скачана · {built}"
 
 msgid "Downloading the new version…"
 msgstr "Скачиваем новую версию…"
@@ -706,6 +706,9 @@ msgstr "Используйте не меньше {n} символов."
 msgid "Use initials"
 msgstr "Инициалы"
 
+msgid "Used before the last update · {built}"
+msgstr "Работала до последнего обновления · {built}"
+
 msgid "Users"
 msgstr "Пользователи"
 
@@ -783,9 +786,6 @@ msgstr "Это самая новая версия. Последняя прове
 
 msgid "Your name, picture and password. They show on the login screen and in the Start menu."
 msgstr "Ваше имя, изображение и пароль. Они видны на экране входа и в меню «Пуск»."
-
-msgid "{built} · starts at the next restart"
-msgstr "{built} · включится при следующем перезапуске"
 
 msgid "{free} GB free of {total} GB"
 msgstr "свободно {free} ГБ из {total} ГБ"

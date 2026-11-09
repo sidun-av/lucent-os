@@ -37,15 +37,75 @@ def test_after_a_rollback_the_older_version_is_pending():
     assert not st.can_roll_back and st.rollback_pending
 
 
-def test_check_for_updates():
-    none = FakeRunner().on("rpm-ostree", "upgrade", "--check", code=77, out="No updates available.\n")
+def test_registry_reference_from_the_deployment_origin():
+    ref = updates.registry_ref
+    assert ref("ostree-unverified-registry:ghcr.io/sidun-av/lucent-os:latest") == "docker://ghcr.io/sidun-av/lucent-os:latest"
+    assert ref("ostree-image-signed:docker://ghcr.io/sidun-av/lucent-os:latest") == "docker://ghcr.io/sidun-av/lucent-os:latest"
+    assert ref("ostree-remote-image:fedora:docker://quay.io/x/y:1") == "docker://quay.io/x/y:1"
+    assert ref("ostree-unverified-image:oci:/var/tmp/img") is None
+    assert ref("") is None
+
+
+def staged_on(digest_booted, digest_staged=None):
+    data = json.loads(fixture("rpm-ostree-booted.json"))
+    dep = data["deployments"][0]
+    dep["container-image-reference"] = "ostree-unverified-registry:ghcr.io/sidun-av/lucent-os:latest"
+    dep["container-image-reference-digest"] = digest_booted
+    if digest_staged:
+        data["deployments"].insert(0, dict(dep, booted=False, staged=True, checksum="ffff",
+                                           **{"container-image-reference-digest": digest_staged}))
+    return json.dumps(data)
+
+
+ARM64 = "sha256:297b06b2d507849084fce5e5cbedf89afd10d7c8879cbb270388290070ed0cbb"
+
+
+def test_check_compares_the_registry_digest_for_this_cpu(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
+    old = "sha256:a90007444bbd50fed471a5a4241dac46dc2ecaca3efd649210d91cebddafee9b"
+    r = (FakeRunner().on(*STATUS, out=staged_on(old))
+         .on("skopeo", "inspect", "--raw", out=fixture("skopeo-index.json")))
+    u = updates.Updates(r, machine="aarch64")
+    assert u.check() == (True, True, "")
+    assert r.called("skopeo", "inspect", "--raw", "docker://ghcr.io/sidun-av/lucent-os:latest")
+    assert not r.called("rpm-ostree", "upgrade")
+    # the badge survives a restart of Settings
+    assert u.status().available is not None
+    # already running it: nothing to do
+    r2 = (FakeRunner().on(*STATUS, out=staged_on(ARM64))
+          .on("skopeo", "inspect", "--raw", out=fixture("skopeo-index.json")))
+    assert updates.Updates(r2, machine="aarch64").check() == (True, False, "")
+    # already downloaded and waiting for a restart: nothing new either
+    r3 = (FakeRunner().on(*STATUS, out=staged_on(old, ARM64))
+          .on("skopeo", "inspect", "--raw", out=fixture("skopeo-index.json")))
+    assert updates.Updates(r3, machine="aarch64").check() == (True, False, "")
+
+
+def test_check_single_arch_tag_hashes_the_manifest(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
+    r = (FakeRunner().on(*STATUS, out=staged_on(ARM64))
+         .on("skopeo", "inspect", "--raw", out=fixture("skopeo-arm64-manifest.json")))
+    assert updates.Updates(r, machine="aarch64").check() == (True, False, "")
+
+
+def test_check_without_a_registry_origin_asks_rpm_ostree():
+    oci = fixture("rpm-ostree-booted.json").replace("ostree-unverified-registry:localhost/lucent-vmtest:latest",
+                                                    "ostree-unverified-image:oci:/var/tmp/img")
+    none = FakeRunner().on(*STATUS, out=oci).on(
+        "rpm-ostree", "upgrade", "--check", code=77, out="No updates available.\n")
     assert updates.Updates(none).check() == (True, False, "")
-    some = FakeRunner().on("rpm-ostree", "upgrade", "--check", out="AvailableUpdate:\n")
-    assert updates.Updates(some).check() == (True, True, "")
-    bad = FakeRunner().on("rpm-ostree", "upgrade", "--check", code=1,
-                          err="error: Creating importer: failed to invoke method OpenImage: pinging container registry localhost: connection refused\n")
+    bad = FakeRunner().on(*STATUS, out=oci).on(
+        "rpm-ostree", "upgrade", "--check", code=1,
+        err="error: Creating importer: failed to invoke method OpenImage: pinging container registry localhost: connection refused\n")
     ok, available, msg = updates.Updates(bad).check()
     assert not ok and "connection refused" in msg
+
+
+def test_check_offline():
+    r = (FakeRunner().on(*STATUS, out=staged_on(ARM64))
+         .on("skopeo", "inspect", "--raw", code=1, err="Error: pinging container registry ghcr.io: dial tcp: lookup ghcr.io: no such host\n"))
+    ok, available, msg = updates.Updates(r, machine="aarch64").check()
+    assert not ok and "no such host" in msg
 
 
 def test_apply_rollback_and_reboot_commands(runner):

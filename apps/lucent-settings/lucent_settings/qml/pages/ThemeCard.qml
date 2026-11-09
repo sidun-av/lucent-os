@@ -4,48 +4,49 @@ import QtQuick.Layouts
 import QtQuick.Shapes
 import Lucent
 
-// One of the three theme choices (docs/mockups/03-settings .th): a 200 px
-// preview, then radio + name + glyph (Auto: a hint on the right).
-Rectangle {
+// .mode: a sunken tile with a 170 px preview; chosen = light card, accent ring.
+Item {
     id: card
     property string mode            // light | dark | auto
     property string title
     property string hint
-    property string icon
     property bool checked: false
+    property string dayWallpaper
+    property string nightWallpaper
     signal picked()
     Layout.fillWidth: true
-    implicitHeight: 10 + Theme.previewHeight + 50
-    radius: Theme.radiusChoice
-    color: Theme.card
-    border.width: 2
-    border.color: checked ? Theme.accent : Theme.line
-    Rectangle {  // box-shadow: 0 0 0 4px accent-soft
-        visible: card.checked
+    implicitHeight: 8 + Theme.previewHeight + 50
+
+    Well { anchors.fill: parent; radius: Theme.radiusChoice; visible: !card.checked }
+    Item {
         anchors.fill: parent
-        anchors.margins: -Theme.ringWidth
-        radius: Theme.radiusChoice + Theme.ringWidth
-        color: "transparent"
-        border.width: Theme.ringWidth
-        border.color: Theme.accentSoft
+        visible: card.checked
+        Shadow { anchors.fill: parent; radius: Theme.radiusChoice }
+        Rectangle {
+            anchors.fill: parent; anchors.margins: -Theme.ringWidth
+            radius: Theme.radiusChoice + Theme.ringWidth
+            color: Theme.accent
+        }
+        Rectangle { anchors.fill: parent; radius: Theme.radiusChoice; color: Theme.selectedCard }
     }
 
     Item {
         id: pv
-        x: 10; y: 10
-        width: parent.width - 20
+        x: 8; y: 8
+        width: parent.width - 16
         height: Theme.previewHeight
         visible: false
         layer.enabled: true
-        Preview { anchors.fill: parent; dark: card.mode === "dark" }
+        Preview { anchors.fill: parent; dark: card.mode === "dark"; wallpaper: card.mode === "dark" ? card.nightWallpaper : card.dayWallpaper }
         Preview {
             id: darkHalf
             anchors.fill: parent
             dark: true
+            wallpaper: card.nightWallpaper
             visible: false
             layer.enabled: true
         }
-        MultiEffect {   // clip-path: polygon(100% 0, 100% 100%, 0 100%)
+        MultiEffect {   // .half: clip-path polygon(62% 0, 100% 0, 100% 100%, 38% 100%)
             anchors.fill: parent
             visible: card.mode === "auto"
             source: darkHalf
@@ -65,7 +66,8 @@ Rectangle {
                 ShapePath {
                     strokeWidth: -1
                     fillColor: "black"
-                    PathPolyline { path: [Qt.point(tri.width, 0), Qt.point(tri.width, tri.height), Qt.point(0, tri.height), Qt.point(tri.width, 0)] }
+                    PathPolyline { path: [Qt.point(tri.width * 0.62, 0), Qt.point(tri.width, 0), Qt.point(tri.width, tri.height),
+                                          Qt.point(tri.width * 0.38, tri.height), Qt.point(tri.width * 0.62, 0)] }
                 }
             }
         }
@@ -88,12 +90,11 @@ Rectangle {
 
     RowLayout {
         anchors { left: parent.left; right: parent.right; bottom: parent.bottom; leftMargin: 16; rightMargin: 16; bottomMargin: 13 }
-        spacing: 12
+        spacing: 10
         Radio { checked: card.checked }
-        LText { text: card.title; px: Theme.fontLabel; weight: Theme.weightStrong }
-        Sym { name: card.icon; size: 20; color: Theme.text2; visible: card.icon !== "" }
+        LText { text: card.title; px: Theme.fontLabel; weight: Theme.weightHeading }
         Item { Layout.fillWidth: true }
-        LText { text: card.hint; px: Theme.fontSub; color: Theme.text2; visible: text !== ""; Layout.maximumWidth: 280 }
+        LText { text: card.hint; px: Theme.fontSub; color: Theme.text2; visible: text !== ""; Layout.maximumWidth: 300 }
     }
     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: card.picked() }
 }

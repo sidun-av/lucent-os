@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import Property, QByteArray, QEvent, QFileSystemWatcher, QObject, Qt, QTimer, Signal, Slot
-from PySide6.QtGui import QColor, QGuiApplication, QIcon, QImage, QPainter
+from PySide6.QtGui import QColor, QFontDatabase, QGuiApplication, QIcon, QImage, QPainter
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickImageProvider, QQuickWindow
 from PySide6.QtSvg import QSvgRenderer
@@ -28,6 +28,9 @@ from .run import Runner
 from .sections import sections
 
 QML_DIR = Path(__file__).parent / "qml"
+# Figtree (SIL OFL 1.1, fonts/OFL.txt): the 2026 design's typeface, bundled
+# so the system's own fonts stay as they are.
+FONTS = sorted((Path(__file__).parent / "fonts").glob("*.ttf"))
 PAGES = ["network", "bluetooth", "display", "sound", "appearance", "habits", "users", "updates", "winapps", "about"]
 
 
@@ -136,6 +139,8 @@ class System(QObject):
 
 
 def create_engine(app: QGuiApplication, runner, start_page: str = "appearance"):
+    for font in FONTS:
+        QFontDatabase.addApplicationFont(str(font))
     engine = QQmlApplicationEngine()
     engine.addImportPath(str(QML_DIR))
     engine.addImageProvider("sym", SymbolProvider())

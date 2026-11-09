@@ -10,7 +10,6 @@ Page {
     Component.onCompleted: AboutPage.refresh()
 
     Card {
-        Layout.topMargin: Theme.sectionTop
         SettingRow {
             minHeight: 112
             label: page.st.osName || "Lucent OS"
@@ -21,8 +20,8 @@ Page {
         }
     }
 
-    GroupHeader { text: System.tr("This computer") }
     Card {
+        title: System.tr("This computer")
         SettingRow { label: System.tr("Model"); minHeight: 56; LText { text: page.st.model || ""; color: Theme.text2; px: Theme.fontBody } }
         SettingRow { label: System.tr("Processor"); minHeight: 56; LText { text: page.st.cpu || ""; color: Theme.text2; px: Theme.fontBody } }
         SettingRow { label: System.tr("Memory"); minHeight: 56; LText { text: page.st.memory || ""; color: Theme.text2; px: Theme.fontBody } }
@@ -36,8 +35,8 @@ Page {
         }
     }
 
-    GroupHeader { text: System.tr("More settings") }
     Card {
+        title: System.tr("More settings")
         SettingRow {
             label: System.tr("Advanced settings…")
             sub: System.tr("KDE System Settings: everything Lucent's Settings leaves out (printers, power, mouse and touchpad, date and time, languages…)")

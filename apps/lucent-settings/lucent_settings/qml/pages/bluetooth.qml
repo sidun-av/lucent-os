@@ -29,7 +29,6 @@ Page {
 
     EmptyState {
         visible: page.st.loaded === true && !page.st.available
-        Layout.topMargin: Theme.sectionTop
         icon: "bluetooth"
         title: System.tr("No Bluetooth adapter found")
         text: System.tr("This computer has no Bluetooth, or it is switched off in the firmware (BIOS) or with a key on the keyboard. A USB Bluetooth adapter works too.")
@@ -37,17 +36,16 @@ Page {
 
     Card {
         visible: page.st.available === true
-        Layout.topMargin: Theme.sectionTop
         SettingRow {
             label: System.tr("Bluetooth")
             sub: page.st.powered ? System.tr("On. Other devices can find this computer while this page is open.") : System.tr("Off")
-            leading: IconTile { icon: "bluetooth"; tint: Theme.sq.bluetooth }
+            leading: IconTile { icon: "bluetooth"; glyph: Theme.accent }
             LSwitch { checked: page.st.powered === true; onToggled: (on) => BluetoothPage.setPowered(on) }
         }
     }
 
-    GroupHeader { text: System.tr("My devices"); visible: page.st.powered === true && (page.st.paired || []).length > 0 }
     Card {
+        title: System.tr("My devices")
         visible: page.st.powered === true && (page.st.paired || []).length > 0
         Repeater {
             model: page.st.paired || []
@@ -67,13 +65,10 @@ Page {
         }
     }
 
-    GroupHeader {
-        text: System.tr("Devices nearby")
-        visible: page.st.powered === true
-        Spinner { size: 16; visible: page.st.discovering === true }
-    }
     Card {
+        title: System.tr("Devices nearby")
         visible: page.st.powered === true
+        headerItems: Spinner { size: 16; visible: page.st.discovering === true }
         Repeater {
             model: page.st.nearby || []
             SettingRow {

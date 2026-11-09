@@ -29,12 +29,9 @@ Page {
             required property var modelData
             required property int index
             Layout.fillWidth: true
-            spacing: 0
-            GroupHeader {
-                text: (page.st.outputs || []).length > 1 ? modelData.name : System.tr("Screen")
-                Layout.topMargin: index === 0 ? Theme.sectionTop : Theme.groupTop
-            }
+            spacing: Theme.cardGap
             Card {
+                title: (page.st.outputs || []).length > 1 ? modelData.name : System.tr("Screen")
                 SettingRow {
                     label: System.tr("Resolution")
                     sub: System.tr("Now: {w} × {h}").replace("{w}", modelData.width).replace("{h}", modelData.height)
@@ -57,12 +54,12 @@ Page {
         }
     }
 
-    GroupHeader { text: System.tr("Night light") }
     Card {
+        title: System.tr("Night light")
         SettingRow {
             label: System.tr("Night light")
             sub: System.tr("Warmer colours in the evening, easier on the eyes. Follows sunset and sunrise.")
-            leading: IconTile { icon: "moon"; tint: "#f59e0b" }
+            leading: IconTile { icon: "moon"; glyph: Theme.accent }
             LSwitch { checked: page.st.night === true; onToggled: (on) => DisplayPage.setNight(on) }
         }
     }

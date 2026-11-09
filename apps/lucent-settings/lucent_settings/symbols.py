@@ -27,6 +27,7 @@ SYMBOLS = {
     "trash": '<path d="M4.5 7h15M9.5 7V5h5v2M6.5 7l1 12.5h9l1-12.5"/>',
     "plus": '<path d="M12 5v14M5 12h14"/>',
     "more": '<circle cx="6" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="18" cy="12" r="1.3" fill="currentColor"/>',
+    "left": '<path d="M14.5 5.5L8 12l6.5 6.5"/>',
     "right": '<path d="M9.5 5.5L16 12l-6.5 6.5"/>',
     "down": '<path d="M6 9.5l6 6 6-6"/>',
     "arrowr": '<path d="M4.5 12h14m-5-5 5 5-5 5"/>',

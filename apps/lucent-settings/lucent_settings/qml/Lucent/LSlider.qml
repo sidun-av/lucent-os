@@ -1,40 +1,40 @@
 import QtQuick
 import QtQuick.Controls.Basic as C
 
-// .slider: 6 px field track, accent fill, 22 px white knob.
+// Sunken 10 px track, accent fill, a 30 x 24 pillow knob with a focus ring.
 C.Slider {
     id: s
-    implicitWidth: 280
-    implicitHeight: Theme.sliderKnob + 4
+    implicitWidth: 320
+    implicitHeight: Theme.sliderKnobH + 12
     snapMode: C.Slider.SnapAlways
-    background: Rectangle {
+    background: Item {
         x: s.leftPadding
         y: s.topPadding + s.availableHeight / 2 - Theme.sliderTrack / 2
         width: s.availableWidth
         height: Theme.sliderTrack
-        radius: Theme.sliderTrack / 2
-        color: Theme.field
+        Well { anchors.fill: parent; radius: Theme.sliderTrack / 2 + 1; tint: Theme.wellStrong }
         Rectangle {
             width: s.visualPosition * parent.width
             height: parent.height
-            radius: Theme.sliderTrack / 2
+            radius: Theme.sliderTrack / 2 + 1
             color: Theme.accent
         }
     }
-    handle: Rectangle {
+    handle: Item {
         x: s.leftPadding + s.visualPosition * (s.availableWidth - width)
-        y: s.topPadding + s.availableHeight / 2 - Theme.sliderKnob / 2
-        width: Theme.sliderKnob; height: Theme.sliderKnob; radius: Theme.sliderKnob / 2
-        color: "#ffffff"
-        border.color: Qt.rgba(0, 0, 0, 0.18)
-        border.width: 0.5
-        Rectangle {
-            z: -1
-            anchors.fill: parent
-            anchors.topMargin: 1
-            anchors.bottomMargin: -1
-            radius: Theme.sliderKnob / 2
-            color: Qt.rgba(0, 0, 0, 0.15)
+        y: s.topPadding + s.availableHeight / 2 - height / 2
+        width: Theme.sliderKnobW; height: Theme.sliderKnobH
+        Rectangle {  // 0 0 0 2px accent, 0 0 0 6px accent-soft
+            anchors.fill: parent; anchors.margins: -6
+            radius: Theme.radiusKnob + 6
+            color: Theme.accentSoft
+            visible: s.pressed || s.hovered
         }
+        Rectangle {
+            anchors.fill: parent; anchors.margins: -2
+            radius: Theme.radiusKnob + 2
+            color: Theme.accent
+        }
+        Raised { anchors.fill: parent; radius: Theme.radiusKnob; topColor: "#ffffff"; bottomColor: Theme.dark ? "#e3e6ef" : "#eef1f8" }
     }
 }
