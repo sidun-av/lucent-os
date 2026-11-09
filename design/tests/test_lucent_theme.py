@@ -21,6 +21,8 @@ class FakeRunner:
         tool = Path(argv[0]).name
         if tool in self.fail:
             return theme.Result(1, "", f"{tool} failed")
+        if tool == "fc-list":      # an English session: Figtree covers it
+            return theme.Result(0, "Figtree\n" if argv[1].endswith(":lang=en") else "", "")
         if tool == "plasma-apply-lookandfeel":
             dark = argv[-1].endswith(".dark")
             kg = self.cfg / "kdeglobals"
@@ -60,6 +62,9 @@ def env(tmp_path, monkeypatch):
     cfg.mkdir()
     monkeypatch.setenv("XDG_CONFIG_HOME", str(cfg))
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    for var in ("LANGUAGE", "LC_ALL", "LC_MESSAGES", "LC_TIME"):
+        monkeypatch.delenv(var, raising=False)
     (cfg / "kdeglobals").write_text("[KDE]\nLookAndFeelPackage=org.lucent.desktop\nwidgetStyle=lucent\n"
                                     "[General]\nColorScheme=LucentLight\n[Colors:Window]\nDecorationFocus=66,87,232\n")
     return cfg, FakeRunner(cfg)
@@ -116,6 +121,9 @@ def test_auto_turns_on_plasmas_automatic_mode(env):
     theme.apply(r, mode="light")
     kg = theme.parse_kconfig((cfg / "kdeglobals").read_text())
     assert kg[("KDE",)]["AutomaticLookAndFeel"] == "false"
+    # running Plasma (the automatic switcher) only hears about it with --notify
+    writes = [c for c in r.calls if c[0] == "kwriteconfig6"]
+    assert writes and all("--notify" in c for c in writes)
 
 
 def test_any_colour_snaps_to_the_nearest_swatch(env):

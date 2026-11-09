@@ -116,7 +116,8 @@ def write_own(file: str, group: str, values: dict[str, str]) -> None:
 
 
 def kwrite(r, file, group, key, value=None) -> Result:
-    argv = ["kwriteconfig6", "--file", file, "--group", group, "--key", key]
+    # --notify: running Plasma (e.g. the automatic light/dark switcher) re-reads it
+    argv = ["kwriteconfig6", "--notify", "--file", file, "--group", group, "--key", key]
     argv += ["--delete"] if value is None else ["--", value]
     return r.run(argv)
 
@@ -316,6 +317,9 @@ def sync(r, errors: list[str] | None = None) -> int:
         _apply_colour_accent(r, st.accent, errors)
         if _kvantum_ours():
             _set_kvantum(r, st.accent)
+    # The UI font for the session's language (plasma-localerc changed): see fonts.py
+    from . import fonts
+    fonts.apply(r)
     _check(r.run([FLATPAK_SYNC], timeout=120), errors)
     return 1 if errors else 0
 
