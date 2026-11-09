@@ -29,7 +29,8 @@ done
 # it, and so do Plasma's own "Configure…" entries) but leaves the launcher.
 f=/usr/share/applications/systemsettings.desktop
 if [ -f "$f" ]; then
-    grep -q '^NoDisplay=true' "$f" || sed -i '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nNoDisplay=true/' "$f"
+    sed -i '/^NoDisplay=/d' "$f"     # a later NoDisplay=false would win over ours
+    sed -i '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nNoDisplay=true/' "$f"
 fi
 
 # Checks: the tools the backends drive are in the image, and every page's

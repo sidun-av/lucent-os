@@ -14,7 +14,11 @@ PYTHONPATH=/usr/lib/lucent python3 -P -m lucent_store.i18n "$src/po" /usr/share/
 # links) but leaves the launcher and search: the Store is the one place for apps.
 f=/usr/share/applications/org.kde.discover.desktop
 if [ -f "$f" ]; then
-    grep -q '^NoDisplay=true' "$f" || sed -i '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nNoDisplay=true/' "$f"
+    # Discover's own entry says NoDisplay=false further down; with two keys
+    # the last one wins (KService, GIO), so drop it before adding ours.
+    sed -i '/^NoDisplay=/d' "$f"
+    sed -i '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nNoDisplay=true/' "$f"
+    [ "$(grep -c '^NoDisplay=' "$f")" = 1 ]
 fi
 
 # The Qt modules the store needs are all in Fedora's python3-pyside6 and

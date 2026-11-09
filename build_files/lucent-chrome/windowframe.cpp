@@ -8,6 +8,7 @@
 #include <QDBusMessage>
 #include <QDebug>
 #include <QEvent>
+#include <QGuiApplication>
 #include <QPlatformSurfaceEvent>
 #include <QSurfaceFormat>
 
@@ -120,7 +121,10 @@ bool WindowFrame::maximized() const
 
 void WindowFrame::updateShadow()
 {
-    const bool want = m_window && m_window->isVisible() && m_window->handle() && !maximized();
+    // Only a compositor draws shadows (not the offscreen checks and screenshots).
+    static const bool compositor = QGuiApplication::platformName().startsWith(QLatin1String("wayland"))
+                                || QGuiApplication::platformName() == QLatin1String("xcb");
+    const bool want = compositor && m_window && m_window->isVisible() && m_window->handle() && !maximized();
     if (qEnvironmentVariableIsSet("LUCENT_CHROME_DEBUG"))
         qInfo() << "lucent-chrome: updateShadow want" << want << "visible" << (m_window && m_window->isVisible()) << "handle" << (m_window && m_window->handle());
     if (!want) {
