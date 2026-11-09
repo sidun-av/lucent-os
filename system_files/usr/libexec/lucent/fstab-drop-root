@@ -1,0 +1,26 @@
+#!/usr/bin/bash
+# fstab-drop-root [FSTAB]: keep the /etc/fstab line for / only as a comment.
+#
+# Run by the installer (iso/lucent-apps.ks) on the new system. Lucent's / is
+# composefs, a read-only overlay built from the image; the real btrfs root
+# (/sysroot) is mounted in the initramfs from root= and rootflags= on the
+# kernel command line, so a line for / can never be applied. Anaconda writes
+# one anyway, and systemd-remount-fs failed on it at every boot ("overlay: No
+# changes allowed in reconfigure", bootc#971). bootc's own installs write no
+# line for /. The file is rewritten in place (owner, mode and SELinux label
+# stay); running it again changes nothing.
+fstab=${1:-/etc/fstab}
+[ -f "$fstab" ] || exit 0
+awk '!/^[ \t]*#/ && NF >= 2 && $2 == "/" { found = 1 } END { exit !found }' "$fstab" || exit 0
+new=$(awk '
+    !/^[ \t]*#/ && NF >= 2 && $2 == "/" {
+        print "# Lucent: / is a read-only composefs image; its file system is mounted at"
+        print "# /sysroot from root= and rootflags= on the kernel command line, so this"
+        print "# line could never apply (systemd-remount-fs failed on it). Options for the"
+        print "# root file system belong in rootflags=."
+        print "#" $0
+        next
+    }
+    { print }
+' "$fstab") || exit 1
+printf '%s\n' "$new" > "$fstab"

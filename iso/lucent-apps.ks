@@ -72,3 +72,17 @@ fi
 cp /tmp/lucent-apps.log "$var/log/lucent/apps-install.log" 2>/dev/null || true
 exit 0
 %end
+
+# No /etc/fstab line for /: Lucent's / is a read-only composefs image (its
+# file system is mounted at /sysroot from root= and rootflags=), so the line
+# Anaconda writes can never apply, and systemd-remount-fs failed on it at
+# every boot (bootc#971). bootc's own installs don't write one either.
+%post --nochroot --interpreter=/usr/bin/bash --log=/tmp/lucent-fstab.log
+if [ -c /dev/ttyS0 ]; then exec > >(tee -a /dev/ttyS0) 2>&1; fi
+if chroot /mnt/sysroot /usr/libexec/lucent/fstab-drop-root /etc/fstab; then
+    echo "lucent-fstab: the line for / is a comment now"
+else
+    echo "lucent-fstab: /etc/fstab left as it was"
+fi
+exit 0
+%end

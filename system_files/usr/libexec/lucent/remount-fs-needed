@@ -1,0 +1,28 @@
+#!/usr/bin/bash
+# ExecCondition of systemd-remount-fs.service (its drop-in 50-lucent-composefs.conf):
+#   remount-fs-needed [FSTAB]   exit 0: let it run; exit 1: skip it (not a failure)
+#
+# On Lucent, / is composefs: a read-only overlay built from the image, while
+# the real btrfs root is /sysroot, mounted in the initramfs from root= and
+# rootflags= on the kernel command line. Anaconda still writes a line for /
+# into /etc/fstab (subvol=root,compress=zstd:1; bootc adds ro), and
+# systemd-remount-fs tries to apply it: "mount: /: fsconfig() failed:
+# overlay: No changes allowed in reconfigure", a failed unit on every boot,
+# and nothing it could have changed (bootc#971; the Atomic Desktops tracker,
+# issue 72). The installer no longer writes that line (iso/lucent-apps.ks);
+# this keeps systems installed earlier quiet.
+#
+# Skips only when the root is an overlay and the fstab gives the service
+# nothing else to do: an active line for /, and none for /usr or an API file
+# system (/proc, /sys, /dev, /run and below), whose options it also applies.
+# Any doubt (no fstab, unreadable): exit 0, systemd's own behaviour.
+fstab=${1:-/etc/fstab}
+fstype=${LUCENT_ROOT_FSTYPE:-$(findmnt -no FSTYPE / 2>/dev/null)}
+[ "$fstype" = overlay ] || exit 0
+[ -r "$fstab" ] || exit 0
+awk '
+    /^[ \t]*#/ || NF < 2 { next }
+    $2 == "/" { root = 1; next }
+    $2 == "/usr" || $2 ~ /^\/(proc|sys|dev|run)(\/|$)/ { other = 1 }
+    END { exit (root && !other) ? 1 : 0 }
+' "$fstab"
