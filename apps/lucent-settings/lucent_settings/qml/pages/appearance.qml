@@ -68,7 +68,7 @@ Page {
                     model: Theme.accents
                     Item {
                         required property var modelData
-                        readonly property bool on: (page.st.accent || "").toLowerCase() === modelData.color
+                        readonly property bool on: !page.st.accentFromWallpaper && (page.st.accent || "").toLowerCase() === modelData.color
                         Layout.fillWidth: true
                         implicitHeight: Theme.swatchHeight
                         Rectangle {  // 0 0 0 3px raised, 0 0 0 5.5px text
@@ -92,7 +92,7 @@ Page {
                     model: Theme.accents
                     LText {
                         required property var modelData
-                        readonly property bool on: (page.st.accent || "").toLowerCase() === modelData.color
+                        readonly property bool on: !page.st.accentFromWallpaper && (page.st.accent || "").toLowerCase() === modelData.color
                         Layout.fillWidth: true
                         horizontalAlignment: Text.AlignHCenter
                         text: modelData.name

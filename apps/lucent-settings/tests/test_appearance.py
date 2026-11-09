@@ -56,7 +56,9 @@ def test_accent(xdg_config):
     # the default blue goes back to the theme's own colours (light and dark differ)
     r.calls.clear()
     a.set_accent(appearance.ACCENTS[0])
-    assert r.calls[0] == ["plasma-apply-lookandfeel", "-k", "-a", "org.lucent.desktop"]
+    assert r.calls[0] == ["kwriteconfig6", "--file", "kdeglobals", "--group", "General", "--key", "AccentColor",
+                          "--notify", "--delete"]
+    assert r.calls[1] == ["plasma-apply-lookandfeel", "-k", "-a", "org.lucent.desktop"]
     assert "Accent" not in (home / "lucent-settingsrc").read_text()
 
 
@@ -121,3 +123,21 @@ def test_animations_and_text_size(xdg_config):
     assert fonts["activeFont"].startswith("Inter,13,") and ",600," in fonts["activeFont"]
     assert r.called("busctl", "--user", "emit", "/KDEPlatformTheme")
 
+
+
+def test_match_wallpaper(xdg_config):
+    home, _ = xdg_config
+    write(home / "kdeglobals", "[KDE]\nLookAndFeelPackage=org.lucent.desktop\n")
+    r = FakeRunner()
+    a = appearance.Appearance(r)
+    assert a.accent_from_wallpaper() is False
+    a.set_accent_from_wallpaper(True)
+    assert r.calls[0][-6:] == ["--key", "accentColorFromWallpaper", "--notify", "--type", "bool", "true"]
+    write(home / "kdeglobals", "[General]\nAccentColor=123,146,246\naccentColorFromWallpaper=true\n"
+          "[Colors:Selection]\nBackgroundNormal=162,178,248\n[KDE]\nLookAndFeelPackage=org.lucent.desktop\n")
+    assert a.accent_from_wallpaper() is True
+    assert appearance.selection_color() == "#7b92f6"   # Plasma's accent, not the paler selection
+    r.calls.clear()
+    a.set_accent_from_wallpaper(False)
+    # no swatch chosen before: the theme's own colours come back
+    assert ["plasma-apply-lookandfeel", "-k", "-a", "org.lucent.desktop"] in r.calls

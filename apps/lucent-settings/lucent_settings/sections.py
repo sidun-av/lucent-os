@@ -13,7 +13,7 @@ from urllib.parse import unquote, urlparse
 
 from PySide6.QtCore import Property, QDateTime, QLocale, QObject, QTimer, Signal, Slot
 
-from . import tasks
+from . import kconfig, tasks
 from .backends import about, appearance, bluetooth, display, habits, network, sound, updates, users, winapps
 from .i18n import N_, _, language, ngettext
 from .run import Result, Runner
@@ -419,6 +419,9 @@ class AppearanceSection(Section):
 
     @Slot(str)
     def setAccent(self, color):
+        if self._s.get("accentFromWallpaper"):  # a swatch means: stop following the wallpaper
+            self.set(accentFromWallpaper=False)
+            self.b.r.run(kconfig.write_argv("kdeglobals", "General", "accentColorFromWallpaper", False))
         self.set(accent=color)
         self.task("accent", lambda: self.b.set_accent(color), None, _("Couldn't change the accent color."))
 

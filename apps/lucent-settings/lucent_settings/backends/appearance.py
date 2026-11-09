@@ -106,8 +106,10 @@ def chosen_accent() -> str:
 
 
 def selection_color() -> str:
-    """The colour Plasma uses now (e.g. taken from the wallpaper), as #rrggbb."""
-    sel = kconfig.read("kdeglobals", "Colors:Selection", "BackgroundNormal", "")
+    """The accent Plasma uses now (e.g. taken from the wallpaper), as #rrggbb:
+    kdeglobals [General] AccentColor, else the selection colour."""
+    sel = kconfig.read("kdeglobals", "General", "AccentColor", "") or \
+        kconfig.read("kdeglobals", "Colors:Selection", "BackgroundNormal", "")
     try:
         r, g, b = (int(x) for x in sel.split(",")[:3])
     except ValueError:
@@ -181,7 +183,9 @@ class Appearance:
         if color.lower() == ACCENTS[0]:
             _own_set("Accent", "")
             pkg = DARK if kconfig.read("kdeglobals", "KDE", "LookAndFeelPackage", LIGHT).endswith(".dark") else LIGHT
-            # Re-applying the theme (keeping Auto) restores its own colours.
+            # Re-applying the theme (keeping Auto) restores its own colours,
+            # once Plasma's remembered accent is gone.
+            kconfig.write(self.r, "kdeglobals", "General", "AccentColor", None)
             left = kconfig.read("kwinrc", "org.kde.kdecoration2", "ButtonsOnLeft", "")
             right = kconfig.read("kwinrc", "org.kde.kdecoration2", "ButtonsOnRight", "")
             res = self.r.run(["plasma-apply-lookandfeel", "-k", "-a", pkg], timeout=60)
@@ -197,9 +201,8 @@ class Appearance:
         """Plasma's own "accent from wallpaper" (plasmashell picks the colour)."""
         res = kconfig.write(self.r, "kdeglobals", "General", "accentColorFromWallpaper", on)
         if not on:
-            accent = _own_get("Accent")
-            if accent:
-                self.r.run(["plasma-apply-colorscheme", "--accent-color", accent])
+            # back to the swatch chosen before, or the theme's own colours
+            self.set_accent(_own_get("Accent") or ACCENTS[0])
         return res
 
     # --- wallpaper -----------------------------------------------------------
