@@ -14,9 +14,16 @@ request per line, one reply line each:
   KEYS combo...        key chords through QEMU's keyboard (e.g. meta, ret, alt-f4)
   TYPE text            type text through QEMU's keyboard
   CLICK x y [button]   absolute pointer (usb-tablet) click at screen pixel x,y
+  MEASURE timeout_ms stable_ms combo...
+                       press a key chord and watch the screen: "OK first=<ms>
+                       settled=<ms>", the time from the key press to the first
+                       visible change and to the last one before the screen
+                       stays still for stable_ms ("first=none": no change)
   RESULT/METRIC/LOG …  progress lines, echoed to the CI log
   DONE rc              the guest is finished (it then powers off)
 
+The guest may reboot in between (it measures a second, ordinary boot after
+the first one); the channel stays connected and DONE comes at the very end.
 So everything "the user does" arrives as real input through KWin, and every
 screenshot is what the virtual screen shows.
 """
@@ -24,6 +31,7 @@ import argparse
 import json
 import os
 import select
+import shutil
 import socket
 import struct
 import subprocess
@@ -39,10 +47,10 @@ from qmp import PLAIN, QMP, SHIFTED, combo  # noqa: E402  (tools/vm/qmp.py)
 OVMF_CODE = "/usr/share/OVMF/OVMF_CODE_4M.fd"
 
 
-def qemu_base(vars_fd, disk, mem=8192):
+def qemu_base(vars_fd, disk, mem=8192, smp=4):
     return [
         "qemu-system-x86_64", "-enable-kvm", "-cpu", "host", "-machine", "q35",
-        "-smp", "4", "-m", str(mem),
+        "-smp", str(smp), "-m", str(mem),
         "-drive", f"if=pflash,format=raw,readonly=on,file={OVMF_CODE}",
         "-drive", f"if=pflash,format=raw,file={vars_fd}",
         "-drive", f"file={disk},format=raw,if=virtio",
@@ -53,21 +61,8 @@ def qemu_base(vars_fd, disk, mem=8192):
 # ---------------------------------------------------------------- images
 def ppm_to_png(src, dst):
     """Convert a binary PPM (P6, maxval 255) to PNG with the standard library."""
-    data = Path(src).read_bytes()
-    tokens, i = [], 2
-    while len(tokens) < 3:
-        while data[i:i + 1].isspace():
-            i += 1
-        if data[i:i + 1] == b"#":
-            i = data.index(b"\n", i) + 1
-            continue
-        j = i
-        while not data[j:j + 1].isspace():
-            j += 1
-        tokens.append(int(data[i:j]))
-        i = j
-    w, h, _ = tokens
-    pix = data[i + 1:]
+    frame = Frame.parse(Path(src).read_bytes())
+    w, h, pix = frame.w, frame.h, frame.pix
     raw = b"".join(b"\x00" + pix[y * w * 3:(y + 1) * w * 3] for y in range(h))
 
     def chunk(kind, body):
@@ -112,6 +107,86 @@ class Screen:
 
     def size(self, scratch):
         return self.dump(Path(scratch) / ".size.png")
+
+    def grab(self, path):
+        """The screen as a Frame (uncompressed PPM: fast enough to poll)."""
+        self.q.cmd("screendump", filename=str(path))
+        return Frame.parse(Path(path).read_bytes())
+
+
+# ---------------------------------------------------------------- screen changes
+class Frame:
+    """A binary PPM (P6, maxval 255) screen: width, height, RGB bytes."""
+
+    def __init__(self, w, h, pix):
+        self.w, self.h, self.pix = w, h, pix
+
+    @classmethod
+    def parse(cls, data):
+        tokens, i = [], 2
+        while len(tokens) < 3:
+            while data[i:i + 1].isspace():
+                i += 1
+            if data[i:i + 1] == b"#":
+                i = data.index(b"\n", i) + 1
+                continue
+            j = i
+            while not data[j:j + 1].isspace():
+                j += 1
+            tokens.append(int(data[i:j]))
+            i = j
+        w, h, _ = tokens
+        return cls(w, h, data[i + 1:i + 1 + w * h * 3])
+
+
+def frames_differ(a, b, share=0.002, level=24):
+    """Did the picture visibly change? True when more than `share` of the
+    sampled pixels moved by more than `level` in a colour channel: a popup, a
+    window or an animation step does; a blinking text caret, the clock's
+    digits or colour noise don't."""
+    if (a.w, a.h) != (b.w, b.h):
+        return True
+    if a.pix == b.pix:
+        return False
+    step = max(1, int((a.w * a.h / 40000) ** 0.5))   # ~40,000 sampled pixels
+    row, stride = a.w * 3, step * 3
+    changed = samples = 0
+    for y in range(0, a.h, step):
+        o = y * row
+        ra, rb = a.pix[o:o + row], b.pix[o:o + row]
+        if ra == rb:
+            samples += len(range(0, a.w, step))
+            continue
+        for c in zip(ra[0::stride], ra[1::stride], ra[2::stride], rb[0::stride], rb[1::stride], rb[2::stride]):
+            samples += 1
+            if abs(c[0] - c[3]) > level or abs(c[1] - c[4]) > level or abs(c[2] - c[5]) > level:
+                changed += 1
+    return changed > max(1, share * samples)
+
+
+def watch_change(grab, ref, start, timeout, stable, now=time.monotonic):
+    """Poll grab() until the screen differs from `ref`, then until it has not
+    changed for `stable` seconds. Returns (first change, last change) in
+    seconds after `start`, or (None, None) if nothing changed in `timeout`."""
+    first = last = None
+    prev = ref
+    while True:
+        t = now()
+        if t - start > timeout:
+            break
+        f = grab()
+        if first is None:
+            if frames_differ(ref, f):
+                first = last = t
+                prev = f
+        elif frames_differ(prev, f):
+            last = t
+            prev = f
+        elif t - last >= stable:
+            break
+    if first is None:
+        return None, None
+    return first - start, last - start
 
 
 # ---------------------------------------------------------------- input
@@ -212,10 +287,12 @@ def run(a):
     shots, timeline = out / "screens", out / "timeline"
     for d in (shots, timeline):
         d.mkdir(parents=True, exist_ok=True)
+    # Frames polled by MEASURE (6 MB each at 1080p): in memory, not on disk.
+    frames = Path(tempfile.mkdtemp(prefix="lucent-frames-", dir="/dev/shm" if os.path.isdir("/dev/shm") else None))
     ctl_path, qmp_path = out / "ctl.sock", out / "qmp.sock"
     for p in (ctl_path, qmp_path):
         p.unlink(missing_ok=True)
-    cmd = qemu_base(a.vars, a.disk) + [
+    cmd = qemu_base(a.vars, a.disk, mem=a.mem, smp=a.smp) + [
         "-drive", f"file={a.payload},format=raw,if=virtio",
         "-vga", "none", "-device", f"virtio-vga,xres={a.width},yres={a.height}",
         "-device", "qemu-xhci", "-device", "usb-tablet",
@@ -261,6 +338,34 @@ def run(a):
             w, h = screen.size(out)
             click(q, int(parts[0]), int(parts[1]), w, h, parts[2] if len(parts) > 2 else "left")
             return f"OK {w}x{h}"
+        if verb == "MEASURE":
+            # One chord, tapped (50 ms) while the screen is already being
+            # watched: the clock starts when the last key goes down.
+            timeout_ms, stable_ms, spec = rest.split()
+            frame = frames / "measure.ppm"
+            ref = screen.grab(frame)
+            keys = combo(spec)
+            for i, k in enumerate(keys):
+                key_event(q, k, True)
+                if i < len(keys) - 1:
+                    time.sleep(0.08)
+            start = time.monotonic()
+            held = list(keys)
+
+            def grab():
+                if held and time.monotonic() - start >= 0.05:
+                    for k in reversed(held):
+                        key_event(q, k, False)
+                    held.clear()
+                return screen.grab(frame)
+
+            first, settled = watch_change(grab, ref, start, int(timeout_ms) / 1000, int(stable_ms) / 1000)
+            for k in reversed(held):
+                key_event(q, k, False)
+            frame.unlink(missing_ok=True)
+            if first is None:
+                return "OK first=none settled=none"
+            return f"OK first={first * 1000:.0f} settled={settled * 1000:.0f}"
         if verb in ("RESULT", "METRIC", "LOG"):
             say(f"{verb.lower()}: {rest}")
             return "OK"
@@ -320,8 +425,9 @@ def run(a):
             proc.wait(timeout=60)
         except subprocess.TimeoutExpired:
             proc.kill()
+    shutil.rmtree(frames, ignore_errors=True)
     state = {"guest_done": done is not None, "guest_rc": done, "timed_out": timed_out,
-             "seconds": round(time.time() - t0)}
+             "seconds": round(time.time() - t0), "smp": a.smp, "mem_mib": a.mem}
     (out / "harness.json").write_text(json.dumps(state, indent=1) + "\n")
     say(f"harness: {state}")
     return 0 if done == 0 and not timed_out else 1
@@ -344,6 +450,8 @@ def main():
     r.add_argument("--timeout", type=int, default=60 * 60)
     r.add_argument("--width", type=int, default=1920)
     r.add_argument("--height", type=int, default=1080)
+    r.add_argument("--smp", type=int, default=4, help="vCPUs of the installed system's runs")
+    r.add_argument("--mem", type=int, default=8192, help="RAM (MiB) of the installed system's runs")
     a = ap.parse_args()
     sys.exit(install(a) if a.cmd == "install" else run(a))
 

@@ -14,22 +14,38 @@
 #   acceptance.sh PAYLOAD_DIR
 # Writes PAYLOAD_DIR/results/{results.tsv,metrics.tsv,logs/} (results also
 # stream to the host), sends DONE and powers the machine off.
+#
+# It spans two boots. The first one, right after the install, runs the whole
+# flow and then reboots; the second, ordinary one (as every later day's boot)
+# only measures: boot time, memory, failed units, SELinux denials, and how
+# quickly the launcher and a few apps open. Its logs go to logs/boot2/.
 set -uo pipefail
 
 P=$1
 OUT=$P/results
-LOGS=$OUT/logs
+if [ -f "$OUT/boot1.done" ]; then
+    BOOT=2
+    LOGS=$OUT/logs/boot2
+    FAILED=$(cat "$OUT/boot1.done" 2>/dev/null || echo 1)
+else
+    BOOT=1
+    LOGS=$OUT/logs
+    FAILED=0
+fi
 mkdir -p "$LOGS"
-: > "$OUT/results.tsv"
-: > "$OUT/metrics.tsv"
+if ((BOOT == 1)); then
+    : > "$OUT/results.tsv"
+    : > "$OUT/metrics.tsv"
+fi
+REBOOT=0   # set once the first boot got as far as a session
 U=anna
 NPP=npp.8.9.9.Installer.x64.exe
 NPP_SHA256=a18cfb33d616c8eecda0059604d40bdb9d607fbc4ede857c8be6e41986464367
 BIN=/var/lib/lucent-acceptance
 mkdir -p "$BIN"
 install -m 0644 "$P/guest/kwin.py" "$BIN/kwin.py"
+install -m 0644 "$P/guest/perf.py" "$BIN/perf.py"
 restorecon -R "$BIN" 2>/dev/null || true
-FAILED=0
 
 PORT=/dev/virtio-ports/org.lucent.acceptance
 
@@ -71,12 +87,19 @@ finished=0
 finish() {
     ((finished)) && return
     finished=1
-    log "collecting system logs"
+    log "collecting system logs (boot $BOOT)"
     journalctl -b --no-pager -o short-monotonic > "$LOGS/journal.txt" 2>&1
     systemctl list-units --failed --no-pager > "$LOGS/failed-units.txt" 2>&1
     as_user journalctl --user -b --no-pager -o short-monotonic 2>/dev/null | cat > "$LOGS/journal-user.txt"
     ls -la "$BIN" "${HOMEDIR:-/nonexistent}/.local/share/applications" > "$LOGS/files.txt" 2>&1
     sync
+    if ((BOOT == 1 && REBOOT)); then
+        echo "$FAILED" > "$OUT/boot1.done"
+        sync
+        ctl "LOG first boot done (failed=$FAILED); rebooting for the second boot" >/dev/null
+        systemctl reboot --no-block
+        return
+    fi
     ctl "DONE $FAILED" >/dev/null
     sync
     systemctl poweroff --no-block
@@ -121,13 +144,16 @@ session_up() {
     pgrep -u "$U" -x plasmashell >/dev/null &&
         as_user sh -c 'test -n "${WAYLAND_DISPLAY:-}"' 2>/dev/null
 }
+SESSION_CHECK=$([ "$BOOT" = 1 ] && echo session.plasma || echo boot2.session)
 if wait_until 600 session_up; then
     login_up=$(up)
-    record session.plasma PASS "Plasma session of $U running ${login_up} s after kernel start (autologin)"
+    record "$SESSION_CHECK" PASS "Plasma session of $U running ${login_up} s after kernel start (autologin, boot $BOOT)"
+    metric "$([ "$BOOT" = 1 ] || echo boot2_)session_up_s" "$login_up"
+    REBOOT=1
 else
-    record session.plasma FAIL "no Plasma session for $U after 10 min"
+    record "$SESSION_CHECK" FAIL "no Plasma session for $U after 10 min (boot $BOOT)"
     loginctl list-sessions > "$LOGS/sessions.txt" 2>&1
-    shot 00-no-session
+    shot "00-no-session-boot$BOOT"
     exit 1
 fi
 as_user systemctl --user show-environment 2>/dev/null | cat > "$LOGS/session-environment.txt"
@@ -141,31 +167,174 @@ else
 fi
 loginctl show-session "$(loginctl list-sessions --no-legend | awk -v u="$U" '$3 == u {print $1; exit}')" \
     > "$LOGS/session.txt" 2>&1
-sleep 25
-shot 01-desktop-after-login
 
 # ---------------------------------------------------------------------------
-# 2. Idle numbers, 2 min after login
+# 2. Idle numbers, 2 min after login (both boots)
 # ---------------------------------------------------------------------------
-target=$(awk -v l="$login_up" 'BEGIN { print l + 120 }')
-while awk -v u="$(up)" -v t="$target" 'BEGIN { exit !(u < t) }'; do sleep 2; done
-read -r mem_total mem_avail < <(awk '/^MemTotal:/ {t=$2} /^MemAvailable:/ {a=$2} END {print t, a}' /proc/meminfo)
-metric ram_total_mib $((mem_total / 1024))
-metric ram_used_idle_mib $(((mem_total - mem_avail) / 1024))
-free -m > "$LOGS/free.txt"
-ps -eo rss,user,comm --sort=-rss | head -n 30 > "$LOGS/top-rss.txt"
-sys_services=$(systemctl list-units --type=service --state=running --no-legend --plain | grep -vc '^lucent-acceptance')
-user_services=$(as_user systemctl --user list-units --type=service --state=running --no-legend --plain | grep -vc '^run-')
-systemctl list-units --type=service --state=running --no-legend --plain > "$LOGS/services-system.txt"
-as_user systemctl --user list-units --type=service --state=running --no-legend --plain > "$LOGS/services-user.txt"
-metric services_running_system "$sys_services"
-metric services_running_user "$user_services"
-sa=""
-for _ in $(seq 60); do sa=$(systemd-analyze 2>&1) && break; sleep 5; done
-metric systemd_analyze "$(head -n1 <<<"$sa")"
-metric graphical_target "$(grep -o 'graphical.target reached after .*' <<<"$sa")"
-systemd-analyze blame --no-pager > "$LOGS/systemd-analyze-blame.txt" 2>&1
-systemd-analyze critical-chain --no-pager > "$LOGS/systemd-analyze-critical-chain.txt" 2>&1
+# $1: metric prefix ("" on the first boot, "boot2_" on the second), $2: check
+# id prefix. Files go to $LOGS.
+boot_numbers() {
+    local pre=$1 cid=$2 target mem_total mem_avail sys_services user_services sa failed avc n
+    target=$(awk -v l="$login_up" 'BEGIN { print l + 120 }')
+    while awk -v u="$(up)" -v t="$target" 'BEGIN { exit !(u < t) }'; do sleep 2; done
+    read -r mem_total mem_avail < <(awk '/^MemTotal:/ {t=$2} /^MemAvailable:/ {a=$2} END {print t, a}' /proc/meminfo)
+    metric "${pre}ram_total_mib" $((mem_total / 1024))
+    metric "${pre}ram_used_idle_mib" $(((mem_total - mem_avail) / 1024))
+    free -m > "$LOGS/free.txt"
+    cat /proc/meminfo > "$LOGS/meminfo.txt"
+    ps -eo rss,user,comm --sort=-rss | head -n 30 > "$LOGS/top-rss.txt"
+    # PSS splits shared pages between the processes that map them, so the
+    # column adds up to what each one really costs.
+    python3 -I "$BIN/perf.py" pss --top 25 > "$LOGS/top-pss.tsv" 2>&1
+    metric "${pre}pss_total_mib" "$(awk -F'\t' '$1 == "# total" {print $2}' "$LOGS/top-pss.tsv")"
+    sys_services=$(systemctl list-units --type=service --state=running --no-legend --plain | grep -vc '^lucent-acceptance')
+    user_services=$(as_user systemctl --user list-units --type=service --state=running --no-legend --plain | grep -vc '^run-')
+    systemctl list-units --type=service --state=running --no-legend --plain > "$LOGS/services-system.txt"
+    as_user systemctl --user list-units --type=service --state=running --no-legend --plain > "$LOGS/services-user.txt"
+    metric "${pre}services_running_system" "$sys_services"
+    metric "${pre}services_running_user" "$user_services"
+    sa=""
+    for _ in $(seq 60); do sa=$(systemd-analyze 2>&1) && break; sleep 5; done
+    metric "${pre}systemd_analyze" "$(head -n1 <<<"$sa")"
+    metric "${pre}graphical_target" "$(grep -o 'graphical.target reached after .*' <<<"$sa")"
+    systemd-analyze blame --no-pager > "$LOGS/systemd-analyze-blame.txt" 2>&1
+    systemd-analyze critical-chain --no-pager > "$LOGS/systemd-analyze-critical-chain.txt" 2>&1
+    systemd-analyze plot > "$LOGS/systemd-analyze-plot.svg" 2>/dev/null
+    as_user systemd-analyze --user blame --no-pager 2>/dev/null | cat > "$LOGS/systemd-analyze-user-blame.txt"
+    as_user systemd-analyze --user critical-chain --no-pager 2>/dev/null | cat > "$LOGS/systemd-analyze-user-critical-chain.txt"
+    # Goals: no failed units and no SELinux denials while booting.
+    failed=$(systemctl list-units --failed --plain --no-legend | awk '{print $1}' | tr '\n' ' ')
+    metric "${pre}failed_units" "${failed:-none}"
+    if [ -z "$failed" ]; then
+        record "$cid.no-failed-units" PASS "no failed units 2 min after login"
+    else
+        record "$cid.no-failed-units" INFO "failed units 2 min after login: $failed"
+    fi
+    avc=$(ausearch -m AVC,USER_AVC,SELINUX_ERR,USER_SELINUX_ERR --start boot --format raw 2>/dev/null)
+    printf '%s\n' "$avc" > "$LOGS/avc-boot.txt"
+    n=$(grep -c . <<<"$avc")
+    metric "${pre}avc_at_boot" "$n"
+    if ((n == 0)); then
+        record "$cid.no-avc" PASS "no SELinux denials from power-on to 2 min after login"
+    else
+        record "$cid.no-avc" INFO "$n SELinux denial records by 2 min after login: $(grep -oE 'comm="[^"]*"|scontext=[^ ]*|invalid_context="[^"]*"' <<<"$avc" | sort | uniq -c | sort -rn | head -n 4 | oneline)"
+    fi
+}
+
+# What the image is made of, for docs/performance.md (first boot only).
+diagnostics() {
+    local d=$LOGS/diag k
+    k=$(uname -r)
+    mkdir -p "$d"
+    cat /proc/cmdline > "$d/cmdline.txt"
+    { cat /etc/fstab; echo; findmnt -o TARGET,SOURCE,FSTYPE,OPTIONS / /sysroot /var /home /boot /boot/efi; } > "$d/mounts.txt" 2>&1
+    systemctl cat systemd-remount-fs.service bootc-fstab-edit.service fedora-atomic-desktop-mandb-update.service \
+        tuned.service tuned-ppd.service ModemManager.service gssproxy.service geoclue.service packagekit.service \
+        ldconfig.service systemd-hwdb-update.service rpm-ostreed-automatic.timer bootc-fetch-apply-updates.timer \
+        cups.service cups.socket avahi-daemon.service systemd-homed.service > "$d/units.txt" 2>&1
+    systemctl list-unit-files --no-pager --state=enabled > "$d/enabled-system.txt" 2>&1
+    as_user systemctl --user list-unit-files --no-pager --state=enabled 2>/dev/null | cat > "$d/enabled-user.txt"
+    as_user systemctl --user cat kunifiedpush-distributor.service plasma-gmenudbusmenuproxy.service \
+        plasma-xembedsniproxy.service kde-baloo.service 2>/dev/null | cat > "$d/units-user.txt"
+    for f in /etc/xdg/autostart/*.desktop; do
+        echo "== $f"
+        grep -E '^(Exec|TryExec|OnlyShowIn|NotShowIn|Hidden|X-[A-Za-z-]+)=' "$f"
+    done > "$d/autostart.txt" 2>&1
+    ls /usr/share/dbus-1/services /usr/share/dbus-1/system-services > "$d/dbus-services.txt" 2>&1
+    { tuned-adm active; tuned-adm recommend
+      for f in /etc/tuned/ppd.conf /etc/tuned/active_profile /etc/tuned/profile_mode /etc/tuned/tuned-main.conf; do
+          echo "== $f"; cat "$f"; done
+      ls -la /etc/grub.d /usr/lib/tuned/profiles; } > "$d/tuned.txt" 2>&1
+    { sysctl vm.swappiness vm.page-cluster vm.dirty_ratio vm.dirty_background_ratio vm.watermark_boost_factor \
+          vm.watermark_scale_factor kernel.sched_autogroup_enabled
+      zramctl; swapon --show
+      cat /usr/lib/systemd/zram-generator.conf /etc/systemd/zram-generator.conf; } > "$d/memory.txt" 2>&1
+    { ls -la "/usr/lib/modules/$k/" /boot/ostree/*/; lsinitrd -m "/usr/lib/modules/$k/initramfs.img"; } > "$d/initramfs.txt" 2>&1
+    rpm -q tuned tuned-ppd power-profiles-daemon PackageKit geoclue2 geoclue2-demos ModemManager kdeconnectd \
+        xwaylandvideobridge plasma-discover-notifier plasma-discover kf6-baloo baloo-widgets kunifiedpush gssproxy \
+        abrt mcelog man-db firewalld cups cups-browsed avahi bluez dracut systemd > "$d/packages.txt" 2>&1
+    rpm -qa --qf '%{SIZE}\t%{NAME}\n' | sort -rn | head -n 60 > "$d/largest-packages.txt"
+    { rpm-ostree status; bootc status; } > "$d/deployment.txt" 2>&1
+    journalctl -b --no-pager -o short-monotonic -u tuned -u tuned-ppd -u systemd-remount-fs -u bootc-fstab-edit \
+        -u fedora-atomic-desktop-mandb-update -u rpm-ostreed -u ModemManager > "$d/journal-units.txt" 2>&1
+}
+
+# How quickly the desktop answers (second boot): the launcher, timed on the
+# host's screen from the Win key to its first visible change and to the end
+# of its animation; and apps started from it (Win key, name, Enter), timed by
+# KWin adding their window.
+ms_of() { sed -n "s/.*$1=\([0-9]*\).*/\1/p" <<<"$2"; }
+median() { sort -n | awk '{ a[NR] = $1 } END { if (NR) print a[int((NR + 1) / 2)] }'; }
+app_start() { # label query regex(class or caption)
+    local label=$1 query=$2 re=$3 f=$LOGS/window-$1.txt t0 line t_win cap cls wpid
+    keys meta
+    sleep 2
+    typetext "$query"
+    sleep 3
+    as_user /usr/bin/python3 -I "$BIN/kwin.py" wait-window "$re" 120 > "$f" &
+    wpid=$!
+    if ! wait_until 30 grep -q '^armed' "$f"; then
+        record "app.$label" INFO "$query: could not watch for its window"
+        kill "$wpid" 2>/dev/null
+        keys esc
+        return
+    fi
+    t0=$(date +%s%3N)
+    keys ret
+    wait "$wpid"
+    line=$(grep -m1 '^window' "$f")
+    if [ -n "$line" ]; then
+        IFS=$'\t' read -r _ t_win cap cls _ <<<"$line"
+        metric "app_${label}_ms" $((t_win - t0))
+        record "app.$label" INFO "$query: window '$cap' (class $cls) $((t_win - t0)) ms after Enter in the launcher"
+        sleep 5
+        shot "09-app-$label"
+        kwin close-class "$re" >/dev/null
+        sleep 4
+    else
+        record "app.$label" INFO "$query: no window 120 s after Enter in the launcher"
+        shot "09-app-$label-none"
+        keys esc
+    fi
+}
+responsiveness() {
+    local i r first settled warm_f=() warm_s=()
+    for i in 1 2 3 4; do
+        r=$(ctl "MEASURE 15000 700 meta")
+        log "launcher open $i: $r"
+        first=$(ms_of first "$r")
+        settled=$(ms_of settled "$r")
+        if ((i == 1)); then
+            shot 08-launcher-second-boot
+            metric launcher_cold_first_ms "${first:-none}"
+            metric launcher_cold_settled_ms "${settled:-none}"
+        elif [ -n "$first" ]; then
+            warm_f+=("$first")
+            warm_s+=("$settled")
+        fi
+        keys esc
+        sleep 3
+    done
+    metric launcher_warm_first_ms "$(printf '%s\n' "${warm_f[@]}" | median)"
+    metric launcher_warm_settled_ms "$(printf '%s\n' "${warm_s[@]}" | median)"
+    app_start files Dolphin 'dolphin'
+    app_start settings Settings 'lucent-settings|org\.lucent\.settings'
+    app_start store Store 'org\.lucent\.store|lucent-store'
+    app_start firefox Firefox 'firefox'
+    app_start notepadpp Notepad++ 'notepad'
+}
+
+sleep 25
+if ((BOOT == 2)); then
+    shot 07-desktop-second-boot
+    boot_numbers boot2_ boot2
+    responsiveness
+    log "second boot done, failed=$FAILED"
+    exit 0
+fi
+shot 01-desktop-after-login
+boot_numbers "" boot
+diagnostics
 read -r disk_size disk_used < <(df -B1 --output=size,used /sysroot | tail -n1)
 metric disk_size_gb "$(awk -v b="$disk_size" 'BEGIN { printf "%.1f", b / 1e9 }')"
 metric disk_used_gb "$(awk -v b="$disk_used" 'BEGIN { printf "%.1f", b / 1e9 }')"

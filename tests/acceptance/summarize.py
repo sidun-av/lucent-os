@@ -2,10 +2,10 @@
 """Summarise an acceptance run: summarize.py OUT_DIR
 
 Reads OUT_DIR/results/{results.tsv,metrics.tsv} (written by the guest),
-OUT_DIR/harness.json and OUT_DIR/screens/, writes OUT_DIR/summary.json and
-OUT_DIR/summary.md, and exits 1 unless every required check passed and no
-check failed. A check that never reported counts as failed, so a guest that
-dies half-way can't pass.
+its logs (the second boot's memory table and boot chain), OUT_DIR/harness.json
+and OUT_DIR/screens/, writes OUT_DIR/summary.json and OUT_DIR/summary.md, and
+exits 1 unless every required check passed and no check failed. A check that
+never reported counts as failed, so a guest that dies half-way can't pass.
 """
 import json
 import sys
@@ -34,10 +34,32 @@ REQUIRED = [
 METRICS = [
     ("systemd_analyze", "systemd-analyze"),
     ("graphical_target", "graphical.target"),
+    ("session_up_s", "desktop session running (s after kernel start)"),
     ("ram_used_idle_mib", "RAM used, idle 2 min after login (MiB)"),
+    ("pss_total_mib", "PSS of all processes, idle (MiB)"),
     ("ram_total_mib", "RAM of the VM (MiB)"),
     ("services_running_system", "running system services"),
     ("services_running_user", "running user services"),
+    ("failed_units", "failed units, 2 min after login"),
+    ("avc_at_boot", "SELinux denial records, power-on to 2 min after login"),
+    ("boot2_systemd_analyze", "systemd-analyze, second boot"),
+    ("boot2_graphical_target", "graphical.target, second boot"),
+    ("boot2_session_up_s", "desktop session running, second boot (s after kernel start)"),
+    ("boot2_ram_used_idle_mib", "RAM used, idle 2 min after login, second boot (MiB)"),
+    ("boot2_pss_total_mib", "PSS of all processes, idle, second boot (MiB)"),
+    ("boot2_services_running_system", "running system services, second boot"),
+    ("boot2_services_running_user", "running user services, second boot"),
+    ("boot2_failed_units", "failed units, second boot"),
+    ("boot2_avc_at_boot", "SELinux denial records, second boot"),
+    ("launcher_cold_first_ms", "launcher opens, first time: first change (ms)"),
+    ("launcher_cold_settled_ms", "launcher opens, first time: animation done (ms)"),
+    ("launcher_warm_first_ms", "launcher opens, warm: first change (ms)"),
+    ("launcher_warm_settled_ms", "launcher opens, warm: animation done (ms)"),
+    ("app_files_ms", "Dolphin: Enter to window (ms)"),
+    ("app_settings_ms", "Settings: Enter to window (ms)"),
+    ("app_store_ms", "Store: Enter to window (ms)"),
+    ("app_firefox_ms", "Firefox (Flatpak, first start): Enter to window (ms)"),
+    ("app_notepadpp_ms", "Notepad++ (Windows app): Enter to window (ms)"),
     ("disk_used_gb", "installed disk usage (GB)"),
     ("flatpak_apps_gb", "of which /var/lib/flatpak (GB)"),
     ("filesystem", "root file system"),
@@ -91,6 +113,39 @@ def evaluate(results, harness):
     return not failures, checks, failures
 
 
+def machine(harness):
+    if "smp" not in harness:
+        return ""
+    return f", {harness['smp']} vCPU, {harness.get('mem_mib', 0) / 1024:g} GB"
+
+
+def perf_sections(logs):
+    """The second boot's (else the first's) memory table and critical chain."""
+    md = []
+    boot = logs / "boot2" if (logs / "boot2").is_dir() else logs
+    which = "second boot" if boot.name == "boot2" else "first boot"
+    pss = boot / "top-pss.tsv"
+    if pss.exists():
+        rows = [ln.split("\t") for ln in pss.read_text(errors="replace").splitlines()]
+        body = [r for r in rows[1:] if len(r) >= 8 and not r[0].startswith("#")]
+        total = next((r for r in rows if r[0] == "# total"), None)
+        users = next((r for r in rows if r[0] == "# user"), None)
+        md += [f"### Memory by process, idle 2 min after login ({which}, PSS)", ""]
+        if total and len(total) >= 4:
+            md.append(f"All processes: {total[1]} MiB in {total[3].replace('processes ', '')} processes"
+                      + (f" ({', '.join(users[1:])} MiB)" if users else "") + ".")
+            md.append("")
+        md += ["| PSS MiB | RSS MiB | user | process |", "|---:|---:|---|---|"]
+        md += [f"| {r[0]} | {r[1]} | {r[5]} | {r[7]} |" for r in body]
+        md.append("")
+    chain = boot / "systemd-analyze-critical-chain.txt"
+    if chain.exists():
+        lines = [ln for ln in chain.read_text(errors="replace").splitlines() if ln.strip()
+                 and not ln.startswith("The time")]
+        md += [f"### Boot critical chain ({which})", "", "```"] + lines[:25] + ["```", ""]
+    return md
+
+
 def main():
     out = Path(sys.argv[1])
     res = out / "results"
@@ -103,7 +158,7 @@ def main():
                "harness": harness, "screenshots": shots}
     (out / "summary.json").write_text(json.dumps(summary, indent=1, ensure_ascii=False) + "\n")
     icon = {"PASS": "✅", "FAIL": "❌", "MISSING": "❌", "INFO": "ℹ️"}
-    md = [f"## Lucent OS acceptance (x86_64, KVM): {'PASSED' if ok else 'FAILED'}", "",
+    md = [f"## Lucent OS acceptance (x86_64, KVM{machine(harness)}): {'PASSED' if ok else 'FAILED'}", "",
           "| | check | detail |", "|---|---|---|"]
     for c in checks:
         title = c["title"] or c["id"]
@@ -113,7 +168,8 @@ def main():
     for key, title in METRICS:
         if key in metrics:
             md.append(f"| {title} | {metrics[key].replace('|', '/')} |")
-    md += ["", "Screenshots: " + ", ".join(f"`{s}`" for s in shots), ""]
+    md += [""] + perf_sections(res / "logs")
+    md += ["Screenshots: " + ", ".join(f"`{s}`" for s in shots), ""]
     if failures:
         md += ["**Failed:** " + ", ".join(f"`{f}`" for f in failures), ""]
     (out / "summary.md").write_text("\n".join(md))
