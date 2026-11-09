@@ -1,38 +1,49 @@
 #!/usr/bin/env python3
 """Generate the Lucent Light / Lucent Dark KDE colour schemes from the
-mockup tokens (docs/mockups/lucent.css :root and .dark).
+Pebble Drift tokens (docs/mockups/concepts-2026/pebble-drift/pebble-drift.css,
+read by design/tokens.py).
 
-Mapping to KDE colour sets:
-  Window   = --win-side   (sidebars, dialogs, toolbars)
-  Header   = --win-head   (title bar + app header, seamless with the decoration)
-  View     = --win-bg     (lists, documents)
-  Button   = --field      (buttons, fields)
-  Selection= --accent
-Output: system_files/usr/share/color-schemes/Lucent{Light,Dark}.colors
+KDE colour sets have no alpha, so translucent tokens are composited over the
+solid window colour (tokens.flatten):
+  Window    = --surface-window-solid   (window body, sidebars, dialogs)
+  Header    = the same                 (one-row header: title bar + toolbar)
+  View      = --surface-raised(-2)     (content cards, lists, documents)
+  Button    = --surface-raised         (pillow controls)
+  Selection = --accent / --text-on-accent
+  Tooltip   = --surface-popover
+Accent colours other than Indigo come from KDE's own accent override
+(kdeglobals [General] AccentColor, set by `lucent-theme`), so one scheme per
+mode is enough.
+Output: system_files/usr/share/color-schemes/Lucent{Light,Dark}.colors and
+the light scheme's [Colors:*] groups in system_files/etc/xdg/kdeglobals.
 """
 from pathlib import Path
+
+import tokens
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "system_files/usr/share/color-schemes"
 
-LIGHT = dict(
-    name="Lucent Light", id="LucentLight",
-    text="#1b1f27", text2="#4c5463", text3="#6a7282",
-    window="#f4f5f8", window_alt="#eceef3", head="#f4f5f8", head_inactive="#f7f8fa",
-    view="#ffffff", view_alt="#f7f8fa", button="#eceef3", button_alt="#e3e6ec",
-    tooltip="#fafbfd", accent="#3b6ef5", accent_hover="#5b86f7", link="#2f5fe0",
-    visited="#7c4dc4", negative="#d23b3b", neutral="#b86e00", positive="#1f9d55",
-    comp_bg="#16181e", comp_text="#f2f4f8",
-)
-DARK = dict(
-    name="Lucent Dark", id="LucentDark",
-    text="#eef0f5", text2="#b4bac6", text3="#959cab",
-    window="#191b21", window_alt="#1f2229", head="#191b21", head_inactive="#1c1e24",
-    view="#1f2229", view_alt="#23262d", button="#2b2f38", button_alt="#323743",
-    tooltip="#22252d", accent="#5b8bff", accent_hover="#6e98ff", link="#7ea4ff",
-    visited="#b08cff", negative="#f06a6a", neutral="#f0b04a", positive="#3cc47a",
-    comp_bg="#0f1116", comp_text="#eef0f5",
-)
+
+def palette(t: dict, dark: bool) -> dict:
+    win = t["surface-window-solid"]
+    flat = lambda v: tokens.flatten(v, win)
+    return dict(
+        name="Lucent Dark" if dark else "Lucent Light", id="LucentDark" if dark else "LucentLight",
+        text=t["text-primary"], text2=t["text-secondary"], text3=t["text-tertiary"],
+        window=win, window_alt=flat(t["surface-sunken"]),
+        head=win, head_inactive=win,
+        view=t["surface-raised-2"] if dark else t["surface-raised"],
+        view_alt=t["surface-raised"] if dark else t["surface-raised-2"],
+        button=t["surface-raised"], button_alt=t["surface-raised-2"],
+        tooltip=flat(t["surface-popover"]),
+        accent=t["accent"], accent_hover=t["accent-hover"], on_accent=t["text-on-accent"],
+        link=t["accent-text"], visited=t["accent-2"],
+        negative=t["status-danger"], neutral=t["status-warning"], positive=t["status-success"],
+        # Complementary: the dark surfaces of the shell in both modes (OSD text on
+        # Drift night, the lock screen).
+        comp_bg="#1d1f2e", comp_text="#eef0fa",
+    )
 
 
 def c(h):
@@ -40,26 +51,25 @@ def c(h):
     return ",".join(str(int(h[i:i + 2], 16)) for i in (0, 2, 4))
 
 
-def group(name, bg, bg_alt, t, fg=None, inactive=None):
-    fg = fg or t["text"]
+def group(name, bg, bg_alt, p, fg=None, inactive=None, active=None, link=None):
     return f"""[{name}]
 BackgroundAlternate={c(bg_alt)}
 BackgroundNormal={c(bg)}
-DecorationFocus={c(t['accent'])}
-DecorationHover={c(t['accent_hover'])}
-ForegroundActive={c(t['accent'])}
-ForegroundInactive={c(inactive or t['text3'])}
-ForegroundLink={c(t['link'])}
-ForegroundNegative={c(t['negative'])}
-ForegroundNeutral={c(t['neutral'])}
-ForegroundNormal={c(fg)}
-ForegroundPositive={c(t['positive'])}
-ForegroundVisited={c(t['visited'])}
+DecorationFocus={c(p['accent'])}
+DecorationHover={c(p['accent_hover'])}
+ForegroundActive={c(active or p['link'])}
+ForegroundInactive={c(inactive or p['text3'])}
+ForegroundLink={c(link or p['link'])}
+ForegroundNegative={c(p['negative'])}
+ForegroundNeutral={c(p['neutral'])}
+ForegroundNormal={c(fg or p['text'])}
+ForegroundPositive={c(p['positive'])}
+ForegroundVisited={c(p['visited'])}
 """
 
 
-def scheme(t, dark):
-    sel = dict(t)
+def scheme(p):
+    on = p["on_accent"]
     parts = [
         """[ColorEffects:Disabled]
 Color=56,56,56
@@ -81,35 +91,33 @@ Enable=false
 IntensityAmount=0
 IntensityEffect=0
 """,
-        group("Colors:Button", t["button"], t["button_alt"], t),
-        group("Colors:Complementary", t["comp_bg"], t["comp_bg"], t, fg=t["comp_text"]),
-        group("Colors:Header", t["head"], t["head"], t),
-        group("Colors:Header][Inactive", t["head_inactive"], t["head_inactive"], t),
-        group("Colors:Selection", t["accent"], t["accent_hover"], sel, fg="#ffffff", inactive="#ffffff")
-        .replace(f"ForegroundActive={c(t['accent'])}", "ForegroundActive=255,255,255")
-        .replace(f"ForegroundLink={c(t['link'])}", "ForegroundLink=255,255,255"),
-        group("Colors:Tooltip", t["tooltip"], t["tooltip"], t),
-        group("Colors:View", t["view"], t["view_alt"], t),
-        group("Colors:Window", t["window"], t["window_alt"], t),
+        group("Colors:Button", p["button"], p["button_alt"], p),
+        group("Colors:Complementary", p["comp_bg"], p["comp_bg"], p, fg=p["comp_text"],
+              inactive="#9ca2bb", active="#9aabff", link="#9aabff"),
+        group("Colors:Header", p["head"], p["head"], p),
+        group("Colors:Header][Inactive", p["head_inactive"], p["head_inactive"], p),
+        group("Colors:Selection", p["accent"], p["accent_hover"], p, fg=on, inactive=on, active=on, link=on),
+        group("Colors:Tooltip", p["tooltip"], p["tooltip"], p),
+        group("Colors:View", p["view"], p["view_alt"], p),
+        group("Colors:Window", p["window"], p["window_alt"], p),
         f"""[General]
-ColorScheme={t['id']}
-Name={t['name']}
-shadeSortColumn=true
-AccentColor={c(t['accent'])}
+ColorScheme={p['id']}
+Name={p['name']}
+shadeSortColumn=false
 
 [KDE]
 contrast=4
 
 [WM]
-activeBackground={c(t['head'])}
-activeBlend={c(t['text'])}
-activeForeground={c(t['text'])}
-inactiveBackground={c(t['head'])}
-inactiveBlend={c(t['text3'])}
-inactiveForeground={c(t['text3'])}
+activeBackground={c(p['head'])}
+activeBlend={c(p['text'])}
+activeForeground={c(p['text'])}
+inactiveBackground={c(p['head'])}
+inactiveBlend={c(p['text3'])}
+inactiveForeground={c(p['text3'])}
 """,
     ]
-    return "\n".join(parts)
+    return "# Generated by design/gen_colors.py from pebble-drift.css; do not edit by hand.\n" + "\n".join(parts)
 
 
 BEGIN = "# >>> Lucent Light colours, generated by design/gen_colors.py; do not edit by hand\n"
@@ -121,20 +129,23 @@ def kdeglobals_block(text):
     kdeglobals, and a new user has none there until a scheme is applied."""
     keep = []
     for chunk in text.split("\n\n"):
+        chunk = chunk.split("\n", 1)[1] if chunk.startswith("# Generated") else chunk
         if chunk.startswith(("[Colors:", "[ColorEffects:")):
             keep.append(chunk.strip())
     return BEGIN + "\n\n".join(keep) + "\n" + END
 
 
 def main():
-    for t, dark in ((LIGHT, False), (DARK, True)):
-        (OUT / f"{t['id']}.colors").write_text(scheme(t, dark))
-        print("wrote", t["id"])
+    t = tokens.load()
+    light, dark = palette(t.light, False), palette(t.dark, True)
+    for p in (light, dark):
+        (OUT / f"{p['id']}.colors").write_text(scheme(p))
+        print("wrote", p["id"])
     kg = ROOT / "system_files/etc/xdg/kdeglobals"
     text = kg.read_text()
     if BEGIN in text:
         text = text[:text.index(BEGIN)] + text[text.index(END) + len(END):]
-    kg.write_text(text.rstrip("\n") + "\n\n" + kdeglobals_block(scheme(LIGHT, False)))
+    kg.write_text(text.rstrip("\n") + "\n\n" + kdeglobals_block(scheme(light)))
     print("updated", kg)
 
 
