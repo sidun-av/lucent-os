@@ -30,7 +30,10 @@ the installed system's origin.
 Every published index and each architecture's image is signed with
 Sigstore, keyless: the certificate says it was made by
 `https://github.com/sidun-av/lucent-os/.github/workflows/build.yml@refs/heads/main`
-(testing) or `...@refs/tags/vX.Y.Z` (releases). Anyone can check:
+(testing) or `...@refs/tags/vX.Y.Z` (releases); the build verifies the
+index and both architectures' images right after signing (first on main:
+[build 42692379215](https://github.com/sidun-av/lucent-os/actions/runs/42692379215),
+`:testing` = `:latest` = `sha256:66e97eac…`). Anyone can check:
 
 ```sh
 cosign verify ghcr.io/sidun-av/lucent-os:stable \

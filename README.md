@@ -506,6 +506,12 @@ tests/release/, tests/iso/    tests of the release and ISO tools
 
 - Not booted on real hardware yet; Plasma layout and shortcut defaults are
   verified only by review, not by a running session.
+- Installed systems don't check update signatures yet: the images are
+  signed (Sigstore, keyless), but bootc/rpm-ostree can only check a
+  signature made with a key, which the maintainer has to create
+  ([docs/updates.md](docs/updates.md#signed-updates)). The policy, the
+  installer switch and their CI test are in place. The first update after
+  an ISO install downloads the whole image (4.6 GB).
 - On the online path (`bootc switch`, or a disk image without the app
   bundle) apps still arrive in the background after login, with no
   progress UI; the installer ISO doesn't have this gap.
