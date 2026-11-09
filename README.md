@@ -64,10 +64,12 @@ whatever is missing in the background, retried until online.
   mockups' design tokens: own Plasma theme (taskbar, frosted popups),
   window decoration (44 px title bar that merges with the app header, thin
   minimise/maximise/close glyphs, 14 px rounded corners), Lucent app and
-  folder icons on top of Papirus, colour schemes, Inter at 11 pt, the
-  "Drift" wallpaper (its night version in dark mode; also on the lock and
-  login screens), a Lucent boot splash and Alt+Tab switcher. Generators
-  and sources: `design/`, licenses: `THIRD_PARTY.md`.
+  folder icons on top of Papirus (folders in the accent's indigo at every
+  size, Papirus's own recoloured to match), colour schemes, Inter at 11 pt,
+  the "Drift" wallpaper (its night version in dark mode; also on the lock
+  and login screens), a boot splash with the Lucent mark on Drift night and
+  the Alt+Tab switcher. Generators and sources: `design/`, licenses:
+  `THIRD_PARTY.md`.
 
 Everything is done with stock Plasma 6 mechanisms — a look-and-feel package
 with a layout script (`system_files/usr/share/plasma/look-and-feel/`) and
@@ -133,13 +135,21 @@ Starts once at first login if Windows disks are present
    the recovery key).
 
 Core logic is pure and tested against a fake Windows tree; the GUI is a thin
-layer with one offscreen smoke test:
+layer with offscreen smoke and style tests:
 
 ```sh
 cd migration-wizard
-pip install pytest PySide6   # PySide6 optional: only for the GUI smoke test
+pip install pytest PySide6   # PySide6 optional: only for the GUI tests
 pytest
 ```
+
+Its look is Pebble Drift, light or dark with the system (and it switches
+live, as does Settings → Text size): every colour and size comes from
+`lucent_migrate/tokens.css`, a copy of the design's `pebble-drift.css`
+part 1 that a test keeps identical (`python3 design/sync-wizard-tokens.py`
+refreshes it). `python3 design/preview-wizard.py OUT [--dark] [--lang ru]`
+screenshots every page in a real window; previews of all the Pebble Drift
+assets are in `docs/screenshots/pebble-drift-assets/`.
 
 ## Lucent Store
 
