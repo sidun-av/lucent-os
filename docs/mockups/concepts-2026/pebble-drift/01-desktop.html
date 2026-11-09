@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en" class="light" data-dir="pebble-drift">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS 2026 · Pebble Drift · Desktop and Files</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pebble-drift.css">
+<script src="../../lucent.js"></script>
+<script src="drift-shell.js"></script>
+<style>
+  .win.files { left: 340px; top: 96px; width: 1880px; height: 950px; }
+  .folders { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 30px; }
+  .ft { display: flex; flex-direction: column; align-items: center; padding: 22px 12px 18px; text-align: center; }
+  .ft .fo { width: 76px; height: 76px; margin-bottom: 10px; }
+  .ft .fo svg { width: 76px; height: 76px; filter: drop-shadow(0 4px 6px var(--folder-shadow)); }
+  .ft b { font-size: 16px; font-weight: 650; }
+  .ft.sel b { color: var(--accent-text); }
+  .ft span { font-size: var(--type-caption); color: var(--text-secondary); }
+  .drives { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 30px; }
+  .dc { display: flex; align-items: center; gap: 20px; padding: 18px 22px; }
+  .ring { width: 78px; height: 78px; flex: none; position: relative; }
+  .ring svg { width: 78px; height: 78px; transform: rotate(-90deg); }
+  .ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 15px; font-weight: 700; }
+  .dc .meta { flex: 1; min-width: 0; }
+  .dc .name { display: flex; align-items: center; gap: 10px; height: 26px; font-size: 17px; font-weight: 700; margin-bottom: 3px; }
+  .dc .name svg { width: 20px; height: 20px; color: var(--text-secondary); }
+  .dc .desc { font-size: 14.5px; color: var(--text-secondary); }
+  .dc .free { font-size: 14.5px; margin-top: 6px; color: var(--text-secondary); }
+  .dc .free b { color: var(--text-primary); font-weight: 650; }
+  .tbl { border-radius: var(--radius-card); background: linear-gradient(var(--surface-raised), var(--surface-raised-2)); box-shadow: var(--shadow-raised), var(--highlight-top); padding: 6px; }
+  .tr { display: grid; grid-template-columns: 1fr 220px 220px 120px; align-items: center; height: 48px; padding: 0 14px; border-radius: var(--radius-control); font-size: 15px; color: var(--text-secondary); }
+  .tr.th { height: 38px; font-size: var(--type-caption); font-weight: 650; color: var(--text-tertiary); }
+  .tr .n { display: flex; align-items: center; gap: 12px; color: var(--text-primary); font-weight: 550; }
+  .tr .n .fi { width: 30px; height: 30px; }
+  .tr .n .fi svg { width: 30px; height: 30px; }
+  .tr .r { text-align: right; }
+  .tr.hover { background: var(--state-hover); }
+  .tr.sel { background: var(--accent-soft); }
+  .copy { display: flex; align-items: center; gap: 12px; }
+  .copy .prog { width: 220px; }
+  .copy svg { width: 16px; height: 16px; }
+  .copy .x { width: 30px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--state-hover); color: var(--text-secondary); }
+  .preview { left: 1034px; bottom: 78px; }
+</style>
+</head>
+<body>
+<div data-wall="drift"></div>
+
+<div class="win files matte">
+  <div class="head">
+    <span class="appi" data-ai="files"></span>
+    <div class="menus"><span>File</span><span>Edit</span><span class="hover">View</span><span>Go</span><span>Tools</span><span>Help</span></div>
+    <span class="vsep"></span>
+    <span class="pb flat"><i data-g="left"></i></span><span class="pb flat dim"><i data-g="right"></i></span><span class="pb flat"><i data-g="up"></i></span>
+    <div class="field grow"><i data-g="pc"></i><span class="crumb">This PC</span><i data-g="right" class="chev"></i></div>
+    <div class="seg"><span class="pb on"><i data-g="grid"></i></span><span class="pb"><i data-g="list"></i></span><span class="pb"><i data-g="columns"></i></span></div>
+    <span class="pb flat"><i data-g="split"></i></span>
+    <div class="field" style="width:300px"><i data-g="search"></i>Search This PC</div>
+    <span class="wb"></span>
+  </div>
+  <div class="body">
+    <div class="side">
+      <h6>Quick access</h6>
+      <div class="si"><i data-g="clock"></i>Recent</div>
+      <div class="si"><i data-g="desktop"></i>Desktop</div>
+      <div class="si"><i data-g="doc"></i>Documents</div>
+      <div class="si hover"><i data-g="download"></i>Downloads</div>
+      <div class="si"><i data-g="image"></i>Pictures</div>
+      <div class="si"><i data-g="music"></i>Music</div>
+      <div class="si"><i data-g="video"></i>Videos</div>
+      <h6>Devices</h6>
+      <div class="si sel"><i data-g="pc"></i>This PC</div>
+      <div class="si"><i data-g="home"></i>Home</div>
+      <div class="si"><i data-g="drive"></i>Windows (C:)<span class="end"><i data-g="lock"></i></span></div>
+      <div class="si"><i data-g="drive"></i>KINGSTON (D:)<span class="end"><i data-g="eject"></i></span></div>
+      <h6>Other</h6>
+      <div class="si"><i data-g="globe"></i>Network</div>
+      <div class="si"><i data-g="trash"></i>Trash</div>
+    </div>
+    <div class="main">
+      <div class="content">
+        <div class="sec">Folders</div>
+        <div class="folders">
+          <div class="ft card"><span class="fo" data-fo="desk"></span><b>Desktop</b><span>14 items</span></div>
+          <div class="ft card sel"><span class="fo" data-fo="doc"></span><b>Documents</b><span>212 items</span></div>
+          <div class="ft card hover"><span class="fo" data-fo="dl"></span><b>Downloads</b><span>38 items</span></div>
+          <div class="ft card"><span class="fo" data-fo="img"></span><b>Pictures</b><span>4,310 items</span></div>
+          <div class="ft card"><span class="fo" data-fo="music"></span><b>Music</b><span>1,024 items</span></div>
+          <div class="ft card"><span class="fo" data-fo="video"></span><b>Videos</b><span>57 items</span></div>
+        </div>
+
+        <div class="sec">Drives and devices</div>
+        <div class="drives">
+          <div class="dc card">
+            <div class="ring"><svg viewBox="0 0 78 78"><circle cx="39" cy="39" r="31" fill="none" stroke="var(--gauge-track)" stroke-width="9"/><circle cx="39" cy="39" r="31" fill="none" stroke="var(--gauge-1)" stroke-width="9" stroke-linecap="round" stroke-dasharray="38.9 200"/></svg><b>20%</b></div>
+            <div class="meta"><div class="name"><i data-g="home"></i>Home</div><div class="desc">Lucent system drive · 512 GB</div><div class="free"><b>410 GB</b> free</div></div>
+          </div>
+          <div class="dc card">
+            <div class="ring"><svg viewBox="0 0 78 78"><circle cx="39" cy="39" r="31" fill="none" stroke="var(--gauge-track)" stroke-width="9"/><circle cx="39" cy="39" r="31" fill="none" stroke="var(--gauge-2)" stroke-width="9" stroke-linecap="round" stroke-dasharray="146 200"/></svg><b>75%</b></div>
+            <div class="meta"><div class="name"><i data-g="drive"></i>Windows (C:) <span class="pill"><i data-g="lock"></i>Read-only</span></div><div class="desc">Your files from Windows. Nothing here will change.</div><div class="free"><b>121 GB</b> free of 476 GB</div></div>
+          </div>
+          <div class="dc card">
+            <div class="ring"><svg viewBox="0 0 78 78"><circle cx="39" cy="39" r="31" fill="none" stroke="var(--gauge-track)" stroke-width="9"/><circle cx="39" cy="39" r="31" fill="none" stroke="var(--gauge-3)" stroke-width="9" stroke-linecap="round" stroke-dasharray="107 200"/></svg><b>55%</b></div>
+            <div class="meta"><div class="name"><i data-g="drive"></i>KINGSTON (D:)</div><div class="desc">USB flash drive · 32 GB</div><div class="free"><b>14.2 GB</b> free</div></div>
+          </div>
+        </div>
+
+        <div class="sec">Recent files</div>
+        <div class="tbl">
+          <div class="tr th"><span>Name</span><span>Folder</span><span>Modified</span><span class="r">Size</span></div>
+          <div class="tr"><span class="n"><span class="fi" data-fi="docx"></span>Lease agreement 2026.docx</span><span>Documents</span><span>Today, 11:04 AM</span><span class="r">48 KB</span></div>
+          <div class="tr hover"><span class="n"><span class="fi" data-fi="xlsx"></span>Family budget.xlsx</span><span>Documents</span><span>Yesterday, 9:12 PM</span><span class="r">112 KB</span></div>
+          <div class="tr"><span class="n"><span class="fi" data-fi="pdf"></span>Electricity bill — October.pdf</span><span>Downloads</span><span>Nov 6</span><span class="r">286 KB</span></div>
+          <div class="tr"><span class="n"><span class="fi" data-fi="jpg"></span>Lake weekend — 014.jpg</span><span>Pictures</span><span>Nov 3</span><span class="r">4.2 MB</span></div>
+          <div class="tr"><span class="n"><span class="fi" data-fi="pptx"></span>School project — Volcanoes.pptx</span><span>Documents</span><span>Nov 2</span><span class="r">9.8 MB</span></div>
+        </div>
+      </div>
+      <div class="status">
+        <span>6 folders, 3 drives</span><span class="grow"></span>
+        <span class="copy">Copying 3 files to KINGSTON (D:)<span class="prog"><b style="width:64%"></b></span><span>12 s left</span><span class="x"><i data-g="x"></i></span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="preview">
+  <div class="ph"><span data-ai="docs"></span><span class="t">Cover letter — Anna Smirnova.docx</span><span class="x"><i data-g="x"></i></span></div>
+  <div class="thumb"><div class="tbr"></div><div class="pg"><i class="h"></i><i></i><i style="width:90%"></i><i style="width:75%"></i><i></i><i style="width:40%"></i><i style="width:85%"></i><i style="width:65%"></i></div></div>
+</div>
+
+<div data-taskbar data-active="files" data-run="firefox,docs" data-hover="docs"></div>
+</body>
+</html>

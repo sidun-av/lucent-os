@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en" class="light" data-dir="pebble-drift">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS 2026 · Pebble Drift · Settings, Appearance</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pebble-drift.css">
+<script src="../../lucent.js"></script>
+<script src="drift-shell.js"></script>
+<style>
+  .win.set { left: 360px; top: 72px; width: 1840px; height: 1272px; }
+  .head .ttl { font-size: 16px; font-weight: 700; }
+  .side { width: 290px; }
+  .me { display: flex; align-items: center; gap: 12px; padding: 6px 8px 14px; margin-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .me .avatar { width: 46px; height: 46px; border-radius: 13px; font-size: 15px; }
+  .me b { display: block; font-size: 16px; font-weight: 700; }
+  .me span { font-size: var(--type-caption); color: var(--text-secondary); }
+  .page { flex: 1; overflow: hidden; padding: 18px 26px 0 30px; }
+  h1 { font-size: var(--type-display); font-weight: var(--type-display-weight); letter-spacing: -.02em; }
+  .lead { font-size: 16px; color: var(--text-secondary); margin: 4px 0 24px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .group { padding: 22px 24px; }
+  .full { grid-column: 1 / -1; }
+  .gt { font-size: 18px; font-weight: 750; margin-bottom: 4px; display: flex; align-items: center; }
+  .gs { font-size: var(--type-small); color: var(--text-secondary); margin-bottom: 18px; }
+  .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .mode { border-radius: var(--radius-card); padding: 8px 8px 14px; background: var(--surface-sunken); box-shadow: var(--shadow-sunken); }
+  .mode.sel { background: linear-gradient(var(--surface-selected), var(--surface-selected-2)); box-shadow: 0 0 0 2px var(--accent-ring), var(--shadow-raised); }
+  /* mini previews are artwork: they always show the light / dark token values, whatever the page mode */
+  .mini { position: relative; height: 170px; border-radius: 9px; overflow: hidden; }
+  .mini > div[data-wp] { position: absolute; inset: 0; }
+  .mini > div[data-wp] svg { width: 100%; height: 100%; }
+  .mini .mw { position: absolute; left: 14%; top: 12%; width: 62%; height: 58%; border-radius: 8px; background: #f2f3fa; box-shadow: 0 8px 18px -4px rgba(25,35,90,.35); display: flex; flex-direction: column; overflow: hidden; }
+  .mini .mw .mh { height: 16%; }
+  .mini .mw .mbd { flex: 1; display: flex; gap: 6px; padding: 0 6px 6px; }
+  .mini .mw .ms { width: 28%; border-radius: 5px; background: rgba(48,58,120,.08); }
+  .mini .mw .mc { flex: 1; padding: 4px; }
+  .mini .mw .mc i { display: block; height: 6px; border-radius: 3px; background: #dcdfee; margin-bottom: 6px; }
+  .mini .mw .mc i.a { width: 40%; background: #4257e8; }
+  .mini .mb { position: absolute; left: 0; right: 0; bottom: 0; height: 11%; background: rgba(242,243,250,.93); }
+  .mini.dk .mw { background: #1d1f2e; box-shadow: 0 8px 18px -4px rgba(0,0,0,.6); }
+  .mini.dk .mw .ms { background: rgba(0,0,10,.25); }
+  .mini.dk .mw .mc i { background: #3a3d55; }
+  .mini.dk .mw .mc i.a { background: #7088ff; }
+  .mini.dk .mb { background: rgba(25,27,41,.93); }
+  .half { position: absolute; inset: 0; clip-path: polygon(62% 0, 100% 0, 100% 100%, 38% 100%); }
+  .ml { display: flex; align-items: center; gap: 10px; padding: 14px 8px 0; font-size: 16px; font-weight: 650; }
+  .ml small { font-weight: 500; font-size: var(--type-caption); color: var(--text-secondary); margin-left: auto; }
+  .radio { width: 22px; height: 22px; border-radius: var(--radius-round); background: var(--surface-raised); box-shadow: inset 0 0 0 1.5px var(--line-control); position: relative; }
+  .radio.on { background: var(--accent); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 2px rgba(20,30,100,.3); }
+  .radio.on::after { content: ""; position: absolute; inset: 7px; border-radius: 99px; background: var(--text-on-accent); }
+  .sws { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
+  .sw { height: 52px; border-radius: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 -2px 0 rgba(0,0,0,.08), 0 1px 2px rgba(25,35,90,.18), 0 4px 10px -4px rgba(25,35,90,.3); position: relative; }
+  .sw.sel { box-shadow: 0 0 0 3px var(--surface-raised), 0 0 0 5.5px var(--text-primary), 0 6px 14px -4px rgba(25,35,90,.4); }
+  .sw.sel::after { content: ""; position: absolute; left: 50%; top: 50%; width: 16px; height: 9px; margin: -7px 0 0 -8px; border: solid #fff; border-width: 0 0 3px 3px; transform: rotate(-45deg); }
+  .swn { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; margin-top: 10px; font-size: var(--type-caption); color: var(--text-secondary); text-align: center; }
+  .swn b { color: var(--text-primary); font-weight: 700; }
+  .row { display: flex; align-items: center; gap: 20px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .gs + .row, .gt + .row { border-top: 0; }
+  .row .t { flex: 1; }
+  .row .t b { display: block; font-size: 16px; font-weight: 600; }
+  .row .t span { font-size: var(--type-caption); color: var(--text-secondary); }
+  .seg .pb { font-size: 15px; padding: 0 16px; }
+  .slider { width: 320px; display: flex; align-items: center; gap: 12px; font-size: var(--type-caption); color: var(--text-secondary); }
+  .slider .A1 { font-size: 14px; font-weight: 700; } .slider .A2 { font-size: 19px; font-weight: 700; }
+  .track { flex: 1; height: 10px; border-radius: 6px; background: var(--surface-sunken-strong); box-shadow: var(--shadow-sunken); position: relative; }
+  .track b { position: absolute; left: 0; top: 0; bottom: 0; width: 40%; border-radius: 6px; background: var(--accent); }
+  .track i { position: absolute; left: 40%; top: 50%; width: 30px; height: 24px; margin: -12px 0 0 -15px; border-radius: 8px; background: var(--knob); box-shadow: var(--focus-ring), 0 2px 6px rgba(25,35,90,.3); }
+  .walls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .wp { height: 138px; border-radius: 12px; overflow: hidden; position: relative; box-shadow: var(--shadow-raised); }
+  .wp > div { position: absolute; inset: 0; } .wp svg { width: 100%; height: 100%; }
+  .wp.sel { box-shadow: 0 0 0 3px var(--surface-raised), 0 0 0 5.5px var(--accent-ring), var(--shadow-raised); }
+  .wpl { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 10px; font-size: var(--type-small); font-weight: 600; }
+  .wpl span small { display: block; font-weight: 500; color: var(--text-secondary); font-size: var(--type-caption); }
+  .wpl span.in small { color: var(--accent-text); font-weight: 650; }
+  .wp.add { background: var(--surface-sunken); box-shadow: var(--shadow-sunken); display: grid; place-items: center; color: var(--text-secondary); }
+  .wp.add > div { position: static; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; }
+  .wp.add svg { width: 26px; height: 26px; }
+</style>
+</head>
+<body>
+<div data-wall="drift"></div>
+
+<div class="win set matte">
+  <div class="head">
+    <span class="appi" data-ai="settings"></span>
+    <span class="ttl">Settings</span>
+    <span class="vsep"></span>
+    <span class="pb flat"><i data-g="left"></i></span><span class="pb flat dim"><i data-g="right"></i></span>
+    <span class="grow"></span>
+    <div class="field" style="width:520px"><i data-g="search"></i>Find a setting</div>
+    <span class="grow"></span>
+    <span class="wb"></span>
+  </div>
+  <div class="body">
+    <div class="side">
+      <div class="me"><span class="avatar">AS</span><div><b>Anna Smirnova</b><span>Local account</span></div></div>
+      <div class="si"><i data-g="wifi"></i>Network &amp; internet</div>
+      <div class="si"><i data-g="bluetooth"></i>Bluetooth &amp; devices</div>
+      <div class="si"><i data-g="display"></i>Display</div>
+      <div class="si"><i data-g="volume"></i>Sound</div>
+      <div class="si sel"><i data-g="palette"></i>Appearance</div>
+      <div class="si hover"><i data-g="image"></i>Wallpaper</div>
+      <div class="si"><i data-g="desktop"></i>Taskbar</div>
+      <div class="si"><i data-g="winapp"></i>Windows</div>
+      <div class="si"><i data-g="apps"></i>Apps</div>
+      <div class="si"><i data-g="keyboard"></i>Keyboard &amp; language</div>
+      <div class="si"><i data-g="refresh"></i>Updates<span class="end"><span class="pill accent">2</span></span></div>
+      <div class="si"><i data-g="shield"></i>Privacy &amp; security</div>
+      <div class="si"><i data-g="users"></i>Users</div>
+      <div class="si"><i data-g="info"></i>About this PC</div>
+    </div>
+    <div class="page">
+      <h1>Appearance</h1>
+      <div class="lead">Choose how Lucent looks. Changes apply right away to every app.</div>
+      <div class="grid2">
+        <div class="group card full">
+          <div class="gt">Mode</div>
+          <div class="gs">Light and dark change windows, the taskbar and menus together.</div>
+          <div class="modes">
+            <div class="mode sel"><div class="mini"><div data-wp="drift-light"></div><div class="mw"><div class="mh"></div><div class="mbd"><div class="ms"></div><div class="mc"><i class="a"></i><i></i><i style="width:70%"></i></div></div></div><div class="mb"></div></div><div class="ml"><span class="radio on"></span>Light</div></div>
+            <div class="mode"><div class="mini dk"><div data-wp="drift-dark"></div><div class="mw"><div class="mh"></div><div class="mbd"><div class="ms"></div><div class="mc"><i class="a"></i><i></i><i style="width:70%"></i></div></div></div><div class="mb"></div></div><div class="ml"><span class="radio"></span>Dark</div></div>
+            <div class="mode"><div class="mini"><div data-wp="drift-light"></div><div class="mw"><div class="mh"></div><div class="mbd"><div class="ms"></div><div class="mc"><i class="a"></i><i></i><i style="width:70%"></i></div></div></div><div class="mb"></div>
+              <div class="half mini dk" style="border-radius:0;height:auto"><div data-wp="drift-dark"></div><div class="mw"><div class="mh"></div><div class="mbd"><div class="ms"></div><div class="mc"><i class="a"></i><i></i><i style="width:70%"></i></div></div></div><div class="mb"></div></div></div>
+              <div class="ml"><span class="radio"></span>Auto<small>Dark from sunset to sunrise</small></div></div>
+          </div>
+        </div>
+
+        <div class="group card">
+          <div class="gt">Accent color</div>
+          <div class="gs">Used for selection, switches, progress and focus.</div>
+          <div class="sws">
+            <span class="sw sel" style="background:#4257e8"></span>
+            <span class="sw" style="background:#2f7ae0"></span>
+            <span class="sw" style="background:#1f96a8"></span>
+            <span class="sw" style="background:#7a55e0"></span>
+            <span class="sw" style="background:#a54fc4"></span>
+            <span class="sw" style="background:#cf4f86"></span>
+            <span class="sw" style="background:#3f8f68"></span>
+            <span class="sw" style="background:#5f6684"></span>
+          </div>
+          <div class="swn"><b>Indigo</b><span>Azure</span><span>Lagoon</span><span>Violet</span><span>Orchid</span><span>Rose</span><span>Pine</span><span>Slate</span></div>
+          <div class="row" style="margin-top:14px;border-top:1px solid var(--line)">
+            <div class="t"><b>Accent on title bars</b><span>Color the header of the window you are using</span></div>
+            <span class="tog"></span>
+          </div>
+          <div class="row">
+            <div class="t"><b>Match wallpaper</b><span>Pick the accent from the current wallpaper</span></div>
+            <span class="tog"></span>
+          </div>
+        </div>
+
+        <div class="group card">
+          <div class="gt">Comfort</div>
+          <div class="row">
+            <div class="t"><b>Density</b><span>Space between items in lists and menus</span></div>
+            <div class="seg"><span class="pb on">Comfortable</span><span class="pb">Compact</span></div>
+          </div>
+          <div class="row">
+            <div class="t"><b>Text size</b><span>Applies to apps and the taskbar</span></div>
+            <div class="slider"><span class="A1">A</span><div class="track"><b></b><i></i></div><span class="A2">A</span></div>
+          </div>
+          <div class="row">
+            <div class="t"><b>Soft shadows</b><span>Turn off for flatter windows on slower graphics</span></div>
+            <span class="tog on"></span>
+          </div>
+          <div class="row">
+            <div class="t"><b>Reduce motion</b><span>Fade instead of slide and zoom</span></div>
+            <span class="tog"></span>
+          </div>
+        </div>
+
+        <div class="group card full">
+          <div class="gt">Wallpaper<span class="grow"></span><span class="pb raised">Browse…</span></div>
+          <div class="gs">Drift is the Lucent default. Tide and Aurora switch to their night version in dark mode.</div>
+          <div class="walls">
+            <div class="wp sel"><div data-wp="drift-light"></div></div>
+            <div class="wp "><div data-wp="drift-dark"></div></div>
+            <div class="wp"><div data-wp="tide-light"></div></div>
+            <div class="wp"><div data-wp="aurora-light"></div></div>
+            <div class="wp add"><div><i data-g="plus"></i>Add a picture</div></div>
+          </div>
+          <div class="wpl"><span class="in">Drift<small>In use</small></span><span >Drift night<small>For dark mode</small></span><span>Tide<small>Paper swells · day and night</small></span><span>Aurora<small>Soft light · day and night</small></span><span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div data-taskbar data-active="settings"></div>
+</body>
+</html>
