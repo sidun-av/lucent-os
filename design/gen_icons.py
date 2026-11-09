@@ -99,6 +99,12 @@ def main():
         apps = pg.evaluate("names => Object.fromEntries(names.map(n => [n, Lucent.APPS[n]()]))", list(APPS))
         places = pg.evaluate("names => Object.fromEntries(names.map(n => [n, Lucent.fileIcon(n)]))", list(PLACES))
         logo = pg.evaluate("Lucent.logo(64)")
+        # Home folder: the mockups' folder with the home glyph (same recipe
+        # as their Documents/Downloads/... folders).
+        home = pg.evaluate("""() => {
+            const inner = s => s.replace(/^<svg[^>]*>/, '').replace(/<\\/svg>$/, '');
+            return Lucent.fileIcon('folder-desk').replace(inner(Lucent.sym('desktop')), inner(Lucent.sym('home')));
+        }""")
         b.close()
 
     base = OUT / "Lucent"
@@ -116,6 +122,11 @@ def main():
             (d / f"{names[0]}.svg").write_text(qtsvg_safe(svg) + "\n")
             for alias in names[1:]:
                 (d / f"{alias}.svg").symlink_to(f"{names[0]}.svg")
+    if 'xmlns="' not in home:
+        home = home.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ', 1)
+    (base / "scalable/places/user-home.svg").write_text(qtsvg_safe(home) + "\n")
+    for alias in ("folder-home", "folder-blue-home"):
+        (base / f"scalable/places/{alias}.svg").symlink_to("user-home.svg")
     logo = logo.replace(' width="64" height="64"', "")
     (base / "scalable/apps/lucent-start.svg").write_text(logo + "\n")
     for alias in ("start-here", "start-here-kde", "start-here-kde-plasma"):

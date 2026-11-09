@@ -1,0 +1,9 @@
+# Lucent: the six folders a Windows user has (and the mockups show).
+# Fedora's xdg-user-dirs 0.20 also makes Templates, Public and Projects;
+# unset here, they point at $HOME, i.e. they aren't created.
+DESKTOP=Desktop
+DOWNLOAD=Downloads
+DOCUMENTS=Documents
+MUSIC=Music
+PICTURES=Pictures
+VIDEOS=Videos

@@ -9,6 +9,7 @@ falls back to Plasma's default (Breeze) theme:
   widgets/tooltip            hover previews: radius 16
   widgets/tasks              taskbar buttons: active tile + accent pill, running dot
   widgets/viewitem           list highlights in popups: radius 9
+  widgets/tabbar             tab underline; no "popup open" line on the taskbar
 
 Values come from docs/mockups/lucent.css (#taskbar, .preview, .di ...).
 Output: system_files/usr/share/plasma/desktoptheme/lucent{,-dark}/
@@ -192,6 +193,33 @@ def rgba_str(hexcol, a):
     return f"rgba({int(r*255)},{int(g*255)},{int(b*255)},{a})"
 
 
+def tabbar(t):
+    """Tab underline as a 3 px rounded accent bar (north = tabs on top, the bar
+    under the label). south-active-tab is also the taskbar's "popup open"
+    marker on the bar's top edge: left empty, the popup itself shows it."""
+    doc, cur = SvgDoc(0, 0), Cursor()
+    W = H = 26
+    edges = {"north": "bottom", "south": None, "west": "right", "east": "left"}
+    for side, edge in edges.items():
+        def draw(img, edge=edge):
+            if edge is None:
+                return img
+            Hh, Ww = img.shape[0] // SCALE, img.shape[1] // SCALE
+            if edge == "bottom":
+                box = (4, Hh - 3, Ww - 8, 3)
+            elif edge == "right":
+                box = (Ww - 3, 4, 3, Hh - 8)
+            else:
+                box = (0, 4, 3, Hh - 8)
+            d = sdf_roundrect(Ww, Hh, *box, 1.5, SCALE, SS)
+            return over(img, rgba(t["accent"]), downsample(coverage(d), SS))
+        img = render_box(W, H, (0, 0, W, H), 0, extra=draw)
+        nine_slice(doc, cur, f"{side}-active-tab", img, 6, 6, 6, 6)
+        hints(doc, cur, f"{side}-active-tab", (6, 10, 6, 10))
+    doc.w, doc.h = cur.max_w, cur.height + 4
+    return doc
+
+
 def viewitem(t):
     doc, cur = SvgDoc(0, 0), Cursor()
     r = 9
@@ -220,6 +248,7 @@ def main():
             write(base / f"{sub}widgets/tooltip.svgz", dialog_background(t, True, r=16, margins=(12, 12, 12, 12)))
         write(base / "widgets/tasks.svgz", tasks(t))
         write(base / "widgets/viewitem.svgz", viewitem(t))
+        write(base / "widgets/tabbar.svgz", tabbar(t))
         meta = {
             "KPlugin": {
                 "Authors": [{"Name": "Lucent OS contributors"}],

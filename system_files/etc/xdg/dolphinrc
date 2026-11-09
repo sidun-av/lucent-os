@@ -1,9 +1,7 @@
 [General]
-# Explorer habits: status bar with free space, no surprise restore of old tabs.
-# A full-width status bar with free space, as in docs/mockups (Dolphin's
-# default is a small floating label).
-ShowStatusBar=FullWidth
-ShowSpaceInfo=true
+# Explorer habits: no surprise restore of old tabs. The status bar stays
+# Dolphin's small label: the full-width bar always shows free space, and on
+# an image-based system Dolphin measures the read-only root ("0 B free").
 RememberOpenedTabs=false
 ShowFullPath=false
 BrowseThroughArchives=true
@@ -11,3 +9,7 @@ BrowseThroughArchives=true
 [MainWindow]
 # Windows habit and docs/mockups/01-desktop: menus inside the window.
 MenuBar=Enabled
+
+[PlacesPanel]
+# 26 px icons: rows close to the mockup sidebar's 38 px rhythm.
+IconSize=26
