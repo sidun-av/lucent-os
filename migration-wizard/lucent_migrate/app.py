@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QThread, Qt, Signal
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication, QButtonGroup, QCheckBox, QLabel, QListWidget, QListWidgetItem,
     QProgressBar, QRadioButton, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWizard,
@@ -21,6 +22,17 @@ FOLDER_TITLES = {
     "DESKTOP": N_("Desktop"), "DOCUMENTS": N_("Documents"), "DOWNLOAD": N_("Downloads"),
     "MUSIC": N_("Music"), "PICTURES": N_("Pictures"), "VIDEOS": N_("Videos"),
 }
+FOLDER_ICONS = {
+    "DESKTOP": "user-desktop", "DOCUMENTS": "folder-documents", "DOWNLOAD": "folder-download",
+    "MUSIC": "folder-music", "PICTURES": "folder-pictures", "VIDEOS": "folder-videos",
+}
+
+
+def folder_label(key: str, src: Path) -> str:
+    """"Documents", or "Documents  (OneDrive)" when the Windows folder is
+    elsewhere / named differently, so the source is never ambiguous."""
+    title = _(FOLDER_TITLES[key])
+    return title if src.name in (title, FOLDER_TITLES[key]) else f"{title}  ({src.name})"
 
 
 @dataclass
@@ -175,7 +187,8 @@ class FoldersPage(QWizardPage):
         self.items: list[tuple[QTreeWidgetItem, Path, Path]] = []
         for key, sources in self.wiz.source.user.folders.items():
             for src in sources:
-                item = QTreeWidgetItem([f"{_(FOLDER_TITLES[key])}  ({src.name})", "…", str(targets[key])])
+                item = QTreeWidgetItem([folder_label(key, src), "…", str(targets[key])])
+                item.setIcon(0, QIcon.fromTheme(FOLDER_ICONS[key], QIcon.fromTheme("folder")))
                 item.setCheckState(0, Qt.CheckState.Checked)
                 self.tree.addTopLevelItem(item)
                 self.items.append((item, src, targets[key]))

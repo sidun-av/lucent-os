@@ -71,3 +71,8 @@ def test_lucent_style_sidebar_follows_pages(windows_root, monkeypatch):
     assert wiz.currentPage().title() == ""  # shown as the page's own large heading
     wiz.close()
     qapp.processEvents()
+
+
+def test_folder_label_drops_the_duplicate_name(tmp_path):
+    assert app.folder_label("DESKTOP", tmp_path / "Desktop") == "Desktop"
+    assert app.folder_label("DOCUMENTS", tmp_path / "OneDrive") == "Documents  (OneDrive)"

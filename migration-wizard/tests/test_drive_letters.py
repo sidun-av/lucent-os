@@ -39,6 +39,21 @@ def test_display_name():
     assert drive_letters.display_name("D", "Data") == "Data (D:)"
 
 
+def test_display_name_is_idempotent():
+    # After boot the udev rule makes the name the volume's label, so lsblk
+    # reports "Windows (C:)" and the wizard must not append the letter again.
+    assert drive_letters.display_name("C", "Windows (C:)") == "Windows (C:)"
+    assert drive_letters.display_name("C", "Local Disk (C:)") == "Local Disk (C:)"
+
+
+def test_udev_rules_also_set_the_label_dolphin_shows():
+    # Dolphin's Devices list shows the filesystem label, not udisks' HintName.
+    c = vol("/dev/sda1", uuid="01D9AAAA", label=None)
+    text = drive_letters.udev_rules({"01D9AAAA": "C"}, [c])
+    assert 'ENV{ID_FS_LABEL}="Local Disk (C:)"' in text
+    assert r'ENV{ID_FS_LABEL_ENC}="Local\x20Disk\x20\x28C:\x29"' in text
+
+
 def test_udev_rules_text_escapes_quotes():
     c = vol("/dev/sda1", uuid="01D9AAAA", label='My "disk"')
     text = drive_letters.udev_rules({"01D9AAAA": "C"}, [c])

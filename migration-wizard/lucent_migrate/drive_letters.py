@@ -4,7 +4,9 @@ At boot, `lucent-drive-letters.service` runs `main()` as root: it lists NTFS
 volumes, probes which one holds Windows (without mounting, via ntfsprogs'
 `ntfsls`), assigns letters the way Windows usually does, and writes a
 runtime udev rule setting UDISKS_NAME (in the system language). udisks exposes that as the volume's
-HintName, which Dolphin and the Plasma device notifier display.
+HintName, which the Plasma device notifier displays. Dolphin's Devices list
+shows the filesystem label instead, so the rule also sets the label to the
+same name (only in udev's database; nothing is written to the disk).
 """
 
 from __future__ import annotations
@@ -40,9 +42,17 @@ def assign(vols: list[Volume], is_system: Callable[[Volume], bool]) -> dict[str,
 
 def display_name(letter: str, label: str | None) -> str:
     """As Windows Explorer shows it: "Local Disk (C:)", or "Data (D:)" with a label."""
+    if label and label.endswith(f"({letter}:)"):
+        return label  # already named by our udev rule (lsblk reads it back)
     if label:
         return _("{label} ({letter}:)").format(label=label, letter=letter)
     return _("Local Disk ({letter}:)").format(letter=letter)
+
+
+def _udev_encode(text: str) -> str:
+    """udev's *_ENC encoding: \\xNN for ASCII outside [A-Za-z0-9#+-.:=@_]."""
+    keep = set(string.ascii_letters + string.digits + "#+-.:=@_")
+    return "".join(c if c in keep or ord(c) > 127 else f"\\x{ord(c):02x}" for c in text)
 
 
 def udev_rules(letters: dict[str, str], vols: list[Volume]) -> str:
@@ -51,7 +61,8 @@ def udev_rules(letters: dict[str, str], vols: list[Volume]) -> str:
     for uuid, letter in letters.items():
         name = display_name(letter, labels.get(uuid)).replace('"', "").replace("\\", "")
         lines.append(
-            f'SUBSYSTEM=="block", ENV{{ID_FS_UUID}}=="{uuid}", ENV{{UDISKS_NAME}}="{name}"'
+            f'SUBSYSTEM=="block", ENV{{ID_FS_UUID}}=="{uuid}", ENV{{UDISKS_NAME}}="{name}", '
+            f'ENV{{ID_FS_LABEL}}="{name}", ENV{{ID_FS_LABEL_ENC}}="{_udev_encode(name)}"'
         )
     return "\n".join(lines) + "\n"
 
