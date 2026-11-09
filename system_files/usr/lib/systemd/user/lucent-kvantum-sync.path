@@ -4,6 +4,10 @@ Description=Lucent: keep Flatpak Qt apps on the desktop's light/dark Kvantum the
 [Path]
 # Plasma writes kdeglobals when the look (light/dark) changes.
 PathChanged=%h/.config/kdeglobals
+# New Flatpak apps (first boot installs them after the first login) and the
+# per-app style overrides written by lucent-flatpak-setup.
+PathChanged=/var/lib/flatpak/exports/share/applications
+PathChanged=/var/lib/flatpak/overrides
 Unit=lucent-kvantum-sync.service
 
 [Install]
