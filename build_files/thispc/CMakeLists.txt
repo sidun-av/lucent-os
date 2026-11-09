@@ -27,7 +27,10 @@ add_test(NAME core_test COMMAND core_test)
 find_package(KF6KIO QUIET)
 if(KF6KIO_FOUND)
     find_package(Qt6 REQUIRED COMPONENTS DBus)
-    find_package(KF6 REQUIRED COMPONENTS Solid I18n CoreAddons DBusAddons)
+    # one by one: the KF6 umbrella package needs extra-cmake-modules
+    foreach(fw Solid I18n CoreAddons DBusAddons)
+        find_package(KF6${fw} REQUIRED)
+    endforeach()
     set_target_properties(thispc_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
     add_library(kio_thispc MODULE worker.cpp core/text.cpp)
