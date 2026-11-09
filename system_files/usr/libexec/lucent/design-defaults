@@ -4,7 +4,8 @@ apps keep them in the user's data/state dirs. Run at login (from
 /etc/xdg/plasma-workspace/env/lucent-design-defaults.sh). Only seeds what the
 user doesn't have yet, so their own choices always win.
 
-- Dolphin window size and a 278 px places panel (docs/mockups/01-desktop),
+- Dolphin and System Settings window sizes and a 278 px places panel
+  (docs/mockups/01-desktop),
   and its toolbar: back, forward, up, path, view modes, split, search.
 - The places list like the mockup's sidebar: Desktop, Documents, Downloads,
   Pictures, Music, Videos, Home, Trash; the Remote, Recent, Search and Tags
@@ -28,18 +29,20 @@ HOME = Path.home()
 STATE = Path(os.environ.get("XDG_STATE_HOME") or HOME / ".local/state")
 DATA = Path(os.environ.get("XDG_DATA_HOME") or HOME / ".local/share")
 
-PLACES = [  # (path or URL, title, icon); titles are translated by KIO
-    ("Desktop", "Desktop", "user-desktop"),
-    ("Documents", "Documents", "folder-documents"),
-    ("Downloads", "Downloads", "folder-downloads"),
-    ("Pictures", "Pictures", "folder-pictures"),
-    ("Music", "Music", "folder-music"),
-    ("Videos", "Videos", "folder-videos"),
-    ("", "Home", "user-home"),
-    ("trash:/", "Trash", "user-trash"),
-    ("remote:/", "Network", "folder-network"),
-    ("recentlyused:/files", "Recent Files", "document-open-recent"),
-    ("recentlyused:/locations", "Recent Locations", "folder-open-recent"),
+# (path or URL, title, icon); titles are translated by KIO. Icons: the
+# mockup sidebar's accent line glyphs (Lucent icon theme, lucent-place-*).
+PLACES = [
+    ("Desktop", "Desktop", "lucent-place-desktop"),
+    ("Documents", "Documents", "lucent-place-documents"),
+    ("Downloads", "Downloads", "lucent-place-downloads"),
+    ("Pictures", "Pictures", "lucent-place-pictures"),
+    ("Music", "Music", "lucent-place-music"),
+    ("Videos", "Videos", "lucent-place-videos"),
+    ("", "Home", "lucent-place-home"),
+    ("trash:/", "Trash", "lucent-place-trash"),
+    ("remote:/", "Network", "lucent-place-network"),
+    ("recentlyused:/files", "Recent Files", "lucent-place-recent"),
+    ("recentlyused:/locations", "Recent Locations", "lucent-place-recent"),
 ]
 HIDDEN_GROUPS = {"Places": False, "Remote": True, "Devices": False, "RemovableDevices": False,
                  "Tags": True, "RecentlySaved": True, "SearchFor": True}
@@ -142,6 +145,13 @@ def main() -> int:
     STATE.mkdir(parents=True, exist_ok=True)
     if not (STATE / "dolphinstaterc").exists():
         shutil.copy("/usr/share/lucent/design/dolphinstaterc", STATE / "dolphinstaterc")
+    # System Settings opens at the same mockup proportions as Files
+    # (03-settings is a large window), not KDE's small default.
+    settings = STATE / "systemsettingsstaterc"
+    if not settings.exists():
+        sizes = [l for l in Path("/usr/share/lucent/design/dolphinstaterc").read_text().splitlines()
+                 if " screen: " in l]
+        settings.write_text("[MainWindow]\n" + "\n".join(sizes) + "\n")
     toolbar = DATA / "kxmlgui5/dolphin/dolphinui.rc"
     if not toolbar.exists():
         toolbar.parent.mkdir(parents=True, exist_ok=True)

@@ -120,6 +120,9 @@ def write_lines(base):
         (d / f"{names[0]}.svg").write_text(svg + "\n")
         for alias in names[1:] + [n + "-symbolic" for n in names]:
             (d / f"{alias}.svg").symlink_to(f"{names[0]}.svg")
+    # Dolphin sidebar glyphs (named in /usr/libexec/lucent/design-defaults)
+    for name, svg in extra.sidebar_icons().items():
+        (base / "scalable/status" / f"{name}.svg").write_text(svg + "\n")
 
 
 def write_lines_dark(base, dark):
@@ -135,7 +138,7 @@ def write_lines_dark(base, dark):
             if f.is_symlink():
                 out.symlink_to(os.readlink(f))
             else:
-                out.write_text(extra.recolor(f.read_text(), "#eef0f5"))
+                out.write_text(extra.recolor(f.read_text(), "#eef0f5").replace(extra.ACCENT, extra.ACCENT_DARK))
 
 
 def main():

@@ -14,7 +14,13 @@
  *  3. Dolphin lines its path bar up with the file view, which leaves a
  *     sidebar-wide gap after the back/forward/up buttons. Lucent's path bar
  *     starts right after them (docs/mockups/01-desktop).
- *  4. Dolphin's free-space indicator: on an image-based system Solid maps
+ *  4. Dolphin paints selected file names in the palette's HighlightedText
+ *     (white, for a solid accent selection); Lucent selects with a light
+ *     accent tint (--sel), so its views get the normal text colour there.
+ *  5. Qt Quick views (System Settings, Discover) paint selected text in the
+ *     theme's white highlighted-text colour, so their selected rows get a
+ *     solid accent pill instead of the light tint.
+ *  6. Dolphin's free-space indicator: on an image-based system Solid maps
  *     every local path to the read-only root ("0 B free", a full bar). The
  *     indicator is hidden when it reports that root instead of a wrong value.
  *
@@ -26,6 +32,10 @@
 #include <QApplication>
 #include <QEvent>
 #include <QLayout>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QPainter>
+#include <QPalette>
 #include <QPointer>
 #include <QProxyStyle>
 #include <QStyleFactory>
@@ -79,6 +89,12 @@ QToolBar *enclosingToolBar(QWidget *w)
     return nullptr;
 }
 
+// Drawn for a Qt Quick control (qqc2-desktop-style), not a widget.
+bool isQuick(const QStyleOption *opt)
+{
+    return opt->styleObject && opt->styleObject->inherits("QQuickItem");
+}
+
 bool isFlatToolBarButton(const QWidget *w)
 {
     const auto *tb = qobject_cast<const QToolButton *>(w);
@@ -102,11 +118,31 @@ public:
 
     void drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPainter *p, const QWidget *w) const override
     {
+        if ((pe == PE_PanelItemViewItem || pe == PE_PanelItemViewRow) && !w && isQuick(opt) && (opt->state & State_Selected)) {
+            if (pe == PE_PanelItemViewItem)
+                drawQuickSelection(opt, p);
+            return;
+        }
         if (pe == PE_FrameLineEdit && w && w->inherits("KUrlNavigator")) {
             baseStyle()->drawPrimitive(PE_PanelLineEdit, opt, p, w);
             return;
         }
         QProxyStyle::drawPrimitive(pe, opt, p, w);
+    }
+
+    void drawControl(ControlElement ce, const QStyleOption *opt, QPainter *p, const QWidget *w) const override
+    {
+        if (ce == CE_ItemViewItem && !w && isQuick(opt) && (opt->state & State_Selected)) {
+            if (const auto *vo = qstyleoption_cast<const QStyleOptionViewItem *>(opt)) {
+                drawQuickSelection(opt, p);
+                QStyleOptionViewItem o(*vo);
+                o.state &= ~State_Selected;
+                o.palette.setColor(QPalette::Text, vo->palette.color(QPalette::HighlightedText));
+                QProxyStyle::drawControl(ce, &o, p, w);
+                return;
+            }
+        }
+        QProxyStyle::drawControl(ce, opt, p, w);
     }
 
     void drawComplexControl(ComplexControl cc, const QStyleOptionComplex *opt, QPainter *p, const QWidget *w) const override
@@ -141,6 +177,11 @@ public:
         QProxyStyle::polish(w);
         if (w->inherits("KUrlNavigator"))
             w->installEventFilter(this); // fixed up once it sits in the toolbar
+        if (qobject_cast<QGraphicsView *>(w) && w->parentWidget() && w->parentWidget()->inherits("KItemListContainer")) {
+            w->setProperty("_lucent_itemview", true);
+            w->installEventFilter(this);
+            fixItemViewPalette(static_cast<QGraphicsView *>(w));
+        }
         if (w->inherits("StatusBarSpaceInfo") && rootIsReadOnlyImage()) {
             w->installEventFilter(this);
             for (QWidget *c : w->findChildren<QWidget *>())
@@ -160,6 +201,11 @@ public:
         if (o->inherits("KUrlNavigator")
             && (e->type() == QEvent::Show || e->type() == QEvent::Resize || e->type() == QEvent::ParentChange)) {
             fixPathBar(static_cast<QWidget *>(o));
+            return false;
+        }
+        if (o->property("_lucent_itemview").toBool()) {
+            if (e->type() == QEvent::PaletteChange || e->type() == QEvent::Show)
+                fixItemViewPalette(static_cast<QGraphicsView *>(o));
             return false;
         }
         if (o->property("_lucent_lead").toBool()) {
@@ -190,6 +236,36 @@ public:
     }
 
 private:
+    // Qt Quick (qqc2-desktop-style) selection: solid accent, radius 8, inset 4/1
+    static void drawQuickSelection(const QStyleOption *opt, QPainter *p)
+    {
+        const QRectF r = QRectF(opt->rect).adjusted(4, 1, -4, -1);
+        p->save();
+        p->setRenderHint(QPainter::Antialiasing);
+        p->setPen(Qt::NoPen);
+        p->setBrush(opt->palette.color(QPalette::Active, QPalette::Highlight));
+        p->drawRoundedRect(r, 8, 8);
+        p->restore();
+    }
+
+    // Dolphin's item views take their colours from the graphics view; the
+    // scene (and so every item) follows it.
+    static void fixItemViewPalette(QGraphicsView *view)
+    {
+        QPalette pal = view->palette();
+        bool changed = false;
+        for (auto g : {QPalette::Active, QPalette::Inactive, QPalette::Disabled}) {
+            if (pal.color(g, QPalette::HighlightedText) != pal.color(g, QPalette::Text)) {
+                pal.setColor(g, QPalette::HighlightedText, pal.color(g, QPalette::Text));
+                changed = true;
+            }
+        }
+        if (changed)
+            view->setPalette(pal);
+        if (view->scene() && view->scene()->palette().color(QPalette::Active, QPalette::HighlightedText) != pal.color(QPalette::Active, QPalette::HighlightedText))
+            view->scene()->setPalette(pal);
+    }
+
     // Dolphin: toolbar > splitter > container [spacer, navigator, ...]
     void fixPathBar(QWidget *nav)
     {

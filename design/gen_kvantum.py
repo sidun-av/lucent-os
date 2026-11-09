@@ -37,9 +37,6 @@ LIGHT = dict(
     hover="rgba(20,28,45,.05)", press="rgba(20,28,45,.09)",
     sel="rgba(59,110,245,.14)", sel_soft="rgba(59,110,245,.10)", sel_hover="rgba(59,110,245,.20)", sel_press="rgba(59,110,245,.24)",
     accent="#3b6ef5", accent_hover="#2f5fe0", accent_text="#ffffff",
-    # Selections (text, Dolphin's items) are a light accent tint with normal
-    # text, like the mockups' --sel; apps that paint selected text with the
-    # palette's HighlightedText (Dolphin) then stay readable on the tinted pill.
     text_sel="#c9d7fd",
     popup="rgba(250,251,253,.92)", popup_line="rgba(20,28,45,.10)",
     shadow="rgba(10,15,30,.16)", tooltip="rgba(250,251,253,.97)",
@@ -537,15 +534,15 @@ mid.light.color={gc['mid_light']}
 dark.color={gc['dark']}
 mid.color={gc['mid']}
 shadow.color=#000000
-highlight.color={t['text_sel']}
-inactive.highlight.color={t['text_sel']}
+highlight.color={t['accent']}
+inactive.highlight.color={t['accent']}
 text.color={tx}
 window.text.color={tx}
 button.text.color={tx}
 disabled.text.color={t['disabled']}
 tooltip.base.color={kvcolor(t['tooltip'])[:7]}
 tooltip.text.color={tx}
-highlight.text.color={tx}
+highlight.text.color={t['accent_text']}
 link.color={t['link']}
 link.visited.color={t['visited']}
 progress.indicator.text.color={t['accent_text']}

@@ -1,7 +1,9 @@
-# Lock screen on the Lucent wallpaper (Fedora's default is its own artwork).
+# Lock screen on the dark rendering of the Lucent wallpaper in both light
+# and dark mode (same as the login screen); Lucent's LockScreenUi.qml dims
+# and blurs it so the white clock and prompt always have contrast.
 [Greeter]
 WallpaperPlugin=org.kde.image
 
 [Greeter][Wallpaper][org.kde.image][General]
-Image=file:///usr/share/wallpapers/Lucent/
-PreviewImage=file:///usr/share/wallpapers/Lucent/
+Image=file:///usr/share/wallpapers/Lucent/contents/images_dark/3840x2160.jpg
+PreviewImage=file:///usr/share/wallpapers/Lucent/contents/images_dark/3840x2160.jpg

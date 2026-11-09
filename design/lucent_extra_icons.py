@@ -93,6 +93,7 @@ CROSS = "M16 15.5l4 4M20 15.5l-4 4"
 BELL = ("M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z", "M10 20.5a2.2 2.2 0 0 0 4 0")
 UPDATE = ("M12 4v10.5", "M7.5 10l4.5 4.5 4.5-4.5", "M5 19.5h14")
 ACCENT = "#3b6ef5"
+ACCENT_DARK = "#5b8bff"
 
 
 def with_dot(svg, color=ACCENT, cx=18.5, cy=5.5):
@@ -138,3 +139,32 @@ LINES = {
                    "M15.5 5.3a3.3 3.3 0 0 1 0 6.4M17.8 14.6c1.6.7 2.8 2.3 3.2 4.9"),
               ["system-switch-user", "system-users", "system-user-list"]),
 }
+
+
+# Sidebar (Dolphin's places panel) glyphs: the mockups' own symbols
+# (docs/mockups/lucent.js, S.*) in the accent colour, as in 01-desktop's
+# sidebar. Not recoloured by KDE (no ColorScheme class), so they stay accent
+# on the selection pill too. Name -> stroke paths (24 px grid).
+PLACE = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" '
+         'stroke="{color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{body}</svg>')
+SIDEBAR = {
+    "desktop": '<rect x="3.5" y="4.5" width="17" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/>',
+    "documents": '<path d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5z"/><path d="M14 3.5V8h4M9 12.5h6M9 16h6"/>',
+    "downloads": '<path d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19.5h14"/>',
+    "pictures": '<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-5 4 4 2.5-2.5L20 18"/>',
+    "music": '<path d="M9 17.5V6l10-2v11.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/>',
+    "videos": '<rect x="3.5" y="6" width="12.5" height="12" rx="2"/><path d="M16 10.5l4.5-3v9l-4.5-3"/>',
+    "home": '<path d="M4 11l8-7 8 7v8a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19z"/>',
+    "trash": '<path d="M4.5 7h15M9.5 7V5h5v2M6.5 7l1 12.5h9l1-12.5"/>',
+    "network": '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c-3 3-3 14 0 17M12 3.5c3 3 3 14 0 17"/>',
+    "recent": '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+}
+
+
+def sidebar_icons(color=ACCENT):
+    """name -> svg for lucent-place-<name>; KIO names the Trash place itself
+    (user-trash / user-trash-full), so those two get the glyph as well."""
+    icons = {f"lucent-place-{k}": PLACE.format(color=color, body=v) for k, v in SIDEBAR.items()}
+    icons["user-trash"] = icons["lucent-place-trash"]
+    icons["user-trash-full"] = PLACE.format(color=color, body=SIDEBAR["trash"] + '<path d="M10 11v5M14 11v5"/>')
+    return icons
