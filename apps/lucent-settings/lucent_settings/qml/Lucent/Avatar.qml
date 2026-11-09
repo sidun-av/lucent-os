@@ -16,6 +16,7 @@ Item {
         gradient: Gradient {
             orientation: Gradient.Horizontal  // 135deg in the mockup
             GradientStop { position: 0; color: Theme.avatarFrom }
+            GradientStop { position: 0.6; color: Theme.avatarMid }
             GradientStop { position: 1; color: Theme.avatarTo }
         }
         LText {

@@ -26,3 +26,4 @@ Constructed (a VM can't produce them), in the tools' documented formats:
 - `pactl-sinks-laptop.json`: two real-looking sinks (speakers, HDMI) for device choice.
 - `skopeo-index.json`, `skopeo-arm64-manifest.json` (`skopeo inspect --raw docker://ghcr.io/sidun-av/lucent-os:latest`
   and `:latest-arm64`, build 5e52d69): what the update check compares with the deployment's digest.
+- `localectl-status.txt` (`localectl status`): the release default keyboard (us) and locale.

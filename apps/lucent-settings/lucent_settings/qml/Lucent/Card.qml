@@ -17,7 +17,7 @@ Item {
         anchors.fill: parent
         radius: Theme.radiusCard
         topColor: card.selected ? Theme.selectedCard : Theme.raised
-        bottomColor: card.selected ? Theme.selectedCard : Theme.raised2
+        bottomColor: card.selected ? Theme.selectedCard2 : Theme.raised2
     }
     ColumnLayout {
         id: body

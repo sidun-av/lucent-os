@@ -31,7 +31,8 @@ QML_DIR = Path(__file__).parent / "qml"
 # Figtree (SIL OFL 1.1, fonts/OFL.txt): the 2026 design's typeface, bundled
 # so the system's own fonts stay as they are.
 FONTS = sorted((Path(__file__).parent / "fonts").glob("*.ttf"))
-PAGES = ["network", "bluetooth", "display", "sound", "appearance", "habits", "users", "updates", "winapps", "about"]
+PAGES = ["network", "bluetooth", "display", "sound", "appearance", "wallpaper", "habits", "keyboard", "winapps",
+         "updates", "users", "about"]
 
 
 class SymbolProvider(QQuickImageProvider):
@@ -112,16 +113,17 @@ class System(QObject):
         window = self._rgb("Colors:Window") or self._app.palette().window().color()
         return window.lightness() < 128
 
-    def _accent(self):
+    def _custom_accent(self):
+        """"" = the design's own indigo (qml/Lucent/Theme.qml); else the swatch
+        chosen in Settings, or Plasma's colour when it follows the wallpaper."""
         if os.environ.get("LUCENT_SETTINGS_THEME"):
-            return QColor("#5b8bff" if self._dark() else "#3b6ef5")
-        own = appearance.chosen_accent()
-        if own:
-            return QColor(own)
-        return self._rgb("Colors:Selection") or self._app.palette().highlight().color()
+            return ""
+        if kconfig.read("kdeglobals", "General", "accentColorFromWallpaper", "false").lower() == "true":
+            return appearance.selection_color()
+        return appearance.chosen_accent()
 
     dark = Property(bool, _dark, notify=themeChanged)
-    accent = Property(QColor, _accent, notify=themeChanged)
+    customAccent = Property(str, _custom_accent, notify=themeChanged)
     startPage = Property(str, lambda self: self._page, constant=True)
     language = Property(str, lambda self: i18n.language(), constant=True)
 

@@ -1,0 +1,13 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Lucent OS contributors"
+            }
+        ],
+        "Id": "Drift",
+        "License": "Apache-2.0",
+        "Name": "Drift",
+        "Description": "Indigo ribbons of light: the Lucent default (day and night)"
+    }
+}

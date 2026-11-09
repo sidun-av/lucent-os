@@ -358,18 +358,20 @@ class SoundSection(Section):
 
 # ---------------------------------------------------------------------------
 def wall_tiles(walls, current: str) -> list[dict]:
-    """The Appearance page's row: the wallpaper in use (day and night, if it
-    has both), Lucent's own, then the person's pictures, then the rest."""
+    """The Appearance page's row (04-settings): the wallpaper in use as its
+    day and night halves, then Lucent's own, the person's pictures, the rest."""
     current = current.rstrip("/")
-    order = sorted(walls, key=lambda w: (w.path.rstrip("/") != current, w.name != "Lucent", w.ours))
+    lucent = appearance.LUCENT_WALLPAPERS
+    order = sorted(walls, key=lambda w: (w.path.rstrip("/") != current, w.name not in lucent, w.ours))
     tiles = []
     for w in order:
-        if w.thumbnail_dark:
-            tiles.append({"path": w.path, "name": w.name, "thumb": "file://" + w.thumbnail, "variant": "day"})
-            tiles.append({"path": w.path, "name": w.name, "thumb": "file://" + w.thumbnail_dark, "variant": "night"})
+        tile = {"path": w.path, "name": w.name, "thumb": "file://" + w.thumbnail, "about": w.description,
+                "dayNight": bool(w.thumbnail_dark), "current": w.path.rstrip("/") == current}
+        if tile["current"] and w.thumbnail_dark:
+            tiles.append({**tile, "variant": "day"})
+            tiles.append({**tile, "thumb": "file://" + w.thumbnail_dark, "variant": "night"})
         else:
-            tiles.append({"path": w.path, "name": w.name, "thumb": "file://" + w.thumbnail,
-                          "variant": "" if w.ours else "picture"})
+            tiles.append({**tile, "variant": "" if w.ours else "picture"})
     return tiles
 
 
@@ -385,6 +387,7 @@ class AppearanceSection(Section):
         walls = self.b.wallpapers()
         current = self.b.current_wallpaper()
         return dict(mode=self.b.mode(), accent=self.b.accent(), animations=self.b.animations(),
+                    accentFromWallpaper=self.b.accent_from_wallpaper(),
                     textSize=self.b.text_size(), walls=walls, current=current)
 
     def _apply(self, d):
@@ -417,13 +420,18 @@ class AppearanceSection(Section):
     @Slot(str)
     def setAccent(self, color):
         self.set(accent=color)
-        self.task("accent", lambda: self.b.set_accent(color), None, _("Couldn't change the accent colour."))
+        self.task("accent", lambda: self.b.set_accent(color), None, _("Couldn't change the accent color."))
 
     @Slot(str)
     def setWallpaper(self, path):
         path = local_path(path)
         self.task("wallpaper", lambda: self.b.set_wallpaper(path), lambda _r: self.refresh(),
                   _("Couldn't change the wallpaper."))
+
+    @Slot(bool)
+    def setAccentFromWallpaper(self, on):
+        self.set(accentFromWallpaper=on)
+        self.task("accent", lambda: self.b.set_accent_from_wallpaper(on), None, _("The setting wasn't changed."))
 
     @Slot(str)
     def setAnimations(self, speed):
@@ -679,8 +687,27 @@ class HabitsSection(Section):
 
     @Slot()
     def refresh(self):
+        lang = os.environ.get("LANG", "en_US.UTF-8").split(".")[0]
+        loc = QLocale(lang)
+        language = loc.nativeLanguageName()
+        if loc.territory() != QLocale.Country.AnyTerritory:
+            language = f"{language} ({loc.nativeTerritoryName()})"
         self.set(buttons=self.b.buttons_side(), layoutSwitch=self.b.layout_switch(),
-                 layoutCount=self.b.layout_count(), doubleClick=self.b.double_click(), loaded=True)
+                 layoutCount=self.b.layout_count(), doubleClick=self.b.double_click(),
+                 language=language[:1].upper() + language[1:], loaded=True)
+
+        def done(layouts):
+            if isinstance(layouts, list):
+                self.set(layouts=[{"code": c, "name": n} for c, n in layouts], layoutCount=len(layouts))
+        tasks.run(self.b.layouts, done)
+
+    @Slot()
+    def openLanguage(self):
+        self.r.spawn(["systemsettings", "kcm_regionandlang"])
+
+    @Slot()
+    def openKeyboard(self):
+        self.r.spawn(["systemsettings", "kcm_keyboard"])
 
     @Slot(str)
     def setButtons(self, side):

@@ -1,4 +1,4 @@
-"""python3 -m lucent_settings.accent_sync: put the accent colour chosen in
+"""python3 -m lucent_settings.accent_sync: put the accent color chosen in
 Settings back if a light/dark switch (Auto at sunset) dropped it. Run by
 lucent-settings-accent.path; does nothing when no accent was chosen."""
 

@@ -58,7 +58,7 @@ Page {
         title: System.tr("Night light")
         SettingRow {
             label: System.tr("Night light")
-            sub: System.tr("Warmer colours in the evening, easier on the eyes. Follows sunset and sunrise.")
+            sub: System.tr("Warmer colors in the evening, easier on the eyes. Follows sunset and sunrise.")
             leading: IconTile { icon: "moon"; glyph: Theme.accent }
             LSwitch { checked: page.st.night === true; onToggled: (on) => DisplayPage.setNight(on) }
         }

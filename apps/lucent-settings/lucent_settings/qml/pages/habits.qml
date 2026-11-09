@@ -118,18 +118,7 @@ Page {
     }
 
     Card {
-        title: System.tr("Keyboard and mouse")
-        SettingRow {
-            label: System.tr("Switch keyboard layout")
-            sub: page.st.layoutCount > 1 ? System.tr("Win + Space always works too. The current layout shows on the taskbar.")
-                                        : System.tr("Takes effect when you have two or more layouts. Win + Space always works too.")
-            Segmented {
-                current: page.st.layoutSwitch || "alt_shift"
-                options: [{ value: "alt_shift", label: "Alt + Shift" }, { value: "ctrl_shift", label: "Ctrl + Shift" },
-                          { value: "win_space", label: System.tr("Win + Space only") }]
-                onPicked: (v) => HabitsPage.setLayoutSwitch(v)
-            }
-        }
+        title: System.tr("Mouse")
         SettingRow {
             label: System.tr("Open files with a double-click")
             sub: page.st.doubleClick ? System.tr("A single click only selects") : System.tr("A single click opens files and folders")

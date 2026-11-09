@@ -87,6 +87,7 @@ def test_wallpapers(tmp_path, monkeypatch, xdg_config):
     write(pics / "notes.txt", "x")
     write(pics / "Wallpapers" / "forest.webp", "x")
     monkeypatch.setattr(appearance, "SYSTEM_WALLPAPERS", sysw)
+    monkeypatch.setattr(appearance, "user_wallpaper_packages", lambda: tmp_path / "no-user-packages")
     monkeypatch.setattr(appearance, "user_picture_dirs", lambda: [pics / "Wallpapers", pics])
     write(home / "plasma-org.kde.plasma.desktop-appletsrc",
           "[Containments][1]\nplugin=org.kde.plasma.folder\nwallpaperplugin=org.kde.image\n\n"

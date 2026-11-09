@@ -34,17 +34,26 @@ msgstr "Файлы и папки открываются одиночным ще�
 msgid "About"
 msgstr "О системе"
 
-msgid "Accent colour"
+msgid "About this PC"
+msgstr "Об этом компьютере"
+
+msgid "Accent color"
 msgstr "Цвет акцента"
 
 msgid "account name password picture"
 msgstr "учётная запись имя пароль изображение аватар"
+
+msgid "Add a picture"
+msgstr "Добавить картинку"
 
 msgid "Add a picture…"
 msgstr "Добавить картинку…"
 
 msgid "Add a user for someone else, automatic sign-in"
 msgstr "Добавить пользователя для другого человека, автоматический вход"
+
+msgid "Add or remove layouts"
+msgstr "Добавить или убрать раскладки"
 
 msgid "Administrator"
 msgstr "Администратор"
@@ -64,17 +73,23 @@ msgstr "Все программы обновлены"
 msgid "Already downloaded · takes less than a minute when you restart · your files and apps aren't touched"
 msgstr "Уже скачана · займёт меньше минуты при перезапуске · ваши файлы и программы не затрагиваются"
 
-msgid "Animations"
-msgstr "Анимации"
-
 msgid "App updates"
 msgstr "Обновления программ"
 
 msgid "Appearance"
 msgstr "Оформление"
 
+msgid "Applies to apps and the taskbar"
+msgstr "Для программ и панели задач"
+
 msgid "Apps"
 msgstr "Программы"
+
+msgid "Arabic"
+msgstr "Арабская"
+
+msgid "Armenian"
+msgstr "Армянская"
 
 msgid "At the next restart this computer starts the version you used before. Your files and apps stay as they are."
 msgstr "При следующем перезапуске компьютер включит прошлую версию. Ваши файлы и программы останутся как есть."
@@ -82,20 +97,29 @@ msgstr "При следующем перезапуске компьютер вк
 msgid "Auto"
 msgstr "Авто"
 
+msgid "Azure"
+msgstr "Лазурь"
+
 msgid "B"
 msgstr "Б"
 
 msgid "battery {n}%"
 msgstr "заряд {n}%"
 
+msgid "Belarusian"
+msgstr "Белорусская"
+
 msgid "Bluetooth"
 msgstr "Bluetooth"
 
+msgid "Bluetooth & devices"
+msgstr "Bluetooth и устройства"
+
+msgid "Browse…"
+msgstr "Все обои…"
+
 msgid "built {date}"
 msgstr "сборка от {date}"
-
-msgid "Buttons, selection, switches"
-msgstr "Кнопки, выделение, переключатели"
 
 msgid "Cable"
 msgstr "Кабель"
@@ -124,6 +148,9 @@ msgstr "Проверяем обновления…"
 msgid "Checking…"
 msgstr "Проверяем…"
 
+msgid "Chinese"
+msgstr "Китайская"
+
 msgid "Choose a photo"
 msgstr "Выберите фотографию"
 
@@ -133,11 +160,11 @@ msgstr "Выбрать фото…"
 msgid "Choose a picture"
 msgstr "Выберите картинку"
 
-msgid "Choose…"
-msgstr "Выбрать…"
+msgid "Choose how Lucent looks. Changes apply right away to every app."
+msgstr "Как выглядит Lucent. Изменения сразу применяются во всех программах."
 
-msgid "Colour and style"
-msgstr "Цвет и стиль"
+msgid "Comfort"
+msgstr "Удобство"
 
 msgid "Computer name"
 msgstr "Имя компьютера"
@@ -154,7 +181,7 @@ msgstr "Подключено"
 msgid "Connected to “{name}”"
 msgstr "Подключено к «{name}»"
 
-msgid "Couldn't change the accent colour."
+msgid "Couldn't change the accent color."
 msgstr "Не удалось сменить цвет акцента."
 
 msgid "Couldn't change the resolution."
@@ -193,8 +220,17 @@ msgstr "Не удалось переключиться на прошлую ве�
 msgid "Couldn't switch Wi-Fi."
 msgstr "Не удалось переключить Wi-Fi."
 
+msgid "Czech"
+msgstr "Чешская"
+
 msgid "Dark"
 msgstr "Тёмная"
+
+msgid "Dark from sunset to sunrise"
+msgstr "Тёмная от заката до рассвета"
+
+msgid "day and night"
+msgstr "днём и ночью"
 
 msgid "Devices nearby"
 msgstr "Устройства рядом"
@@ -235,20 +271,35 @@ msgstr "Скачана · {built}"
 msgid "Downloading the new version…"
 msgstr "Скачиваем новую версию…"
 
+msgid "English (UK)"
+msgstr "Английская (Великобритания)"
+
+msgid "English (US)"
+msgstr "Английская (США)"
+
 msgid "Everything the system knows about this computer's parts"
 msgstr "Всё, что система знает о комплектующих компьютера"
-
-msgid "Fast"
-msgstr "Быстрые"
 
 msgid "Find a setting"
 msgstr "Найти настройку"
 
+msgid "For dark mode"
+msgstr "Для тёмной темы"
+
 msgid "Forget"
 msgstr "Забыть"
 
+msgid "French"
+msgstr "Французская"
+
 msgid "GB"
 msgstr "ГБ"
+
+msgid "Georgian"
+msgstr "Грузинская"
+
+msgid "German"
+msgstr "Немецкая"
 
 msgid "Go back"
 msgstr "Вернуть"
@@ -265,8 +316,23 @@ msgstr "наушники мышь колонка сопряжение"
 msgid "Headphones, speakers, mice and keyboards. Put a new device in pairing mode, then choose it below."
 msgstr "Наушники, колонки, мыши и клавиатуры. Переведите новое устройство в режим сопряжения и выберите его ниже."
 
+msgid "Hebrew"
+msgstr "Иврит"
+
+msgid "In Advanced settings, Keyboard"
+msgstr "В расширенных настройках, раздел «Клавиатура»"
+
 msgid "In the background, once a day. A new version starts when you restart."
 msgstr "В фоне, раз в день. Новая версия включится при перезапуске."
+
+msgid "In use"
+msgstr "Сейчас на экране"
+
+msgid "Included"
+msgstr "Входит в систему"
+
+msgid "Indigo"
+msgstr "Индиго"
 
 msgid "Input"
 msgstr "Вход"
@@ -283,6 +349,15 @@ msgstr "интернет сеть кабель пароль вайфай"
 msgid "It starts the next time you restart or turn on the computer."
 msgstr "Она включится при следующем перезапуске или включении компьютера."
 
+msgid "Italian"
+msgstr "Итальянская"
+
+msgid "Japanese"
+msgstr "Японская"
+
+msgid "Kazakh"
+msgstr "Казахская"
+
 msgid "KB"
 msgstr "КБ"
 
@@ -298,17 +373,23 @@ msgstr "Оставить это разрешение? Возврат через 
 msgid "Kept so you can go back · {built}"
 msgstr "Сохранена, чтобы можно было вернуться · {built}"
 
-msgid "Keyboard and mouse"
-msgstr "Клавиатура и мышь"
+msgid "Keyboard & language"
+msgstr "Клавиатура и язык"
+
+msgid "keyboard layout language"
+msgstr "клавиатура раскладка язык"
+
+msgid "Keyboard layouts"
+msgstr "Раскладки клавиатуры"
 
 msgid "Keyboard shortcuts"
 msgstr "Сочетания клавиш"
 
-msgid "large"
-msgstr "крупный"
+msgid "Lagoon"
+msgstr "Лагуна"
 
-msgid "larger"
-msgstr "очень крупный"
+msgid "Language"
+msgstr "Язык"
 
 msgid "Last check"
 msgstr "Последняя проверка"
@@ -322,11 +403,8 @@ msgstr "Позже"
 msgid "Light"
 msgstr "Светлая"
 
-msgid "light by day, dark after sunset"
-msgstr "светлая днём, тёмная после заката"
-
-msgid "Light or dark theme, accent colour and wallpaper. Changes apply right away, no restart needed."
-msgstr "Светлая или тёмная тема, цвет акцента и обои. Изменения применяются сразу, без перезапуска."
+msgid "Light and dark change windows, the taskbar and menus together."
+msgstr "Светлая и тёмная тема меняют окна, панель задач и меню вместе."
 
 msgid "Like Windows"
 msgstr "Как в Windows"
@@ -340,6 +418,9 @@ msgstr "Ищем устройства…"
 msgid "Looking for networks…"
 msgstr "Ищем сети…"
 
+msgid "Lucent"
+msgstr "Lucent"
+
 msgid "Lucent is up to date"
 msgstr "У вас последняя версия Lucent"
 
@@ -349,11 +430,20 @@ msgstr "Lucent обновляется целиком, как телефон: н�
 msgid "Lucent will go back to the previous version"
 msgstr "Lucent вернётся к прошлой версии"
 
+msgid "Lucent's wallpapers switch to their night version in dark mode."
+msgstr "Обои Lucent в тёмной теме переключаются на ночной вариант."
+
+msgid "Lucent's wallpapers switch to their night version in dark mode. Your own pictures stay the same."
+msgstr "Обои Lucent в тёмной теме переключаются на ночной вариант. Ваши картинки остаются как есть."
+
 msgid "made for Intel/AMD, translated"
 msgstr "для Intel/AMD, с переводом"
 
 msgid "Make sure the device is switched on and in pairing mode."
 msgstr "Убедитесь, что устройство включено и находится в режиме сопряжения."
+
+msgid "Match wallpaper"
+msgstr "Как на обоях"
 
 msgid "MB"
 msgstr "МБ"
@@ -373,6 +463,9 @@ msgstr "Микрофон выключен"
 msgid "MMMM d, yyyy"
 msgstr "d MMMM yyyy"
 
+msgid "Mode"
+msgstr "Режим"
+
 msgid "Model"
 msgstr "Модель"
 
@@ -382,6 +475,12 @@ msgstr "Ещё"
 msgid "More settings"
 msgstr "Другие настройки"
 
+msgid "More wallpapers"
+msgstr "Другие обои"
+
+msgid "Mouse"
+msgstr "Мышь"
+
 msgid "Muted"
 msgstr "Звук выключен"
 
@@ -390,6 +489,9 @@ msgstr "Мои устройства"
 
 msgid "Name"
 msgstr "Имя"
+
+msgid "Network & internet"
+msgstr "Сеть и интернет"
 
 msgid "Network cable"
 msgstr "Сетевой кабель"
@@ -430,9 +532,6 @@ msgstr "Колонки и наушники не найдены. Подключи
 msgid "No Windows programs yet"
 msgstr "Программ Windows пока нет"
 
-msgid "Normal"
-msgstr "Обычные"
-
 msgid "Not available on this processor"
 msgstr "Недоступно на этом процессоре"
 
@@ -442,11 +541,8 @@ msgstr "Не подключено"
 msgid "Not tested yet"
 msgstr "Ещё не проверялась"
 
-msgid "Nothing found. More settings are in Advanced settings (About)."
-msgstr "Ничего не найдено. Остальные настройки — в «Расширенных настройках» (О системе)."
-
-msgid "Now: {size}"
-msgstr "Сейчас: {size}"
+msgid "Nothing found. More settings are in Advanced settings (About this PC)."
+msgstr "Ничего не найдено. Остальные настройки — в «Расширенных настройках» (Об этом компьютере)."
 
 msgid "Now: {w} × {h}"
 msgstr "Сейчас: {w} × {h}"
@@ -472,6 +568,9 @@ msgstr "Открыть папку"
 msgid "Options"
 msgstr "Параметры"
 
+msgid "Orchid"
+msgstr "Орхидея"
+
 msgid "Other people and sign-in options"
 msgstr "Другие пользователи и вход в систему"
 
@@ -490,14 +589,32 @@ msgstr "Пароль"
 msgid "Password changed."
 msgstr "Пароль изменён."
 
+msgid "Pick the accent from the current wallpaper"
+msgstr "Взять цвет акцента из текущих обоев"
+
 msgid "Picture"
 msgstr "Изображение"
 
 msgid "Pictures"
 msgstr "Изображения"
 
+msgid "Pictures in your Pictures folder, or any picture you add."
+msgstr "Картинки из папки «Изображения» или любые, которые вы добавите."
+
+msgid "Pine"
+msgstr "Хвоя"
+
 msgid "Play sound through"
 msgstr "Выводить звук через"
+
+msgid "Polish"
+msgstr "Польская"
+
+msgid "Portuguese"
+msgstr "Португальская"
+
+msgid "Portuguese (Brazil)"
+msgstr "Португальская (Бразилия)"
 
 msgid "Previous version"
 msgstr "Прошлая версия"
@@ -513,6 +630,9 @@ msgstr "Программы для Windows, установленные двойн
 
 msgid "Recommended for this screen: {n}"
 msgstr "Рекомендуется для этого экрана: {n}"
+
+msgid "Reduce motion"
+msgstr "Меньше движения"
 
 msgid "Remove"
 msgstr "Удалить"
@@ -532,11 +652,17 @@ msgstr "Откатить"
 msgid "Roll back to previous version"
 msgstr "Откатить к прошлой версии"
 
+msgid "Rose"
+msgstr "Роза"
+
 msgid "running now"
 msgstr "работает сейчас"
 
 msgid "Runs directly on this processor"
 msgstr "Работают напрямую на этом процессоре"
+
+msgid "Russian"
+msgstr "Русская"
 
 msgid "Save"
 msgstr "Сохранить"
@@ -556,8 +682,8 @@ msgstr "Снимок экрана"
 msgid "Settings"
 msgstr "Настройки"
 
-msgid "shortcuts keyboard layout language double-click"
-msgstr "сочетания клавиши раскладка язык двойной щелчок"
+msgid "shortcuts double-click window buttons"
+msgstr "сочетания клавиш двойной щелчок кнопки окна"
 
 msgid "Show desktop"
 msgstr "Показать рабочий стол"
@@ -568,8 +694,8 @@ msgstr "Показывается на экране входа. Имя для в�
 msgid "Size of text and apps"
 msgstr "Размер текста и программ"
 
-msgid "small"
-msgstr "мелкий"
+msgid "Slate"
+msgstr "Сланец"
 
 msgid "Snap window to a side"
 msgstr "Прикрепить окно к краю"
@@ -580,8 +706,8 @@ msgstr "Некоторые программы не удалось обновит
 msgid "Sound"
 msgstr "Звук"
 
-msgid "standard"
-msgstr "обычный"
+msgid "Spanish"
+msgstr "Испанская"
 
 msgid "Standard user"
 msgstr "Обычный пользователь"
@@ -613,20 +739,20 @@ msgstr "Работает, когда раскладок две или больш
 msgid "Task Manager"
 msgstr "Диспетчер задач"
 
-msgid "Taskbar, menus and pop-ups"
-msgstr "Панель задач, меню и всплывающие окна"
-
 msgid "TB"
 msgstr "ТБ"
-
-msgid "Text and motion"
-msgstr "Текст и движение"
 
 msgid "Text size"
 msgstr "Размер текста"
 
 msgid "The familiar buttons and keyboard shortcuts are already on. Check or change them here."
 msgstr "Привычные кнопки и сочетания клавиш уже включены. Здесь можно их проверить или поменять."
+
+msgid "The keyboard layouts you type with and how to switch between them."
+msgstr "Раскладки, на которых вы печатаете, и как между ними переключаться."
+
+msgid "The language of menus and apps. Chosen when Lucent was installed."
+msgstr "Язык меню и программ. Выбран при установке Lucent."
 
 msgid "The name wasn't changed."
 msgstr "Имя не изменено."
@@ -658,6 +784,9 @@ msgstr "Не удалось скачать обновление."
 msgid "theme dark light accent wallpaper text size"
 msgstr "тема тёмная светлая акцент обои размер текста шрифт"
 
+msgid "They come with the system."
+msgstr "Входят в систему."
+
 msgid "This computer"
 msgstr "Этот компьютер"
 
@@ -682,11 +811,14 @@ msgstr "сегодня, {time}"
 msgid "Translated for this ARM processor"
 msgstr "Переводятся для процессора ARM"
 
-msgid "Transparency and blur"
-msgstr "Прозрачность и размытие"
+msgid "Turkish"
+msgstr "Турецкая"
 
 msgid "Type the new password."
 msgstr "Введите новый пароль."
+
+msgid "Ukrainian"
+msgstr "Украинская"
 
 msgid "Unknown model"
 msgstr "Неизвестная модель"
@@ -709,8 +841,17 @@ msgstr "Инициалы"
 msgid "Used before the last update · {built}"
 msgstr "Работала до последнего обновления · {built}"
 
+msgid "Used for selection, switches, progress and focus."
+msgstr "Для выделения, переключателей, индикаторов и фокуса."
+
 msgid "Users"
 msgstr "Пользователи"
+
+msgid "version computer hardware advanced"
+msgstr "версия компьютер оборудование расширенные"
+
+msgid "Violet"
+msgstr "Фиалка"
 
 msgid "Volume"
 msgstr "Громкость"
@@ -724,7 +865,10 @@ msgstr "VPN, прокси, рабочие и учебные сети, IP-адр�
 msgid "Wallpaper"
 msgstr "Обои"
 
-msgid "Warmer colours in the evening, easier on the eyes. Follows sunset and sunrise."
+msgid "wallpaper background picture"
+msgstr "обои фон картинка"
+
+msgid "Warmer colors in the evening, easier on the eyes. Follows sunset and sunrise."
 msgstr "Тёплые цвета вечером, глазам легче. Следует за закатом и рассветом."
 
 msgid "Where sound plays, and the microphone apps use."
@@ -745,14 +889,20 @@ msgstr "Win + Пробел работает всегда. Текущая рас�
 msgid "Win + Space only"
 msgstr "Только Win + Пробел"
 
+msgid "Window buttons"
+msgstr "Кнопки окна"
+
 msgid "Window buttons on the left"
 msgstr "Кнопки окна слева"
 
 msgid "Window buttons on the right"
 msgstr "Кнопки окна справа"
 
-msgid "Windows opening, closing and minimising"
-msgstr "Окна открываются, закрываются и сворачиваются"
+msgid "Windows apps"
+msgstr "Программы Windows"
+
+msgid "Windows open and close without animation"
+msgstr "Окна открываются и закрываются без анимации"
 
 msgid "Windows Programs"
 msgstr "Windows-программы"
@@ -787,17 +937,23 @@ msgstr "Это самая новая версия. Последняя прове
 msgid "Your name, picture and password. They show on the login screen and in the Start menu."
 msgstr "Ваше имя, изображение и пароль. Они видны на экране входа и в меню «Пуск»."
 
+msgid "Your picture"
+msgstr "Ваша картинка"
+
+msgid "Your pictures"
+msgstr "Ваши картинки"
+
 msgid "{free} GB free of {total} GB"
 msgstr "свободно {free} ГБ из {total} ГБ"
+
+msgid "{name} night"
+msgstr "{name}, ночь"
 
 msgid "{n} GB"
 msgstr "{n} ГБ"
 
 msgid "— like Windows"
 msgstr "— как в Windows"
-
-msgid "“{name}”, comes with Lucent"
-msgstr "«{name}» — входит в Lucent"
 
 msgid "{name} ({n} core)"
 msgid_plural "{name} ({n} cores)"

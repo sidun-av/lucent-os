@@ -61,3 +61,15 @@ def test_shortcut_table_is_what_lucent_binds():
     names = [s.action for s in habits.SHORTCUTS]
     assert len(names) == 8 and len(set(names)) == 8
     assert habits.SHORTCUTS[0].keys == ["Win"]
+
+
+def test_layouts_from_kxkbrc_or_the_system(xdg_config):
+    from conftest import fixture
+    home, _ = xdg_config
+    r = FakeRunner().on("localectl", "status", out=fixture("localectl-status.txt"))
+    h = habits.Habits(r)
+    assert h.layouts() == [("us", "English (US)")]
+    write(home / "kxkbrc", "[Layout]\nLayoutList=us,ru\nVariantList=,\n")
+    assert h.layouts() == [("us", "English (US)"), ("ru", "Russian")]
+    write(home / "kxkbrc", "[Layout]\nLayoutList=xx\n")
+    assert h.layouts() == [("xx", "XX")]

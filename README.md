@@ -185,13 +185,20 @@ python -m lucent_store --fake             # preview anywhere (no flatpak needed)
 ## Lucent Settings
 
 `apps/lucent-settings/` — the "Settings" in the launcher and taskbar
-(PySide6 + QML, `docs/mockups/03-settings*`, light/dark and the accent
-following the system; every visual value is a token in
-`lucent_settings/qml/Lucent/Theme.qml`). Ten plain sections instead of KDE
-System Settings' thirty: Wi-Fi & Network, Bluetooth, Display, Sound,
-Appearance, Like Windows, Users, Updates, Windows Programs, About. KDE
-System Settings stays installed but hidden from the launcher; About →
-"Advanced settings…" opens it.
+(PySide6 + QML). The look is the 2026 "Pebble Drift" direction
+(`docs/mockups/concepts-2026/pebble-drift/04-settings.png`, `05-settings-dark.png`):
+matte surfaces with grain, raised "pillow" controls, sunken wells, soft
+shadows, Figtree (bundled, SIL OFL), an indigo accent; light and dark follow
+the system. Every visual value is a token in
+`lucent_settings/qml/Lucent/Theme.qml`, ported 1:1 from `pebble-drift.css`.
+Sections: Network & internet, Bluetooth & devices, Display, Sound,
+Appearance, Wallpaper, Like Windows, Keyboard & language, Windows apps,
+Updates, Users, About this PC. KDE System Settings stays installed but hidden
+from the launcher; About this PC → "Advanced settings…" opens it.
+
+The Pebble Drift wallpapers (Drift, Tide, Aurora, each with a night version
+that Plasma switches to in dark mode) are in `system_files/usr/share/wallpapers/`,
+rendered at 4K from the mockups by `design/render-drift-wallpapers.sh`.
 
 | Section | Does | Through |
 | --- | --- | --- |
@@ -199,11 +206,11 @@ System Settings stays installed but hidden from the launcher; About →
 | Bluetooth | on/off, paired devices (connect, forget), pair new ones | BlueZ D-Bus (pairing prompts come from Plasma's agent) |
 | Display | resolution (with a 15 s "keep or go back"), scale 100–200 %, night light | `kscreen-doctor`, KWin (`[NightColor]`, D-Bus state) |
 | Sound | output/input device, volume, mute | PipeWire (`pactl -f json`, `wpctl`) |
-| Appearance | Light / Dark / Auto, accent colour, wallpaper (Lucent's + `~/Pictures`), text size, animations | `plasma-apply-lookandfeel` (Kvantum and Flatpak follow as before), Plasma's automatic mode, `plasma-apply-colorscheme`, `plasma-apply-wallpaperimage`, kdeglobals |
-| Like Windows | the Win-key shortcuts, window buttons right/left, double-click, layout switch (Alt+Shift / Ctrl+Shift / Win+Space) | kwinrc, kdeglobals, kxkbrc + KDE's reload signals |
+| Appearance, Wallpaper | Light / Dark / Auto, accent color (or "Match wallpaper"), text size, reduce motion; wallpapers (Lucent's, the system's, `~/Pictures`) | `plasma-apply-lookandfeel` (Kvantum and Flatpak follow as before), Plasma's automatic mode, `plasma-apply-colorscheme`, Plasma's accent-from-wallpaper, `plasma-apply-wallpaperimage`, kdeglobals |
+| Like Windows, Keyboard & language | the Win-key shortcuts, window buttons right/left, double-click; layouts in use, layout switch (Alt+Shift / Ctrl+Shift / Win+Space), language | kwinrc, kdeglobals, kxkbrc (+ KDE's reload signals), `localectl` |
 | Users | name, picture (initials by default), password | AccountsService D-Bus; the password is hashed in-process (libxcrypt) and sent over D-Bus, polkit asks for the current one |
-| Updates | versions on disk in plain words, check, download (applied at restart), roll back, Flatpak app updates, automatic downloads | rpm-ostree's daemon (polkit; Fedora lets an active admin do it without a prompt), `flatpak`, `settings-helper` via pkexec for `/etc/rpm-ostreed.conf` |
-| Windows Programs | installed programs with icon, size, compatibility, "Open folder", Remove; whether this CPU runs them natively or translated | `lucent-bridge list/plan/remove --json` |
+| Updates | versions on disk in plain words, check, download (applied at restart), roll back, Flatpak app updates, automatic downloads | the registry's manifest digest for this CPU (`skopeo inspect --raw`, no root) against the deployments' digests, since `rpm-ostree upgrade --check` is unreliable for container images; rpm-ostree's daemon to stage and roll back (polkit; Fedora lets an active admin do it without a prompt); `flatpak`; `settings-helper` via pkexec for `/etc/rpm-ostreed.conf` |
+| Windows apps | installed programs with icon, size, compatibility, "Open folder", Remove; whether this CPU runs them natively or translated | `lucent-bridge list/plan/remove --json` |
 | About | Lucent version, model, CPU, memory, storage, links to KDE System Settings and Info Center | os-release, `lscpu`, sysfs |
 
 Never runs as root; each change goes through the service's own polkit

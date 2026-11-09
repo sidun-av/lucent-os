@@ -35,6 +35,6 @@ C.Slider {
             radius: Theme.radiusKnob + 2
             color: Theme.accent
         }
-        Raised { anchors.fill: parent; radius: Theme.radiusKnob; topColor: "#ffffff"; bottomColor: Theme.dark ? "#e3e6ef" : "#eef1f8" }
+        Raised { anchors.fill: parent; radius: Theme.radiusKnob; topColor: Theme.knobTop; bottomColor: Theme.knobBottom }
     }
 }

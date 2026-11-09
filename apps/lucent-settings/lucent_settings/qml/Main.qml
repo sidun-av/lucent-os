@@ -36,9 +36,13 @@ C.ApplicationWindow {
           keys: "sound volume audio speakers microphone headphones " + System.tr("volume speakers microphone") },
         { id: "appearance", icon: "palette", title: System.tr("Appearance"),
           keys: "theme dark light mode colour color accent wallpaper background animations text size font " + System.tr("theme dark light accent wallpaper text size") },
-        { id: "habits", icon: "keyboard", title: System.tr("Like Windows"),
-          keys: "windows shortcuts keyboard layout language double click buttons win key " + System.tr("shortcuts keyboard layout language double-click") },
-        { id: "winapps", icon: "winapp", title: System.tr("Windows programs"),
+        { id: "wallpaper", icon: "image", title: System.tr("Wallpaper"),
+          keys: "wallpaper background picture desktop " + System.tr("wallpaper background picture") },
+        { id: "habits", icon: "winapp", title: System.tr("Like Windows"),
+          keys: "windows shortcuts double click buttons win key alt tab " + System.tr("shortcuts double-click window buttons") },
+        { id: "keyboard", icon: "keyboard", title: System.tr("Keyboard & language"),
+          keys: "keyboard layout language russian english switch alt shift " + System.tr("keyboard layout language") },
+        { id: "winapps", icon: "apps", title: System.tr("Windows apps"),
           keys: "windows programs exe wine apps remove uninstall " + System.tr("programs exe remove uninstall") },
         { id: "updates", icon: "refresh", title: System.tr("Updates"),
           keys: "update upgrade version rollback restore apps " + System.tr("update version roll back apps") },
@@ -75,7 +79,7 @@ C.ApplicationWindow {
     }
 
     Component.onCompleted: {
-        UsersPage.refresh(); NetworkPage.refresh(); UpdatesPage.refresh(); AboutPage.refresh()
+        UsersPage.refresh(); NetworkPage.refresh(); UpdatesPage.refresh(); AboutPage.refresh(); AppearancePage.refresh()
     }
     Shortcut { sequences: [StandardKey.Back]; onActivated: win.goBack() }
     Shortcut { sequences: [StandardKey.Forward]; onActivated: win.goForward() }
@@ -214,7 +218,8 @@ C.ApplicationWindow {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Repeater {
-                    model: ["network", "bluetooth", "display", "sound", "appearance", "habits", "users", "updates", "winapps", "about"]
+                    model: ["network", "bluetooth", "display", "sound", "appearance", "wallpaper", "habits", "keyboard",
+                            "winapps", "updates", "users", "about"]
                     Loader {
                         required property string modelData
                         anchors.fill: parent

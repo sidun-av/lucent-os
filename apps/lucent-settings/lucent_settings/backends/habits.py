@@ -12,9 +12,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .. import dbus, kconfig
-from ..i18n import N_
+from ..i18n import N_, _
 from ..run import Result, Runner
 
+LAYOUT_NAMES = {
+    "us": N_("English (US)"), "gb": N_("English (UK)"), "ru": N_("Russian"), "ua": N_("Ukrainian"),
+    "by": N_("Belarusian"), "kz": N_("Kazakh"), "de": N_("German"), "fr": N_("French"), "es": N_("Spanish"),
+    "it": N_("Italian"), "pl": N_("Polish"), "cz": N_("Czech"), "tr": N_("Turkish"), "pt": N_("Portuguese"),
+    "br": N_("Portuguese (Brazil)"), "jp": N_("Japanese"), "cn": N_("Chinese"), "ge": N_("Georgian"),
+    "am": N_("Armenian"), "il": N_("Hebrew"), "ara": N_("Arabic"),
+}
 SWITCH_OPTIONS = {"alt_shift": "grp:alt_shift_toggle", "ctrl_shift": "grp:ctrl_shift_toggle", "win_space": ""}
 BUTTONS = {"right": ("M", "IAX"), "left": ("XIA", "")}
 
@@ -62,6 +69,19 @@ class Habits:
             if opt and opt in opts:
                 return name
         return "win_space"
+
+    def layouts(self) -> list[tuple[str, str]]:
+        """(code, name) of the keyboard layouts in use: the person's (kxkbrc),
+        else the computer's (localectl, set by the installer)."""
+        codes = [x for x in kconfig.read("kxkbrc", "Layout", "LayoutList", "").split(",") if x]
+        if not codes:
+            res = self.r.run(["localectl", "status"])
+            for line in res.out.splitlines():
+                key, _sep, value = line.partition(":")
+                if key.strip() == "X11 Layout":
+                    codes = [x for x in value.strip().split(",") if x and not x.startswith("(")]
+        codes = codes or ["us"]
+        return [(c, _(LAYOUT_NAMES[c]) if c in LAYOUT_NAMES else c.upper()) for c in codes]
 
     def layout_count(self) -> int:
         layouts = [x for x in kconfig.read("kxkbrc", "Layout", "LayoutList", "").split(",") if x]

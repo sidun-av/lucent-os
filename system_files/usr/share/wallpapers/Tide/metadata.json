@@ -1,0 +1,13 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Lucent OS contributors"
+            }
+        ],
+        "Id": "Tide",
+        "License": "Apache-2.0",
+        "Name": "Tide",
+        "Description": "Paper swells under a pale sun or moon"
+    }
+}

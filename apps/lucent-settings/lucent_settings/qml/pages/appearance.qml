@@ -5,7 +5,7 @@ import QtQuick.Effects
 import QtQuick.Layouts
 import Lucent
 
-// docs/mockups/concepts-2026/pebble/03-settings: Mode, Accent colour and
+// docs/mockups/concepts-2026/pebble/03-settings: Mode, Accent color and
 // Comfort side by side, Wallpaper.
 Page {
     id: page
@@ -53,8 +53,9 @@ Page {
         Card {
             Layout.alignment: Qt.AlignTop
             Layout.fillHeight: true
-            title: System.tr("Accent colour")
+            title: System.tr("Accent color")
             subtitle: System.tr("Used for selection, switches, progress and focus.")
+            opacity: 1
             GridLayout {
                 id: sws
                 Layout.fillWidth: true
@@ -94,12 +95,19 @@ Page {
                         readonly property bool on: (page.st.accent || "").toLowerCase() === modelData.color
                         Layout.fillWidth: true
                         horizontalAlignment: Text.AlignHCenter
-                        text: System.tr(modelData.name)
+                        text: modelData.name
                         px: Theme.fontSmall
                         weight: on ? Theme.weightCardTitle : 400
                         color: on ? Theme.text : Theme.text2
                     }
                 }
+            }
+            SettingRow {
+                Layout.topMargin: 14
+                separator: true
+                label: System.tr("Match wallpaper")
+                sub: System.tr("Pick the accent from the current wallpaper")
+                LSwitch { checked: page.st.accentFromWallpaper === true; onToggled: (on) => AppearancePage.setAccentFromWallpaper(on) }
             }
         }
         Card {
@@ -119,13 +127,11 @@ Page {
                 LText { text: "A"; px: Theme.fontLabel + 3; weight: 700; color: Theme.text2 }
             }
             SettingRow {
-                label: System.tr("Animations")
-                sub: System.tr("Windows opening, closing and minimising")
-                Segmented {
-                    current: page.st.animations || "fast"
-                    options: [{ value: "off", label: System.tr("Off") }, { value: "fast", label: System.tr("Fast") },
-                              { value: "normal", label: System.tr("Normal") }]
-                    onPicked: (v) => AppearancePage.setAnimations(v)
+                label: System.tr("Reduce motion")
+                sub: System.tr("Windows open and close without animation")
+                LSwitch {
+                    checked: page.st.animations === "off"
+                    onToggled: (on) => AppearancePage.setAnimations(on ? "off" : "fast")
                 }
             }
         }
@@ -133,7 +139,7 @@ Page {
 
     Card {
         title: System.tr("Wallpaper")
-        subtitle: System.tr("Lucent's wallpapers have a day and a night version that follow the mode.")
+        subtitle: System.tr("Lucent's wallpapers switch to their night version in dark mode.")
         headerItems: LButton { text: System.tr("Browse…"); onClicked: walls.open() }
         GridLayout {
             Layout.fillWidth: true
@@ -144,70 +150,10 @@ Page {
             uniformCellWidths: true
             Repeater {
                 model: (page.st.wallTiles || []).slice(0, 4)
-                ColumnLayout {
-                    required property var modelData
-                    // a day/night pair shares one wallpaper: mark the half that shows now
-                    readonly property bool on: modelData.path === page.st.wallpaper
-                        && (modelData.variant === "" || modelData.variant === "picture"
-                            || modelData.variant === (Theme.dark ? "night" : "day"))
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignTop
-                    spacing: 10
-                    Item {
-                        Layout.fillWidth: true
-                        implicitHeight: 138
-                        Rectangle {  // 0 0 0 3px raised, 0 0 0 5.5px accent
-                            visible: parent.parent.on
-                            anchors.fill: parent; anchors.margins: -5.5
-                            radius: Theme.radiusThumb + 5.5
-                            color: Theme.accent
-                            Rectangle { anchors.fill: parent; anchors.margins: 2.5; radius: Theme.radiusThumb + 3; color: Theme.raised }
-                        }
-                        Shadow { anchors.fill: parent; radius: Theme.radiusThumb }
-                        Image {
-                            id: thumb
-                            anchors.fill: parent
-                            source: modelData.thumb
-                            sourceSize: Qt.size(560, 320)
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            visible: false
-                        }
-                        Item { id: thumbMask; anchors.fill: parent; visible: false; layer.enabled: true
-                               Rectangle { anchors.fill: parent; radius: Theme.radiusThumb; color: "black" } }
-                        MultiEffect { anchors.fill: parent; source: thumb; maskEnabled: true; maskSource: thumbMask
-                                      maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
-                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: AppearancePage.setWallpaper(modelData.path) }
-                    }
-                    ColumnLayout {
-                        spacing: 1
-                        LText { text: modelData.name; px: Theme.fontSub; weight: Theme.weightStrong }
-                        LText {
-                            readonly property string kind: modelData.variant === "day" ? System.tr("Day")
-                                : modelData.variant === "night" ? System.tr("Night")
-                                : modelData.variant === "picture" ? System.tr("Your picture") : System.tr("Included")
-                            text: kind + (parent.parent.on ? " · " + System.tr("in use") : "")
-                            px: Theme.fontSmall; color: Theme.text2
-                        }
-                    }
-                }
+                WallTile { required property var modelData; tile: modelData; current: page.st.wallpaper || ""
+                           onPicked: (p) => AppearancePage.setWallpaper(p) }
             }
-            Item {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignTop
-                implicitHeight: 138
-                Well {
-                    anchors.fill: parent
-                    radius: Theme.radiusThumb
-                    Column {
-                        anchors.centerIn: parent
-                        spacing: 8
-                        Sym { anchors.horizontalCenter: parent.horizontalCenter; name: "plus"; size: 26; color: Theme.text2 }
-                        LText { text: System.tr("Add a picture"); px: Theme.fontBody; weight: Theme.weightStrong; color: Theme.text2 }
-                    }
-                }
-                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: pick.open() }
-            }
+            AddPictureTile { onClicked: pick.open() }
         }
     }
 

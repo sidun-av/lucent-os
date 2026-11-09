@@ -43,3 +43,11 @@ files are Apache-2.0 like the rest of the repository unless noted.
 App icons in the Lucent theme replace the generic icons of some third-party
 apps (Firefox, ONLYOFFICE, GIMP, ...) with Lucent-style tiles, the same way
 Papirus does; they are original drawings, not the apps' logos.
+
+## Figtree (Lucent Settings)
+
+`apps/lucent-settings/lucent_settings/fonts/Figtree-*.ttf`: the Figtree typeface,
+Copyright 2022 The Figtree Project Authors (https://github.com/erikdkennedy/figtree),
+SIL Open Font License 1.1 (`apps/lucent-settings/lucent_settings/fonts/OFL.txt`).
+Bundled with Settings only; the system fonts are unchanged.
+

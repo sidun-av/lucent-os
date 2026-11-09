@@ -19,7 +19,7 @@ Item {
         y: 3
         x: sw.checked ? sw.width - width - 3 : 3
         radius: Theme.radiusKnob
-        topColor: "#ffffff"; bottomColor: Theme.dark ? "#e3e6ef" : "#eef1f8"
+        topColor: Theme.knobTop; bottomColor: Theme.knobBottom
         Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
     }
     MouseArea {
