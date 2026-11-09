@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" class="light">
+<head>
+<title>Lucent OS 2026 · Glass Card · Start menu</title>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800\&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="glass.css">
+<script src="../../lucent.js"></script>
+<script src="../pebble-drift/drift-shell.js"></script>
+<script src="glass-shell.js"></script>
+<style>
+  .start { position: absolute; z-index: 70; width: 940px; border-radius: var(--r-xl); padding: 24px 26px 0; }
+  .start .field { height: 48px; font-size: 16px; border-radius: 12px; margin-bottom: 22px; }
+  .start .field svg { width: 20px; height: 20px; }
+  .hd { display: flex; align-items: center; margin: 0 6px 10px; font-size: var(--type-subhead); font-weight: 700; }
+  .hd .btn { height: 34px; padding: 0 12px; font-size: 14.5px; }
+  .hd .btn svg { width: 15px; height: 15px; }
+  .apps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 18px; }
+  .ap { height: 112px; border-radius: var(--r-md); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; }
+  .ap.hover { background: var(--state-hover); }
+  .ap .ic { width: 52px; height: 52px; } .ap .ic svg { width: 100%; height: 100%; }
+  .ap b { font-size: 14.5px; font-weight: 550; }
+  .recent { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 18px; }
+  .rf { display: flex; align-items: center; gap: 14px; height: 62px; padding: 0 12px; border-radius: var(--r-sm); }
+  .rf .ic { width: 36px; height: 36px; } .rf .ic svg { width: 100%; height: 100%; }
+  .rf b { display: block; font-size: 15px; font-weight: 600; } .rf span { font-size: var(--type-caption); color: var(--text-secondary); }
+  .ft { display: flex; align-items: center; gap: 12px; height: 72px; margin: 0 -26px; padding: 0 26px; border-top: 1px solid var(--line); }
+  .ft .avatar { width: 38px; height: 38px; font-size: 14px; border-radius: 11px; }
+  .ft b { font-weight: 650; } .ft small { display: block; font-size: var(--type-caption); color: var(--text-secondary); }
+  .ft .ib svg { width: 19px; height: 19px; }
+</style>
+</head>
+<body>
+  <div data-wall></div>
+  <div class="start shell-glass" data-anchor="dock" data-gap="12">
+    <div class="field"><span data-g="search"></span>Type to search apps, files and settings</div>
+    <div class="hd">Pinned<span class="grow"></span><span class="btn">All apps<span data-g="right"></span></span></div>
+    <div class="apps"><div class="ap"><span class="ic" data-ai="files"></span><b>Files</b></div><div class="ap"><span class="ic" data-ai="firefox"></span><b>Firefox</b></div><div class="ap"><span class="ic" data-ai="docs"></span><b>Documents</b></div><div class="ap"><span class="ic" data-ai="sheets"></span><b>Spreadsheets</b></div><div class="ap"><span class="ic" data-ai="slides"></span><b>Presentations</b></div><div class="ap"><span class="ic" data-ai="okular"></span><b>Okular</b></div><div class="ap hover"><span class="ic" data-ai="gimp"></span><b>GIMP</b></div><div class="ap"><span class="ic" data-ai="krita"></span><b>Krita</b></div><div class="ap"><span class="ic" data-ai="inkscape"></span><b>Inkscape</b></div><div class="ap"><span class="ic" data-ai="darktable"></span><b>darktable</b></div><div class="ap"><span class="ic" data-ai="kdenlive"></span><b>Kdenlive</b></div><div class="ap"><span class="ic" data-ai="pdfarranger"></span><b>PDF Arranger</b></div><div class="ap"><span class="ic" data-ai="store"></span><b>Store</b></div><div class="ap"><span class="ic" data-ai="settings"></span><b>Settings</b></div><div class="ap"><span class="ic" data-ai="terminal"></span><b>Terminal</b></div><div class="ap"><span class="ic" data-ai="notepadpp"></span><b>Notepad++</b></div><div class="ap"><span class="ic" data-ai="migrate"></span><b>Move from Windows</b></div><div class="ap"><span class="ic" data-ai="trash"></span><b>Trash</b></div></div>
+    <div class="hd">Recent files<span class="grow"></span><span class="btn">More<span data-g="right"></span></span></div>
+    <div class="recent"><div class="rf"><span class="ic" data-fi="pdf"></span><div><b>Lease agreement 2026.pdf</b><span>2 days ago</span></div></div><div class="rf"><span class="ic" data-fi="docx"></span><div><b>Cover letter (final).docx</b><span>Yesterday</span></div></div><div class="rf"><span class="ic" data-fi="xlsx"></span><div><b>Budget 2027.xlsx</b><span>Yesterday</span></div></div><div class="rf"><span class="ic" data-fi="jpg"></span><div><b>IMG_4021.jpg</b><span>Nov 6</span></div></div></div>
+    <div class="ft"><div class="avatar">AS</div><div><b>Anna Smirnova</b><small>Administrator</small></div><span class="grow"></span>
+      <span class="ib"><span data-g="sliders"></span></span><span class="ib"><span data-g="lock"></span></span><span class="ib"><span data-g="moon"></span></span><span class="ib"><span data-g="refresh"></span></span><span class="btn" style="height:38px;padding:0 14px">Shut down</span></div>
+  </div>
+  <div data-dock data-run="files:2,docs,firefox" data-open="launcher"></div>
+</body>
+</html>

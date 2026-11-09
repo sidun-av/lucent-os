@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" class="light">
+<head>
+<title>Lucent OS 2026 · Glass Card · Spotlight search</title>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800\&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="glass.css">
+<script src="../../lucent.js"></script>
+<script src="../pebble-drift/drift-shell.js"></script>
+<script src="glass-shell.js"></script>
+<style>
+  .pane .big { width: 104px; height: 104px; margin-bottom: 18px; }
+  .pane h3 { font-size: 22px; font-weight: 750; }
+  .pane .k { font-size: var(--type-small); color: var(--text-secondary); margin: 4px 0 18px; }
+  .pane p { font-size: 15px; color: var(--text-secondary); max-width: 360px; margin-bottom: 22px; }
+  .pane .acts { display: flex; gap: 10px; margin-bottom: 26px; }
+  .pane dl { width: 100%; display: grid; grid-template-columns: auto 1fr; gap: 10px 18px; text-align: left; font-size: var(--type-small); border-top: 1px solid var(--line); padding-top: 18px; }
+  .pane dt { color: var(--text-tertiary); } .pane dd { color: var(--text-primary); font-weight: 550; }
+</style>
+</head>
+<body>
+  <div data-wall></div>
+  <div class="spot shell-glass">
+    <div class="q"><span data-g="search"></span><div class="txt">pdf<i></i></div><span class="kbd">Esc</span></div>
+    <div class="cols">
+      <div class="list">
+        <div class="grp">Top hit</div>
+        <div class="row sel"><span class="ic" data-ai="pdfarranger"></span><b>PDF Arranger</b><span class="sub">App</span><span class="end">Open <span class="kbd">↵</span></span></div>
+        <div class="grp">Apps</div>
+        <div class="row"><span class="ic" data-ai="okular"></span><b>Okular</b><span class="sub">Document viewer</span></div>
+        <div class="row"><span class="ic" data-ai="docs"></span><b>Documents</b><span class="sub">Export as PDF</span></div>
+        <div class="grp">Files</div>
+        <div class="row"><span class="ic" data-fi="pdf"></span><b>Lease agreement 2026.pdf</b><span class="sub">Documents</span><span class="end">2 days ago</span></div>
+        <div class="row"><span class="ic" data-fi="pdf"></span><b>Tax return 2025.pdf</b><span class="sub">Downloads</span><span class="end">Oct 28</span></div>
+        <div class="grp">Settings</div>
+        <div class="row"><span class="ic g"><span data-g="apps"></span></span><b>Default app for PDF files</b><span class="sub">Settings › Apps</span></div>
+        <div class="grp">Web</div>
+        <div class="row off"><span class="ic g"><span data-g="globe"></span></span><b>Search the web for “pdf”</b><span class="end"><span class="pill">Off</span></span></div>
+      </div>
+      <div class="pane">
+        <span class="big" data-ai="pdfarranger"></span>
+        <h3>PDF Arranger</h3>
+        <div class="k">App · installed</div>
+        <p>Merge, split, rotate and reorder the pages of PDF files.</p>
+        <div class="acts"><span class="btn pri">Open</span><span class="btn"><span data-g="pin"></span>Pin to dock</span></div>
+        <dl><dt>Opens</dt><dd>.pdf</dd><dt>Instead of</dt><dd>Adobe Acrobat (pages)</dd><dt>Last opened</dt><dd>Yesterday, 6:10 PM</dd></dl>
+      </div>
+    </div>
+    <div class="foot"><span><span class="kbd">↑</span><span class="kbd">↓</span> move</span><span><span class="kbd">↵</span> open</span><span><span class="kbd">Ctrl</span><span class="kbd">↵</span> open folder</span><span class="grow"></span><span>Nothing you type leaves this PC. Web search is off (Settings › Search).</span></div>
+  </div>
+  <div data-dock data-run="files:2,docs,firefox" data-open="search"></div>
+</body>
+</html>

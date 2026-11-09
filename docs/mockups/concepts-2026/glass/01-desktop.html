@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" class="light">
+<head>
+<meta charset="utf-8">
+<title>Lucent OS 2026 · Glass Card · Desktop and dock</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="glass.css">
+<script src="../../lucent.js"></script>
+<script src="../pebble-drift/drift-shell.js"></script>
+<script src="glass-shell.js"></script>
+<style>
+  /* window-group preview: every running window stays one hover away (Windows habit) */
+  .pv { position: absolute; z-index: 60; padding: 10px; border-radius: var(--r-md); display: flex; gap: 10px; }
+  .pv .w { width: 340px; border-radius: var(--r-sm); padding: 6px; }
+  .pv .w.hover { background: var(--state-hover); }
+  .pv .ph { display: flex; align-items: center; gap: 10px; padding: 4px 4px 10px 6px; font-size: 15px; font-weight: 600; }
+  .pv .ph .ai { width: 22px; height: 22px; flex: none; }
+  .pv .ph .t { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pv .ph .x { width: 30px; height: 28px; border-radius: 8px; display: grid; place-items: center; color: var(--text-secondary); }
+  .pv .w.hover .x { background: var(--state-hover); }
+  .pv .ph .x svg { width: 15px; height: 15px; stroke-width: 2.2; }
+  /* thumbnail = a tiny Glass Card window (artwork) */
+  .th { height: 196px; border-radius: 8px; overflow: hidden; background: var(--surface-window-solid); box-shadow: 0 0 0 1px var(--line); display: flex; gap: 6px; padding: 18px 6px 6px; }
+  .th .s { width: 26%; border-radius: 6px; background: var(--glass-card); box-shadow: var(--elev-1); padding: 6px; }
+  .th .s i { display: block; height: 6px; border-radius: 3px; background: var(--line-strong); margin: 4px 2px 8px; }
+  .th .s i.a { background: var(--accent-soft-strong); height: 12px; margin: 2px 0 8px; }
+  .th .c { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-content: start; padding: 6px; }
+  .th .c b { height: 34px; border-radius: 5px; background: var(--folder-front-bottom); opacity: .85; }
+  .th .c b.d { background: var(--glass-card); box-shadow: var(--elev-1); height: 44px; grid-column: span 2; opacity: 1; }
+  .tip { background: var(--glass-popover); backdrop-filter: blur(var(--blur-shell)); box-shadow: var(--glass-highlight), var(--elev-3); }
+  .note { position: absolute; left: 64px; top: 56px; width: 560px; padding: 22px 26px; border-radius: var(--r-md); }
+  .note h2 { font-size: 20px; font-weight: 750; margin-bottom: 8px; }
+  .note p { font-size: 15px; color: var(--text-secondary); margin-bottom: 10px; }
+  .note p:last-child { margin-bottom: 0; }
+  .note .kbd { margin: 0 2px; }
+</style>
+</head>
+<body>
+  <div data-wall></div>
+
+  <!-- design annotation (not part of the UI) -->
+  <div class="note shell-glass">
+    <h2>Dock-taskbar</h2>
+    <p>Centred, floating 14 px above the edge, as wide as its content. Launcher, search, pinned and running apps, then a compact tray and the clock. All in one glass bar.</p>
+    <p>Every running window stays reachable: a dot per window, hover or click shows them all, and <span class="kbd">Alt</span><span class="kbd">Tab</span> still works. Search is <span class="kbd">Win</span><span class="kbd">Space</span>. Window buttons stay on the right.</p>
+  </div>
+
+  <div class="pv shell-glass" data-anchor="files" data-gap="12">
+    <div class="w hover">
+      <div class="ph"><span data-ai="files"></span><span class="t">This PC: Files</span><span class="x"><span data-g="x"></span></span></div>
+      <div class="th"><div class="s"><i class="a"></i><i></i><i></i><i></i><i></i></div><div class="c"><b class="d"></b><b class="d"></b><b></b><b></b><b></b><b></b></div></div>
+    </div>
+    <div class="w">
+      <div class="ph"><span data-ai="files"></span><span class="t">Downloads: Files</span><span class="x"><span data-g="x"></span></span></div>
+      <div class="th"><div class="s"><i></i><i></i><i class="a"></i><i></i><i></i></div><div class="c"><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div></div>
+    </div>
+  </div>
+
+  <div data-dock data-active="docs" data-run="files:2,docs,firefox,okular"  data-hover="files"></div>
+</body>
+</html>

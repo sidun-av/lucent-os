@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en" class="light">
+<head>
+<title>Lucent OS 2026 · Glass Card · Settings, Appearance</title>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800\&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="glass.css">
+<script src="../../lucent.js"></script>
+<script src="../pebble-drift/drift-shell.js"></script>
+<script src="glass-shell.js"></script>
+<style>
+  .win.set { left: 360px; top: 60px; width: 1840px; height: 1250px; }
+  .side { width: 300px; }
+  .side .field { margin: 2px 0 10px; }
+  .me { display: flex; align-items: center; gap: 12px; padding: 8px 10px 14px; margin-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .me .avatar { width: 44px; height: 44px; font-size: 15px; }
+  .me b { display: block; font-size: 16px; font-weight: 700; }
+  .me span { font-size: var(--type-caption); color: var(--text-secondary); }
+  .page { flex: 1; overflow: hidden; padding: 6px 26px 0 30px; }
+  h1 { font-size: var(--type-display); font-weight: var(--type-display-weight); letter-spacing: -.02em; }
+  .lead { font-size: 16px; color: var(--text-secondary); margin: 4px 0 22px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .group { padding: 22px 24px; }
+  .full { grid-column: 1 / -1; }
+  .gt { font-size: 18px; font-weight: 750; margin-bottom: 4px; display: flex; align-items: center; }
+  .gs { font-size: var(--type-small); color: var(--text-secondary); margin-bottom: 18px; }
+  .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .mode { padding: 8px 8px 14px; }
+  .mini { position: relative; height: 170px; border-radius: 9px; overflow: hidden; }
+  .mini > div[data-wp] { position: absolute; inset: 0; } .mini > div[data-wp] svg { width: 100%; height: 100%; }
+  .mini .mw { position: absolute; left: 14%; top: 10%; width: 64%; height: 60%; border-radius: 8px; background: #f3f4fa; box-shadow: 0 8px 18px -4px rgba(25,35,90,.35); display: flex; gap: 6px; padding: 14px 6px 6px; }
+  .mini .ms { width: 28%; border-radius: 5px; background: #fff; box-shadow: 0 0 0 1px rgba(30,40,100,.07), 0 2px 5px rgba(25,35,90,.10); padding: 5px; }
+  .mini .ms i { display: block; height: 7px; border-radius: 3px; background: rgba(66,87,232,.18); }
+  .mini .mc { flex: 1; padding: 4px; } .mini .mc i { display: block; height: 6px; border-radius: 3px; background: #dcdfee; margin-bottom: 6px; } .mini .mc i.a { width: 40%; background: #4257e8; }
+  .mini .md { position: absolute; left: 30%; right: 30%; bottom: 6px; height: 14px; border-radius: 6px; background: rgba(246,247,254,.75); box-shadow: 0 2px 6px rgba(25,35,90,.25); }
+  .mini.mdark .mw { background: #1a1c2a; } .mini.mdark .ms { background: #24273a; box-shadow: 0 0 0 1px rgba(0,0,0,.4); } .mini.mdark .ms i { background: rgba(112,136,255,.3); }
+  .mini.mdark .mc i { background: #3a3d55; } .mini.mdark .mc i.a { background: #7088ff; } .mini.mdark .md { background: rgba(26,28,44,.75); }
+  .half { position: absolute; inset: 0; clip-path: polygon(62% 0, 100% 0, 100% 100%, 38% 100%); }
+  .ml { display: flex; align-items: center; gap: 10px; padding: 14px 8px 0; font-size: 16px; font-weight: 650; }
+  .ml small { font-weight: 500; font-size: var(--type-caption); color: var(--text-secondary); margin-left: auto; }
+  .radio { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line-control); position: relative; flex: none; }
+  .radio.on { background: var(--accent); box-shadow: none; } .radio.on::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: var(--text-on-accent); }
+  .sws { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
+  .sw { height: 50px; border-radius: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 1px 2px rgba(25,35,90,.18); position: relative; }
+  .sw.sel { box-shadow: 0 0 0 3px var(--surface-window-solid), 0 0 0 5px var(--accent-ring); }
+  .sw.sel::after { content: ""; position: absolute; left: 50%; top: 50%; width: 16px; height: 9px; margin: -7px 0 0 -8px; border: solid #fff; border-width: 0 0 3px 3px; transform: rotate(-45deg); }
+  .swn { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; margin-top: 10px; font-size: var(--type-caption); color: var(--text-secondary); text-align: center; }
+  .swn b { color: var(--text-primary); font-weight: 700; }
+  .row { display: flex; align-items: center; gap: 20px; padding: 13px 0; border-top: 1px solid var(--line); }
+  .gs + .row { border-top: 0; padding-top: 0; }
+  .row .t { flex: 1; } .row .t b { display: block; font-weight: 650; } .row .t span { font-size: var(--type-small); color: var(--text-secondary); }
+  .sl { width: 240px; display: flex; align-items: center; gap: 12px; font-weight: 700; color: var(--text-secondary); }
+  .sl .tr { flex: 1; height: 6px; border-radius: 3px; background: var(--track); position: relative; }
+  .sl .tr b { position: absolute; left: 0; top: 0; bottom: 0; width: 34%; border-radius: 3px; background: var(--accent); }
+  .sl .tr i { position: absolute; left: 34%; top: 50%; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(20,30,80,.3), 0 0 0 .5px rgba(20,30,80,.1); }
+  .wps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .wp { padding: 6px 6px 12px; }
+  .wp .th { height: 118px; border-radius: 9px; overflow: hidden; } .wp .th svg { width: 100%; height: 100%; }
+  .wp b { display: block; font-size: 15px; font-weight: 650; padding: 10px 6px 0; } .wp span { font-size: var(--type-caption); color: var(--text-secondary); padding: 0 6px; }
+  .wp span.on { color: var(--accent-text); font-weight: 650; }
+  .wp.add .th { display: grid; place-items: center; background: var(--state-hover); color: var(--text-secondary); } .wp.add .th svg { width: 28px; height: 28px; }
+  .solid-note { display: none; }
+</style>
+</head>
+<body>
+  <div data-wall></div>
+  <div class="win set">
+    <div class="head"><span class="appi" data-ai="settings"></span><span class="ttl">Settings</span><span class="grow"></span><span class="wb"></span></div>
+    <div class="body">
+      <aside class="side">
+        <div class="field"><span data-g="search"></span>Find a setting</div>
+        <div class="me"><div class="avatar">AS</div><div><b>Anna Smirnova</b><span>Administrator</span></div></div>
+        <div class="si"><span data-g="wifi"></span>Network &amp; internet<span class="end">Wi-Fi</span></div>
+        <div class="si"><span data-g="bluetooth"></span>Bluetooth &amp; devices</div>
+        <div class="si"><span data-g="display"></span>Display</div>
+        <div class="si"><span data-g="volume"></span>Sound</div>
+        <div class="si sel"><span data-g="palette"></span>Appearance</div>
+        <div class="si"><span data-g="image"></span>Wallpaper</div>
+        <div class="si"><span data-g="winapp"></span>Like Windows</div>
+        <div class="si"><span data-g="keyboard"></span>Keyboard &amp; language</div>
+        <div class="si"><span data-g="search"></span>Search</div>
+        <div class="si"><span data-g="apps"></span>Windows apps</div>
+        <div class="si"><span data-g="refresh"></span>Updates<span class="end"><span class="pill accent">3</span></span></div>
+        <div class="si"><span data-g="users"></span>Users</div>
+        <div class="si"><span data-g="info"></span>About this PC</div>
+      </aside>
+      <main class="main"><div class="page">
+        <h1>Appearance</h1>
+        <div class="lead">Choose how Lucent looks. Changes apply right away to every app.</div>
+        <div class="grid2">
+          <div class="card group full">
+            <div class="gt">Mode</div><div class="gs">Light and dark change windows, the dock and menus together.</div>
+            <div class="modes">
+              <div class="card mode sel"><div class="mini"><div data-wp="drift-light"></div><div class="mw"><div class="ms"><i></i></div><div class="mc"><i class="a"></i><i></i><i></i></div></div><div class="md"></div></div><div class="ml"><span class="radio on"></span>Light</div></div>
+              <div class="card mode"><div class="mini mdark"><div data-wp="drift-dark"></div><div class="mw"><div class="ms"><i></i></div><div class="mc"><i class="a"></i><i></i><i></i></div></div><div class="md"></div></div><div class="ml"><span class="radio"></span>Dark</div></div>
+              <div class="card mode"><div class="mini" style="position:relative"><div data-wp="drift-light"></div><div class="mw"><div class="ms"><i></i></div><div class="mc"><i class="a"></i><i></i><i></i></div></div><div class="half"><div class="mini mdark" style="height:170px"><div data-wp="drift-dark"></div><div class="mw"><div class="ms"><i></i></div><div class="mc"><i class="a"></i><i></i><i></i></div></div><div class="md"></div></div></div></div><div class="ml"><span class="radio"></span>Auto<small>Dark from sunset to sunrise</small></div></div>
+            </div>
+          </div>
+          <div class="card group">
+            <div class="gt">Accent color</div><div class="gs">Used for selection, switches, progress and focus.</div>
+            <div class="sws"><div class="sw sel" style="background:#4257e8"></div><div class="sw" style="background:#2f7fe0"></div><div class="sw" style="background:#16938f"></div><div class="sw" style="background:#7a55e0"></div><div class="sw" style="background:#b04fc0"></div><div class="sw" style="background:#d34c7e"></div><div class="sw" style="background:#2f8a5c"></div><div class="sw" style="background:#5d6584"></div></div>
+            <div class="swn"><b>Indigo</b><span>Azure</span><span>Lagoon</span><span>Violet</span><span>Orchid</span><span>Rose</span><span>Pine</span><span>Slate</span></div>
+            <div class="row" style="margin-top:16px"><div class="t"><b>Match wallpaper</b><span>Pick the accent from the current wallpaper</span></div><div class="tog"></div></div>
+          </div>
+          <div class="card group">
+            <div class="gt">Comfort</div><div class="gs">For eyes, older PCs and remote sessions.</div>
+            <div class="row"><div class="t"><b>Text size</b><span>Applies to apps and the dock</span></div><div class="sl">A<div class="tr"><b></b><i></i></div><span style="font-size:20px">A</span></div></div>
+            <div class="row"><div class="t"><b>Reduce motion</b><span>Windows open and close without animation</span></div><div class="tog"></div></div>
+            <div class="row"><div class="t"><b>Reduce transparency</b><span>Solid dock, menus and sidebars. On by itself without graphics acceleration</span></div><div class="tog"></div></div>
+          </div>
+          <div class="card group full">
+            <div class="gt">Wallpaper<span class="grow"></span><span class="btn">Browse…</span></div><div class="gs">Lucent's wallpapers switch to their night version in dark mode.</div>
+            <div class="wps">
+              <div class="card wp sel"><div class="th" data-wp="drift-light"></div><b>Drift</b><span class="on">In use</span></div>
+              <div class="card wp"><div class="th" data-wp="drift-dark"></div><b>Drift night</b><span>For dark mode</span></div>
+              <div class="card wp"><div class="th" data-wp="tide-light"></div><b>Tide</b><span>Paper swells</span></div>
+              <div class="card wp"><div class="th" data-wp="aurora-light"></div><b>Aurora</b><span>Soft curtains of light</span></div>
+              <div class="card wp add"><div class="th"><span data-g="plus"></span></div><b>Add a picture</b><span>JPG, PNG or WebP</span></div>
+            </div>
+          </div>
+        </div>
+      </div></main>
+    </div>
+  </div>
+  <div data-dock data-active="settings" data-run="files:2,docs,settings"></div>
+<script>
+  // in dark mode the page shows what is actually chosen: Dark + Drift night
+  if (document.documentElement.classList.contains('dark')) {
+    const m = document.querySelectorAll('.mode'), w = document.querySelectorAll('.wp');
+    m[0].classList.remove('sel'); m[1].classList.add('sel');
+    m[0].querySelector('.radio').classList.remove('on'); m[1].querySelector('.radio').classList.add('on');
+    w[0].classList.remove('sel'); w[1].classList.add('sel');
+    w[0].querySelector('span').textContent = 'For light mode'; w[0].querySelector('span').classList.remove('on');
+    w[1].querySelector('span').textContent = 'In use'; w[1].querySelector('span').classList.add('on');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,339 @@
+/* Lucent OS 2026 — "Glass Card": a variant of Pebble Drift's tokens.
+   2560x1440 at deviceScaleFactor 1. Same palette (Prism indigo, Drift wallpapers), same type
+   (Figtree, Inter for non-Latin), same 4 px grid. What changes is the MATERIAL:
+
+     Pebble Drift                          Glass Card
+     sunken wells (sidebar, fields,        light frosted cards that sit ON the surface:
+       segmented tracks, taskbar group)      translucent fill + 1 px inner highlight + soft drop
+     selection = raised pillow in a well   selection = soft accent-tinted pill, no shadow
+     inset text fields                     light glass fields with a hairline, accent ring on focus
+     edge-attached taskbar slab            centred floating dock (Plasma panel, floating + fit content)
+     full-screen launcher with scrim       compact popup launcher + Spotlight panel (KRunner)
+
+   Part 1 (tokens) is meant to be ported 1:1 to design/tokens.py → Kvantum (gen_kvantum.py),
+   the Plasma theme SVGs (gen_plasma_theme.py) and the QML Theme singletons of Lucent Settings
+   and Store. Part 2 is the mockup layer and consumes tokens only.
+
+   ── COST MODEL (why the blur budget is what it is) ─────────────────────────────────────────
+   KWin's blur is a dual-Kawase pass over the region a surface marks as "blur behind". Its cost
+   scales with (blurred area) × (how often what is behind it changes). So:
+     1. Blur lives ONLY on shell surfaces and window sidebars:
+          dock               ~1050×72 px   always on screen, but what is behind it is the
+                                           static wallpaper or a window edge → re-blurred rarely
+          Spotlight / launcher / menus / popovers   transient; on screen only while open
+          window sidebars    ~290×1250 px  per window; OPTIONAL tier (see --blur-sidebar)
+     2. Content cards NEVER blur. A card is a translucent white (or white-on-dark) fill over the
+        window's own near-opaque surface: alpha blending only, no extra pass, no texture read
+        of what is behind the window. That is the same cost as Pebble's raised pillow.
+     3. One strength for every blurred surface (--blur-shell), one lighter for sidebars, so
+        KWin keeps one set of downsample textures. No saturate() boost in the real build: KWin
+        blur has none; the "contrast" effect already on (kwinrc contrastEnabled) gives the same
+        lift from the Plasma theme's contrast hints at ~zero cost.
+     4. Fallback (.solid): "Reduce transparency" in Lucent Settings, and automatically when
+        KWin runs on QPainter / llvmpipe (software rendering: no blur at all). Every glass token
+        has a *-solid twin that is fully opaque and was picked to read the same.
+   Rough budget on a 1440p iGPU: dock + one open popup ≈ the cost of today's 68 px taskbar
+   blur plus a menu; sidebars add one window-height strip per visible window that has one.
+   ─────────────────────────────────────────────────────────────────────────────────────────── */
+
+/* ========================================================================
+   PART 1 — TOKENS
+   ======================================================================== */
+:root {
+  /* ---- type (unchanged from Pebble Drift) ---- */
+  --font-sans: "Figtree", "Inter", system-ui, sans-serif;
+  --type-display: 32px;   --type-display-weight: 800;
+  --type-title: 22px;     --type-title-weight: 700;
+  --type-heading: 19px;   --type-heading-weight: 700;
+  --type-subhead: 17px;   --type-subhead-weight: 700;
+  --type-body: 15.5px;    --type-body-weight: 500;
+  --type-small: 14.5px;
+  --type-caption: 14px;   --type-caption-weight: 650;   /* never below 14 px at 1x */
+  --type-line: 1.35;
+
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+
+  /* ---- ONE radius set (nested: outer = inner + padding) ---- */
+  --r-xl: 24px;   /* dock, Spotlight, launcher: free-floating shell glass */
+  --r-lg: 18px;   /* windows */
+  --r-md: 14px;   /* cards, sidebars, popover menus */
+  --r-sm: 10px;   /* controls: buttons, fields, sidebar pills, dock app hover */
+  --r-xs: 6px;    /* chips, kbd hints */
+  --r-round: 999px; /* radio dots, running dots, avatars only */
+
+  /* ---- accent: the owner's indigo (unchanged) ---- */
+  --accent: #4257e8;  --accent-hover: #3549d6;  --accent-pressed: #2c3dbb;
+  --accent-2: #7a55e0;
+  --accent-text: #3346cf;
+  --accent-soft: rgba(66, 87, 232, .11);          /* selection pill, hover on accent things */
+  --accent-soft-strong: rgba(66, 87, 232, .18);   /* selection pill while pressed / focused */
+  --accent-ring: #4257e8;
+  --text-on-accent: #ffffff;
+
+  /* ---- text ---- */
+  --text-primary: #171a2b;
+  --text-secondary: #474d66;
+  --text-tertiary: #545b74;     /* ≥ 4.6:1 on --surface-window and on --glass-sidebar over Drift */
+  --text-disabled: #9095a8;
+
+  /* ---- the base a window paints (near-opaque: content never shows the wallpaper) ---- */
+  --surface-window: rgba(245, 246, 252, .97);
+  --surface-window-solid: #f3f4fa;
+
+  /* ---- GLASS fills ---- */
+  /* content cards: NO blur. White at 70 % over --surface-window → reads as a lifted light card. */
+  --glass-card: rgba(255, 255, 255, .70);
+  --glass-card-hover: rgba(255, 255, 255, .92);
+  --glass-card-solid: #fcfcff;
+  /* window sidebar: optional blur (--blur-sidebar). Without blur it is still a light card
+     over the window surface (that IS the fallback, no separate look needed). */
+  --glass-sidebar: rgba(248, 249, 255, .62);
+  --glass-sidebar-solid: #eceff9;
+  /* text / search fields: light glass, never inset */
+  --glass-field: rgba(255, 255, 255, .78);
+  --glass-field-focus: #ffffff;
+  /* buttons and other controls that sit on a card */
+  --glass-control: rgba(255, 255, 255, .82);
+  --glass-control-hover: #ffffff;
+  /* shell surfaces (blurred): dock, Spotlight, launcher, menus, tooltips, previews */
+  --glass-dock: rgba(246, 247, 254, .62);
+  --glass-dock-solid: #eef0f9;
+  --glass-popover: rgba(249, 250, 255, .80);
+  --glass-popover-solid: #f7f8fd;
+  /* flat neutral tint for tracks (switch off, slider, progress): flat, NO inner shadow */
+  --track: rgba(48, 58, 120, .13);
+
+  /* ---- blur budget (see COST MODEL) ---- */
+  --blur-shell: 32px;     /* dock, Spotlight, launcher, menus — KWin BlurStrength ≈ 8 */
+  --blur-sidebar: 24px;   /* window sidebars — optional tier, off on software rendering */
+
+  /* ---- state overlays (flat tints, no shadow) ---- */
+  --state-hover: rgba(48, 58, 120, .06);
+  --state-pressed: rgba(48, 58, 120, .10);
+
+  /* ---- lines ---- */
+  --line: rgba(40, 50, 110, .09);
+  --line-strong: rgba(40, 50, 110, .16);
+  --line-control: rgba(40, 50, 110, .30);    /* radio / checkbox outline (3:1) */
+
+  --status-danger: #cf3a48;  --status-success: #2f8a5c;  --status-warning: #b7791f;
+
+  /* ---- the 1 px inner highlight that makes a fill read as glass ----
+     top edge brighter, a faint all-round inner rim. Costs nothing (two 1 px lines). */
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, .95), inset 0 0 0 1px rgba(255, 255, 255, .45);
+
+  /* ---- ONE elevation system: e0 flat · e1 rest · e2 floating · e3 shell · e4 window ----
+     every level = hairline ring + short contact shadow + one long soft drop, cool-tinted.
+     No inset (sunken) shadows exist in this system. */
+  --elev-0: none;
+  --elev-1: 0 0 0 1px rgba(30, 40, 100, .07), 0 1px 2px rgba(25, 35, 90, .05), 0 4px 12px -6px rgba(25, 35, 90, .12);
+  --elev-2: 0 0 0 1px rgba(30, 40, 100, .07), 0 2px 6px rgba(25, 35, 90, .05), 0 14px 30px -12px rgba(25, 35, 90, .20);
+  --elev-3: 0 0 0 1px rgba(30, 40, 100, .09), 0 6px 16px -4px rgba(25, 35, 90, .12), 0 30px 70px -18px rgba(25, 35, 90, .32);
+  --elev-4: 0 0 0 1px rgba(30, 40, 100, .10), 0 2px 4px rgba(25, 35, 90, .05), 0 16px 34px -6px rgba(25, 35, 90, .15), 0 50px 110px -20px rgba(25, 35, 90, .30);
+  --elev-accent: 0 1px 2px rgba(30, 40, 140, .25), 0 6px 14px -6px rgba(66, 87, 232, .45);
+  --focus-ring: 0 0 0 2px var(--accent-ring), 0 0 0 6px var(--accent-soft);
+
+  /* ---- artwork that follows the palette (unchanged) ---- */
+  --folder-back: #4a5fe0; --folder-front-top: #b4c0ff; --folder-front-bottom: #8496f5;
+  --folder-edge: #4a5ad0; --folder-glyph: #2b3aa6;
+  --gauge-track: var(--track); --gauge-1: var(--accent); --gauge-2: #7c84a0; --gauge-3: var(--accent-2);
+
+  --motion-fast: 120ms;  --motion-base: 200ms;  --motion-ease: cubic-bezier(.2, .8, .2, 1);
+}
+
+.dark {
+  --accent: #7088ff;  --accent-hover: #8297ff;  --accent-pressed: #5f77f0;
+  --accent-2: #a084ff;
+  --accent-text: #9aabff;
+  --accent-soft: rgba(112, 136, 255, .17);
+  --accent-soft-strong: rgba(112, 136, 255, .26);
+  --accent-ring: #7f95ff;
+  --text-on-accent: #0e1230;
+
+  --text-primary: #eef0fa;  --text-secondary: #bcc1d6;  --text-tertiary: #9ca2bb;  --text-disabled: #656b84;
+
+  --surface-window: rgba(26, 28, 42, .97);
+  --surface-window-solid: #1a1c2a;
+
+  --glass-card: rgba(255, 255, 255, .055);
+  --glass-card-hover: rgba(255, 255, 255, .085);
+  --glass-card-solid: #222536;
+  --glass-sidebar: rgba(36, 39, 60, .60);
+  --glass-sidebar-solid: #23263a;
+  --glass-field: rgba(255, 255, 255, .07);
+  --glass-field-focus: rgba(255, 255, 255, .10);
+  --glass-control: rgba(255, 255, 255, .09);
+  --glass-control-hover: rgba(255, 255, 255, .13);
+  --glass-dock: rgba(26, 28, 44, .60);
+  --glass-dock-solid: #1e2032;
+  --glass-popover: rgba(30, 32, 50, .82);
+  --glass-popover-solid: #222538;
+  --track: rgba(220, 228, 255, .14);
+
+  --state-hover: rgba(220, 228, 255, .07);
+  --state-pressed: rgba(220, 228, 255, .11);
+
+  --line: rgba(220, 228, 255, .08);
+  --line-strong: rgba(220, 228, 255, .14);
+  --line-control: rgba(220, 228, 255, .38);
+
+  --status-danger: #ef5f6b;  --status-success: #56c08a;  --status-warning: #e3a547;
+
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, .10), inset 0 0 0 1px rgba(255, 255, 255, .045);
+  --elev-1: 0 0 0 1px rgba(0, 0, 0, .30), 0 1px 2px rgba(0, 0, 0, .20), 0 4px 12px -6px rgba(0, 0, 0, .35);
+  --elev-2: 0 0 0 1px rgba(0, 0, 0, .35), 0 2px 6px rgba(0, 0, 0, .20), 0 14px 30px -12px rgba(0, 0, 0, .45);
+  --elev-3: 0 0 0 1px rgba(0, 0, 0, .50), 0 6px 16px -4px rgba(0, 0, 0, .30), 0 30px 70px -18px rgba(0, 0, 0, .60);
+  --elev-4: 0 0 0 1px rgba(0, 0, 0, .55), 0 2px 4px rgba(0, 0, 0, .25), 0 18px 40px -6px rgba(0, 0, 0, .45), 0 50px 120px -20px rgba(0, 0, 0, .60);
+  --elev-accent: 0 1px 2px rgba(0, 0, 0, .40), 0 6px 14px -6px rgba(112, 136, 255, .40);
+
+  --folder-back: #5268ea; --folder-front-top: #a7b4ff; --folder-front-bottom: #7487f2; --folder-glyph: #26339a;
+  --gauge-2: #8d94ad;
+}
+
+/* "Reduce transparency" and software rendering: swap every glass fill for its opaque twin
+   and drop every blur. Layout, radii, highlight and elevation stay — it still reads as cards. */
+.solid {
+  --surface-window: var(--surface-window-solid);
+  --glass-sidebar: var(--glass-sidebar-solid);
+  --glass-card: var(--glass-card-solid);
+  --glass-dock: var(--glass-dock-solid);
+  --glass-popover: var(--glass-popover-solid);
+  --blur-shell: 0px;
+  --blur-sidebar: 0px;
+}
+
+/* ========================================================================
+   PART 2 — COMPONENTS (mockup layer, consumes tokens only)
+   ======================================================================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 2560px; height: 1440px; overflow: hidden; }
+body { font-family: var(--font-sans); font-size: var(--type-body); line-height: var(--type-line); color: var(--text-primary); background: #dfe5ff; -webkit-font-smoothing: antialiased; position: relative; }
+.dark body { background: #070a18; }
+[data-wall] { position: absolute; inset: 0; }
+[data-wall] svg { width: 100%; height: 100%; display: block; }
+svg { display: block; }
+.grow { flex: 1; }
+.ai { display: block; } .ai svg { width: 100%; height: 100%; }
+
+/* ---------------- materials ---------------- */
+.card { border-radius: var(--r-md); background: var(--glass-card); box-shadow: var(--glass-highlight), var(--elev-1); }
+.card.hover { background: var(--glass-card-hover); box-shadow: var(--glass-highlight), var(--elev-2); }
+.card.sel { background: var(--glass-card-hover); box-shadow: var(--glass-highlight), 0 0 0 2px var(--accent-ring), var(--elev-1); }
+.shell-glass { background: var(--glass-popover); backdrop-filter: blur(var(--blur-shell)) saturate(150%); box-shadow: var(--glass-highlight), var(--elev-3); }
+
+/* ---------------- window ----------------
+   The window paints --surface-window everywhere except under the sidebar card. In CSS that is
+   the sidebar's huge spread shadow (clipped by the window); in Qt it is the window background
+   with the sidebar rect left translucent + a KWin blur region of exactly that rect. */
+.win { position: absolute; border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--elev-4); display: flex; flex-direction: column; isolation: isolate; backdrop-filter: blur(var(--blur-sidebar)); }
+.win.plain { background: var(--surface-window); backdrop-filter: none; }
+.head { height: 60px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 10px 0 16px; position: relative; z-index: 1; }
+.head .appi { width: 26px; height: 26px; margin-right: 4px; flex: none; }
+.head .ttl { font-size: 16px; font-weight: 700; }
+.menus { display: flex; }
+.menus span { padding: 7px 11px; border-radius: 8px; font-size: 15px; font-weight: 500; color: var(--text-primary); }
+.menus span.hover { background: var(--state-hover); }
+.vsep { width: 1px; height: 24px; background: var(--line-strong); margin: 0 6px; flex: none; }
+.wb { display: flex; gap: 2px; margin-left: 6px; }
+.wb i { width: 46px; height: 36px; border-radius: var(--r-sm); display: grid; place-items: center; color: var(--text-secondary); }
+.wb i svg { width: 17px; height: 17px; stroke-width: 1.9; }
+.wb i.close.hover { background: var(--status-danger); color: #fff; }
+
+.body { flex: 1; display: flex; min-height: 0; padding: 0 12px 12px; gap: 12px; }
+.side { width: 280px; flex: none; border-radius: var(--r-md); background: var(--glass-sidebar); padding: 10px; display: flex; flex-direction: column; gap: 2px;
+  box-shadow: var(--glass-highlight), var(--elev-2), 0 0 0 4000px var(--surface-window); }
+.side h6 { font-size: var(--type-caption); font-weight: var(--type-caption-weight); color: var(--text-tertiary); padding: 14px 12px 6px; }
+.si { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; border-radius: var(--r-sm); font-size: var(--type-body); font-weight: 500; flex: none; }
+.si svg { width: 20px; height: 20px; color: var(--text-secondary); flex: none; }
+.si .end { margin-left: auto; font-size: var(--type-caption); color: var(--text-tertiary); font-weight: 500; }
+.si.hover { background: var(--state-hover); }
+/* selection: a soft accent pill. No shadow, no raised fill. */
+.si.sel { background: var(--accent-soft); color: var(--accent-text); font-weight: 650; }
+.si.sel svg { color: var(--accent-text); }
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* ---------------- controls ---------------- */
+.field { height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border-radius: var(--r-sm); background: var(--glass-field); box-shadow: var(--glass-highlight), var(--elev-1); font-size: 15px; color: var(--text-tertiary); }
+.field svg { width: 18px; height: 18px; color: var(--text-secondary); flex: none; }
+.field.focus { background: var(--glass-field-focus); box-shadow: var(--focus-ring); color: var(--text-primary); }
+.field .crumb { color: var(--text-primary); font-weight: 600; }
+.field .chev { width: 14px; height: 14px; color: var(--text-tertiary); }
+.kbd { display: inline-flex; align-items: center; height: 24px; padding: 0 7px; border-radius: var(--r-xs); font-size: 13.5px; font-weight: 650; color: var(--text-secondary); background: var(--state-hover); box-shadow: inset 0 0 0 1px var(--line); }
+
+.ib { height: 38px; min-width: 38px; padding: 0 9px; border-radius: var(--r-sm); display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-primary); font-size: 15px; font-weight: 550; }
+.ib svg { width: 20px; height: 20px; }
+.ib.dim { color: var(--text-disabled); }
+.ib.hover { background: var(--state-hover); }
+/* segmented: a light glass strip; the chosen segment is an accent pill (not a raised tile) */
+.seg { display: flex; padding: 3px; gap: 2px; border-radius: 12px; background: var(--glass-field); box-shadow: var(--glass-highlight), var(--elev-1); }
+.seg .ib { height: 32px; min-width: 40px; border-radius: 9px; color: var(--text-secondary); }
+.seg .ib.on { background: var(--accent-soft); color: var(--accent-text); }
+
+.btn { height: 40px; padding: 0 18px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 8px; font-size: var(--type-body); font-weight: 650; background: var(--glass-control); box-shadow: var(--glass-highlight), var(--elev-1); color: var(--text-primary); }
+.btn svg { width: 18px; height: 18px; }
+.btn.pri { background: var(--accent); color: var(--text-on-accent); box-shadow: inset 0 1px 0 rgba(255,255,255,.22), var(--elev-accent); }
+
+.tog { width: 50px; height: 30px; border-radius: var(--r-round); background: var(--track); position: relative; flex: none; }
+.tog::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(20, 30, 80, .30), 0 0 0 .5px rgba(20, 30, 80, .10); }
+.tog.on { background: var(--accent); }
+.tog.on::after { left: 23px; }
+.dark .tog::after { background: #e9ecf8; }
+
+.prog { height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
+.prog b { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 7px; font-size: var(--type-caption); font-weight: var(--type-caption-weight); background: var(--state-hover); color: var(--text-secondary); }
+.pill.accent { background: var(--accent-soft); color: var(--accent-text); }
+.avatar { border-radius: 12px; display: grid; place-items: center; font-weight: 750; color: #fff; background: linear-gradient(135deg, #6a86ff, #9a62e0 60%, #d0679c); }
+
+/* ---------------- dock-taskbar: centred, floating, fit-content ---------------- */
+.dock { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 50; height: 72px; display: flex; align-items: center; gap: 4px; padding: 0 10px; border-radius: var(--r-xl);
+  background: var(--glass-dock); backdrop-filter: blur(var(--blur-shell)) saturate(150%); box-shadow: var(--glass-highlight), var(--elev-3); white-space: nowrap; }
+.dk { width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; position: relative; flex: none; color: var(--text-primary); }
+.dk > .ai { width: 44px; height: 44px; }
+.dk > svg { width: 24px; height: 24px; }
+.dk.hover, .dk.open { background: var(--state-hover); }
+.dk.open { background: var(--accent-soft); color: var(--accent-text); }
+/* running: a dot under the icon (2 windows = 2 dots); the focused app gets an accent dash */
+.dk .run { position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; }
+.dk .run i { width: 5px; height: 5px; border-radius: 50%; background: var(--text-tertiary); }
+.dk.active .run i { width: 14px; border-radius: 3px; background: var(--accent); }
+.dk-sep { width: 1px; height: 40px; background: var(--line-strong); margin: 0 8px; flex: none; }
+.tray { display: flex; align-items: center; height: 56px; padding: 0 6px; gap: 2px; border-radius: 14px; }
+.tray .t { height: 44px; min-width: 36px; display: grid; place-items: center; padding: 0 6px; border-radius: var(--r-sm); color: var(--text-primary); }
+.tray .t svg { width: 19px; height: 19px; }
+.tray .lang { font-size: 14px; font-weight: 700; }
+.tray .bat { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 550; }
+.tray .clock { display: flex; flex-direction: column; align-items: flex-end; padding: 0 6px 0 10px; line-height: 1.2; }
+.tray .clock b { font-size: var(--type-body); font-weight: 650; }
+.tray .clock span { font-size: var(--type-caption); color: var(--text-secondary); }
+.tip { position: absolute; z-index: 60; padding: 7px 12px; border-radius: var(--r-sm); font-size: 14.5px; font-weight: 600; white-space: nowrap; }
+.tip .kbd { margin-left: 8px; height: 22px; }
+.dk[data-app="launcher"] > svg { width: 38px; height: 38px; }
+
+/* ---------------- Spotlight (KRunner, free-floating, centred) ---------------- */
+.spot { position: absolute; left: 50%; top: 250px; transform: translateX(-50%); width: 1080px; border-radius: var(--r-xl); z-index: 70; overflow: hidden; }
+.spot .q { height: 76px; display: flex; align-items: center; gap: 16px; padding: 0 24px; border-bottom: 1px solid var(--line); }
+.spot .q > svg { width: 26px; height: 26px; color: var(--accent-text); }
+.spot .q .txt { flex: 1; font-size: 26px; font-weight: 600; letter-spacing: -.01em; }
+.spot .q .txt i { display: inline-block; width: 2px; height: 30px; background: var(--accent); vertical-align: -6px; margin-left: 2px; }
+.spot .cols { display: flex; min-height: 300px; }
+.spot .list { width: 620px; padding: 10px; overflow: hidden; border-right: 1px solid var(--line); }
+.spot .grp { font-size: var(--type-caption); font-weight: var(--type-caption-weight); color: var(--text-tertiary); padding: 12px 14px 6px; }
+.spot .row { display: flex; align-items: center; gap: 14px; height: 52px; padding: 0 14px; border-radius: var(--r-sm); }
+.spot .row .ic { width: 34px; height: 34px; flex: none; display: grid; place-items: center; }
+.spot .row .ic svg { width: 100%; height: 100%; }
+.spot .row .ic.g { border-radius: 9px; background: var(--state-hover); color: var(--text-secondary); }
+.spot .row .ic.g svg { width: 19px; height: 19px; }
+.spot .row b { font-weight: 600; font-size: 15.5px; }
+.spot .row .sub { color: var(--text-secondary); font-size: var(--type-small); margin-left: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spot .row .end { margin-left: auto; display: flex; gap: 6px; align-items: center; color: var(--text-tertiary); font-size: var(--type-caption); white-space: nowrap; }
+.spot .row.sel { background: var(--accent-soft); }
+.spot .row.sel b { color: var(--accent-text); }
+.spot .row.off { color: var(--text-tertiary); }
+.spot .row.off b { color: var(--text-secondary); font-weight: 550; }
+.spot .pane { flex: 1; padding: 34px 32px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.spot .foot { height: 46px; display: flex; align-items: center; gap: 20px; padding: 0 22px; border-top: 1px solid var(--line); font-size: var(--type-caption); color: var(--text-tertiary); }
+.spot .foot span { display: flex; align-items: center; gap: 6px; }
+.pill { white-space: nowrap; } .pill svg { width: 14px; height: 14px; flex: none; }
