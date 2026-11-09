@@ -207,12 +207,19 @@ network and nothing to wait for:
 - The ISO from bootc-image-builder gets the bundle as `/lucent-apps`
   (`mkksiso -a`); its kickstart (`iso/lucent-apps.ks`, merged by
   `iso/make-config.py`) unpacks it into the new system's `/var/lib/flatpak`
-  with the new system's tools, verifies it and relabels it for SELinux. The
+  with the new system's tools, verifies it and labels it for SELinux with the
+  new system's policy (if that is ever refused,
+  `lucent-flatpak-relabel.service` does it once at first boot). The
   installer stays interactive.
 - If anything fails, the install still completes and
   `lucent-flatpak-setup.service` downloads the apps after first boot.
-- CI's `iso` workflow can install the ISO unattended in QEMU/KVM **with no
-  network** and check the apps on the installed disk.
+- CI's `iso` workflow installs the ISO unattended in QEMU/KVM **with no
+  network** and checks the apps on the installed disk. Measured (amd64,
+  Nov 2026): all 10 apps and their runtimes present and labelled
+  (`var_lib_t`), unpacking took 77 s of a 6.7 min install.
+- Size: the ISO grows from 5.8 GB to **8.3 GB** (amd64; arm64 5.8 → 8.4 GB);
+  the bundle is 2.5–2.6 GB for 8.3–8.6 GB installed. The image and its
+  updates don't grow at all.
 
 Why not the alternatives: bootc-image-builder has no Flatpak support for
 `anaconda-iso` (upstream only demos a `%post` that downloads from Flathub),
@@ -281,6 +288,11 @@ iso/                          installer ISO: offline app bundle, kickstart, conf
 - Discover's home page still shows Flathub's editorial picks.
 - Firefox's own telemetry settings are Mozilla's defaults (no enterprise
   policy shipped yet for the Flatpak).
+- Fedora's `wine-dxvk` has no 32-bit build on x86_64, so 32-bit Direct3D
+  9–11 programs use wined3d there (64-bit ones, and all on aarch64, use DXVK).
+- Plasma's Devices list can't show udisks' `HintName` ("Local Disk (C:)"):
+  per Solid's source, its udisks2 backend reads it with `QObject::property("HintName")`,
+  which is never set, and falls back to the file-system label.
 - Bookmarks are exported as HTML for a one-click manual import, not injected
   into a Firefox profile.
 - Look: where the real desktop still differs from `docs/mockups/` (menus are
