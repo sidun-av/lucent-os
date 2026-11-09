@@ -110,9 +110,6 @@ jobs:
       - name: Smoke test (Windows apps, units, rules, update settings) inside the built image
         run: sudo podman run --rm -v ./build_files:/t:ro "$IMAGE:${{ matrix.arch }}" /t/smoke-test.sh
       - name: Signature policy test (the image's own tools, an ephemeral key, a local registry)
-        # Not gating yet: no installed system enforces the policy until the
-        # signing key exists (docs/updates.md). Make it gating with the key.
-        continue-on-error: true
         run: |
           sudo podman run -d --name sigtest-registry -p 127.0.0.1:5000:5000 docker.io/library/registry:2
           # Tiny images with different content: signatures belong to a
