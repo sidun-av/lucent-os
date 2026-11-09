@@ -16,6 +16,9 @@ clearpart --all --initlabel --disklabel=gpt
 # Fedora Atomic's default layout (btrfs), as an interactive install makes it.
 autopart --noswap --type=btrfs
 rootpw --lock
+# Boot to the desktop. A text-mode install (like this one) otherwise makes
+# multi-user.target the default; the graphical installer doesn't.
+xconfig --startxonboot
 user --name=anna --gecos="Anna" --groups=wheel --password=lucent-acceptance --plaintext
 poweroff
 

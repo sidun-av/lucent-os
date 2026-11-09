@@ -40,7 +40,8 @@ ctl() {
     printf '%s\n' "$*" >&3
     local reply=""
     IFS= read -r -t 180 reply <&3 || reply=TIMEOUT
-    log "ctl: ${*:0:160} -> $reply"
+    local req="$*"
+    log "ctl: ${req:0:160} -> $reply"
     printf '%s' "$reply"
 }
 record() { # id PASS|FAIL|INFO detail
