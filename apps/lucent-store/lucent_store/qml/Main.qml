@@ -12,7 +12,6 @@ ApplicationWindow {
     visible: true
     title: l10n.text("Store")
     color: tk.winBg
-    font.family: tk.font
 
     readonly property var tk: store.t
     readonly property int rev: store.revision

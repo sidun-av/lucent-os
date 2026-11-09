@@ -22,7 +22,7 @@ ScrollPage {
             spacing: 6
             Row {
                 spacing: 12
-                Text { text: page.d.name; font.pointSize: store.t.fontH1; font.weight: Font.Bold; font.letterSpacing: -0.3
+                Text { text: page.d.name; font.pointSize: store.t.fontH1; font.weight: Font.ExtraBold; font.letterSpacing: -0.3
                        color: page.tk.text }
                 AlphaBadge { visible: page.d.nextgen; anchors.verticalCenter: parent.verticalCenter }
             }

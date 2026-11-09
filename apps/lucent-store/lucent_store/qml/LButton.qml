@@ -28,7 +28,9 @@ Item {
     Item {
         anchors.fill: parent
         visible: b.kind === "primary"
-        Shadow { radius: b.radius; dy: 1; blur: 3; strength: b.tk.shadowNear * 2.5; steps: 3; color: b.tk.accent }
+        // --shadow-accent
+        Shadow { radius: b.radius; dy: 6; blur: 14; spread: -4; strength: b.tk.accentShadow; color: b.tk.accent }
+        Shadow { radius: b.radius; dy: 1; blur: 2; strength: b.tk.accentShadowNear; steps: 2; color: b.tk.accentShadowColor }
         Rectangle {
             anchors.fill: parent
             radius: b.radius

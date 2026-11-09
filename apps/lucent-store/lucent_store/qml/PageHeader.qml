@@ -27,7 +27,7 @@ Item {
         height: store.t.searchHeight
         verticalAlignment: Text.AlignVCenter
         font.pointSize: store.t.fontH1
-        font.weight: Font.Bold
+        font.weight: Font.ExtraBold
         font.letterSpacing: -0.3
         color: h.tk.text
         text: {

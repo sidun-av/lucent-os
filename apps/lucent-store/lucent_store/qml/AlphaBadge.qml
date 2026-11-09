@@ -2,7 +2,7 @@ import QtQuick
 
 Rectangle {
     readonly property var tk: store.t
-    height: 22
+    height: 24
     width: t.implicitWidth + 16
     radius: store.t.radiusBadge
     color: tk.alphaBg

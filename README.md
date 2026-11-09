@@ -144,7 +144,9 @@ pytest
 ## Lucent Store
 
 `apps/lucent-store/` — the "Store" in the launcher and taskbar (PySide6 +
-QML, Lucent tokens, light/dark following the system). KDE Discover stays
+QML, light/dark following the system; every colour, size, radius and shadow
+is a token in `lucent_store/theme.py`, ported from the "Pebble Drift"
+direction, `docs/mockups/concepts-2026/pebble-drift/`). KDE Discover stays
 installed (it still opens `.flatpakref` files) but is hidden from the launcher.
 
 - **No recommendations, ads, AI or tracking.** Home and the category pages

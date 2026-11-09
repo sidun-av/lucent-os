@@ -81,8 +81,12 @@ def main(argv: list[str] | None = None) -> int:
     if fonts:
         for f in Path(fonts).glob("*.ttf"):
             QFontDatabase.addApplicationFont(str(f))
+    from PySide6.QtGui import QFont
+
+    from .theme import METRICS
     font = app.font()
-    font.setFamilies(["Inter", "Noto Sans", font.family()])
+    font.setFamilies([*METRICS["fontFamilies"], font.family()])
+    font.setWeight(QFont.Weight.Medium)       # --type-body-weight: 500
     app.setFont(font)
 
     cat = catalog_mod.load()
