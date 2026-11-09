@@ -70,6 +70,15 @@ jobs:
           # for its atomic updates.
           sudo podman pull "$IMAGE_REF"
           sudo podman image inspect "$IMAGE_REF" --format '{{index .Labels "org.opencontainers.image.revision"}}' | tee image-revision.txt
+          # The registry's manifest of this image for this CPU: what the
+          # installed system compares against when it first updates.
+          index=$(skopeo inspect --raw "docker://$IMAGE_REF")
+          arch_digest=$(jq -r --arg a "${{ inputs.arch }}" '.manifests[] | select(.platform.architecture == $a) | .digest' <<<"$index")
+          skopeo inspect --raw "docker://$IMAGE@$arch_digest" > "$WORK/registry-manifest.json"
+          if [ "$(jq -r .config.digest "$WORK/registry-manifest.json")" != "sha256:$(sudo podman image inspect "$IMAGE_REF" --format '{{.Id}}')" ]; then
+            echo "::warning::$IMAGE_REF moved since the pull; no first-update estimate"
+            rm "$WORK/registry-manifest.json"
+          fi
           want="${{ inputs.expect_revision }}"
           if [ -n "$want" ] && [ "$(cat image-revision.txt)" != "$want" ]; then
             echo "::error::$IMAGE_REF is $(cat image-revision.txt), not $want (another build moved the tag?)"; exit 1
@@ -120,10 +129,16 @@ jobs:
             osirrox -indev "$in" -extract /container /work/container 2>/dev/null
             chmod -R u+w /work/container
             du -sb /work/container | cut -f1 > /work/container-gzip.txt
+            reuse() {
+              [ -f /work/registry-manifest.json ] || return 0
+              python3 /src/iso/oci-vs-registry.py /work/container /work/registry-manifest.json | tee "/work/reuse-$1.json"
+            }
+            reuse gzip
             start=$(date +%s)
             python3 /src/iso/zstd-oci.py /work/container | tail -n 2
             echo "recompression took $(( $(date +%s) - start )) s"
             du -sb /work/container | cut -f1 > /work/container-zstd.txt
+            reuse zstd
             xorriso -indev "$in" -outdev /work/'"$iso"' -boot_image any replay \
               -rm_r /container -- \
               -map /work/container /container \
@@ -153,6 +168,11 @@ jobs:
               echo "| app bundle, previous packing (zstd -12, plain order) | $(gb "$previous") |"
             fi
             echo "| **final ISO** | **$(gb "$final")** |"
+            echo
+            for v in gzip zstd; do
+              f="$WORK/reuse-$v.json"
+              [ -f "$f" ] && echo "First update after installing ($v layers on the ISO): $(jq -r '"\(.same_layers) of \(.layers) layers already match the registry; it downloads \(.first_update_download_bytes / 1e9 * 100 | floor / 100) GB"' "$f")"
+            done
             echo
             echo '```'
             cat "$WORK/lucent-apps/apps.txt"
