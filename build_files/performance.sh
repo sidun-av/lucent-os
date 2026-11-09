@@ -47,3 +47,31 @@ test -f /usr/share/dbus-1/services/org.kde.kdeconnect.service
 grep -q '^Exec=/usr/bin/kdeconnectd$' "$kdc"
 grep -q '^Hidden=true' "$kdc" || sed -i '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nHidden=true/' "$kdc"
 systemctl --global enable lucent-kdeconnect.service
+
+# ---------------------------------------------------------------------------
+# 3. No Xwayland Video Bridge in every session.
+# It lets X11-only apps (Webex and the like) screen-share Wayland windows,
+# runs from login to logout either way, and was the third-largest process of
+# an idle desktop (58 MiB PSS, after plasmashell and KWin). KDE has archived
+# it and recommends distributions stop shipping it; Firefox, OBS and current
+# Chromium-based apps share the screen through the desktop portal without
+# it. The package stays: copying its entry to ~/.config/autostart (without
+# Hidden=true) turns it back on.
+# ---------------------------------------------------------------------------
+xvb=/etc/xdg/autostart/org.kde.xwaylandvideobridge.desktop
+if [ -f "$xvb" ]; then
+    grep -q '^Hidden=true' "$xvb" || sed -i '0,/^\[Desktop Entry\]/s//[Desktop Entry]\nHidden=true/' "$xvb"
+fi
+
+# ---------------------------------------------------------------------------
+# 4. Cache rebuilds Fedora runs at every boot, 5 minutes after boot instead.
+# fedora-atomic-desktop-mandb-update (`mandb -q`) and -appstream-cache-refresh
+# (`appstreamcli refresh --force`) are oneshots in multi-user.target: on the
+# first boot mandb alone held graphical.target for 7 s, and on every boot
+# both compete with the login for CPU and disk. lucent-after-boot.timer
+# starts them (through lucent-after-boot.target) when the desktop is idle.
+# ---------------------------------------------------------------------------
+for unit in fedora-atomic-desktop-mandb-update.service fedora-atomic-desktop-appstream-cache-refresh.service; do
+    if systemctl cat "$unit" &>/dev/null; then systemctl disable "$unit"; fi
+done
+systemctl enable lucent-after-boot.timer

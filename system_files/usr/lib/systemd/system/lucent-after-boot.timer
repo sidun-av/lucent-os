@@ -1,0 +1,11 @@
+[Unit]
+Description=Lucent OS: rebuild the man-page and AppStream caches after the login
+Documentation=https://github.com/sidun-av/lucent-os/blob/main/docs/performance.md
+
+[Timer]
+# After lucent-bridge-template.timer (3-4 min), when the desktop is idle.
+OnBootSec=5min
+Unit=lucent-after-boot.target
+
+[Install]
+WantedBy=timers.target
