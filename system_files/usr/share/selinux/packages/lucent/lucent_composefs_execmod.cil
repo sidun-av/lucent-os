@@ -1,0 +1,15 @@
+; Lucent OS: let Windows programs load Wine's DLLs from /usr on composefs.
+;
+; /usr is a composefs (overlayfs) mount made in the initrd, so its mounter
+; is kernel_t. Since Linux checks mmap/mprotect on an overlay file against
+; the backing file with the *mounter's* credentials too, every 32-bit
+; Windows program died when Wine relocated a 32-bit PE DLL from
+; /usr/lib64/wine/i386-windows (execmod) - first seen as Wine asking to
+; download Wine Mono (its removeuserinstalls-x86.exe failed) and Notepad++'s
+; installer never appearing. The program's own domain is still checked
+; (unconfined_t: selinuxuser_execmod); this only stops the mounter check,
+; for files in /usr, from failing.
+(allow kernel_t lib_t (file (execmod)))
+(allow kernel_t textrel_shlib_t (file (execmod)))
+(allow kernel_t usr_t (file (execmod)))
+(allow kernel_t bin_t (file (execmod)))

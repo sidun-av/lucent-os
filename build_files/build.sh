@@ -176,6 +176,13 @@ done
 # 4. Lucent components and services
 # ---------------------------------------------------------------------------
 python3 -m compileall -q /usr/lib/lucent   # /usr is read-only at runtime
+
+# SELinux: Windows programs must be able to load Wine's DLLs from composefs
+# /usr (see the module's comment; found by the x86_64 acceptance test).
+grep -E '^\s*store-root' /etc/selinux/semanage.conf || echo "semanage store-root: default"
+semodule -n -i /usr/share/selinux/packages/lucent/lucent_composefs_execmod.cil
+semodule -l | grep -qx lucent_composefs_execmod || { echo "SELinux module not installed"; exit 1; }
+ls -la /etc/selinux/targeted/policy/
 # Lucent's own UI is written in English; translations (po/*.po) are compiled
 # to /usr/share/locale/<lang>/LC_MESSAGES/lucent.mo and picked by locale.
 PYTHONPATH=/usr/lib/lucent python3 -P -m lucent_migrate.i18n /ctx/migration-wizard/po /usr/share/locale
