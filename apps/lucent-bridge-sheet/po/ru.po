@@ -1,0 +1,65 @@
+# Russian translation of the Lucent launch sheet (apps/lucent-bridge-sheet).
+# English is the source language. Error explanations come translated from
+# lucent-bridge itself.
+msgid ""
+msgstr ""
+"Project-Id-Version: lucent-bridge-sheet\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "Preparing Windows program"
+msgstr "Подготовка Windows-программы"
+
+msgid "Can't start this program"
+msgstr "Не удаётся запустить программу"
+
+msgid "direct execution"
+msgstr "прямое исполнение"
+
+msgid "instruction translation"
+msgstr "перевод инструкций"
+
+msgid "Windows Installer"
+msgstr "Установщик Windows"
+
+msgid "Getting everything ready to launch — only needed the first time"
+msgstr "Готовим всё для запуска — это нужно только в первый раз"
+
+msgid "The first launch takes a little longer — after that it's fast"
+msgstr "Первый запуск чуть дольше — дальше будет быстро"
+
+msgid "Installing components: {}"
+msgstr "Устанавливаем компоненты: {}"
+
+msgid "Starting {}…"
+msgstr "Запускаем {}…"
+
+msgid "Cancelling…"
+msgstr "Отменяем…"
+
+msgid "{}%"
+msgstr "{} %"
+
+msgid "{} bytes"
+msgstr "{} байт"
+
+msgid "{} KB"
+msgstr "{} КБ"
+
+msgid "{} MB"
+msgstr "{} МБ"
+
+msgid "{} GB"
+msgstr "{} ГБ"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Run anyway"
+msgstr "Всё равно запустить"

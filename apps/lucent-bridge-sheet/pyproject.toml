@@ -1,0 +1,13 @@
+[project]
+name = "lucent-bridge-sheet"
+version = "0.1.0"
+description = "Lucent OS: the calm sheet shown while a Windows program is prepared (lucent-bridge progress)"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# lucent_migrate supplies the Pebble Drift tokens and the .po -> .mo writer
+# (both live in /usr/lib/lucent on the image).
+pythonpath = [".", "tests", "../../migration-wizard"]
+addopts = "-q"

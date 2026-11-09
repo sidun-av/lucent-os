@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+# Lucent launch sheet (apps/lucent-bridge-sheet): lucent-bridge starts it and
+# writes its progress to our stdin as JSON lines. Runs as the user.
+export PYTHONPATH=/usr/lib/lucent${PYTHONPATH:+:$PYTHONPATH}
+exec /usr/bin/python3 -P -m lucent_bridge_sheet "$@"

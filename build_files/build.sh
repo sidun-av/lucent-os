@@ -177,6 +177,7 @@ done
 # ---------------------------------------------------------------------------
 /ctx/build_files/lucent-store.sh          # the Store (replaces Discover in the launcher)
 /ctx/build_files/lucent-settings.sh       # Settings (replaces System Settings in the launcher)
+/ctx/build_files/lucent-bridge-sheet.sh   # "Preparing Windows program" sheet for lucent-bridge
 python3 -m compileall -q /usr/lib/lucent   # /usr is read-only at runtime
 
 # SELinux: Windows programs must be able to load Wine's DLLs from composefs
