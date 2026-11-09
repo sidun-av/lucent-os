@@ -10,10 +10,12 @@ DNF=$(command -v dnf5 || command -v dnf)
 DNF_OPTS=(-y --setopt=install_weak_deps=False)
 FEDORA=$(rpm -E %fedora)
 
-# Papirus (Fedora package, GPL-3.0): every icon the Lucent icon theme
+# Papirus (Fedora packages, GPL-3.0): every icon the Lucent icon theme
 # doesn't draw itself (/usr/share/icons/Lucent inherits Papirus-Light,
-# Lucent-Dark inherits Papirus-Dark).
-"$DNF" "${DNF_OPTS[@]}" install papirus-icon-theme
+# Lucent-Dark inherits Papirus-Dark; Fedora ships those two variants as
+# separate packages, without them the chain falls through to Breeze and dark
+# toolbars get dark glyphs).
+"$DNF" "${DNF_OPTS[@]}" install papirus-icon-theme papirus-icon-theme-light papirus-icon-theme-dark
 
 # Rounded window corners + hairline outline: KDE-Rounded-Corners (GPL-3.0)
 # from its author's COPR. Its builds are tied to one KWin release (the RPM

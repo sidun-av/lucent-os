@@ -7,7 +7,7 @@ files are Apache-2.0 like the rest of the repository unless noted.
 
 | Component | Used for | Source | License |
 | --- | --- | --- | --- |
-| Papirus icon theme (`papirus-icon-theme`) | every icon Lucent doesn't draw: Lucent inherits Papirus-Light, Lucent-Dark inherits Papirus-Dark | Fedora repositories; upstream github.com/PapirusDevelopmentTeam/papirus-icon-theme | GPL-3.0-only (some icons CC-BY-SA-4.0, LGPL-3.0-or-later) |
+| Papirus icon themes (`papirus-icon-theme`, `-light`, `-dark`) | every icon Lucent doesn't draw: Lucent inherits Papirus-Light, Lucent-Dark inherits Papirus-Dark | Fedora repositories; upstream github.com/PapirusDevelopmentTeam/papirus-icon-theme | GPL-3.0-only (some icons CC-BY-SA-4.0, LGPL-3.0-or-later) |
 | KDE-Rounded-Corners (`kwin-effect-roundcorners`) | KWin effect: 14 px window corners and the 1 px outline | COPR `matinlotfali/KDE-Rounded-Corners` (the author's own builds); upstream github.com/matinlotfali/KDE-Rounded-Corners | GPL-3.0 |
 | Plymouth spinner frames (`plymouth-theme-spinner`) | throbber of the `lucent` boot splash (copied next to Lucent's logo) | Fedora repositories | GPL-2.0-or-later |
 | Inter (`rsms-inter-fonts`) | UI font | Fedora repositories; upstream rsms.me/inter | OFL-1.1 |
