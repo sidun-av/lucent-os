@@ -14,7 +14,7 @@ mkdir -p "$out/rpms" "$out/bin"
 dnf -y -q --setopt=install_weak_deps=False install dnf5-plugins cpio xz gcc make \
     glib2-devel dbus-devel libical-devel readline-devel python3-docutils > /dev/null
 cd "$out/rpms"
-dnf -y -q download --resolve --arch=x86_64,noarch hostapd dnsmasq iw
+dnf -y -q download --resolve hostapd dnsmasq iw
 if ! dnf -y -q download "kernel-modules-internal-${kver%.x86_64}"; then
     v=${kver%%-*} r=${kver#*-}
     r=${r%.x86_64}
@@ -25,7 +25,9 @@ tmp=$(mktemp -d)
 for p in hostapd dnsmasq; do
     (cd "$tmp" && rpm2cpio "$out"/rpms/$p-[0-9]*.rpm | cpio -idm --quiet)
 done
-cp "$tmp/usr/sbin/hostapd" "$tmp/usr/sbin/dnsmasq" "$out/bin/"
+# /usr/sbin is /usr/bin since Fedora 42; either way, take the binaries.
+find "$tmp/usr" -type f \( -name hostapd -o -name dnsmasq \) -exec cp {} "$out/bin/" \;
+test -x "$out/bin/hostapd" && test -x "$out/bin/dnsmasq"
 bz=$(dnf -q repoquery --qf '%{version}\n' --latest-limit=1 bluez | tail -n1)
 cd "$tmp"
 curl -fsSL --retry 5 -o bluez.tar.xz "https://www.kernel.org/pub/linux/bluetooth/bluez-$bz.tar.xz"
