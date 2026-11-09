@@ -1,0 +1,13 @@
+# TEST-ONLY (tests/devices/vm): record devices, then power off.
+[Unit]
+Description=Record devices for the lucent-devices CI check
+After=systemd-udevd.service systemd-journald.service systemd-udev-trigger.service local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/lucent-devices-ci/dump.sh
+StandardOutput=journal+console
+TimeoutStartSec=600
+
+[Install]
+WantedBy=multi-user.target

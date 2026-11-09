@@ -1,0 +1,5 @@
+# bootc-image-builder config for the devices VM check: no users, nobody
+# logs in; the image's own one-shot service records and powers off.
+[[customizations.filesystem]]
+mountpoint = "/"
+minsize = "20 GiB"

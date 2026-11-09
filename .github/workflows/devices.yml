@@ -1,0 +1,172 @@
+name: devices
+
+# lucent-devices (system_files/usr/lib/lucent/lucent_devices): the
+# "Device Manager" backend. Separate from build/vm/iso/acceptance so it
+# never slows them down.
+#   unit:      pytest on recorded udev/kernel-log fixtures (tests/devices).
+#   container: the published x86_64 image as a container on the CI runner,
+#              reading the runner's own udev database and kernel log.
+#   vm-x86:    (manual) a test-only derivative of the published image booted
+#              under QEMU/KVM with emulated sound, network, USB and a PCI
+#              device no driver claims; records udev, kernel log, lspci/lsusb
+#              and lucent-devices output. Emulated hardware, not real.
+on:
+  push:
+    branches: [main]
+    paths:
+      - system_files/usr/lib/lucent/lucent_devices/**
+      - system_files/usr/bin/lucent-devices
+      - tests/devices/**
+      - .github/workflows/devices.yml
+  pull_request:
+    paths:
+      - system_files/usr/lib/lucent/lucent_devices/**
+      - system_files/usr/bin/lucent-devices
+      - tests/devices/**
+  workflow_dispatch:
+    inputs:
+      vm:
+        description: Also boot the x86_64 image under KVM (about 40 minutes)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/lucent-os
+
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: pip install -q pytest
+      - name: pytest (lucent-devices on recorded fixtures)
+        run: |
+          if ls tests/devices/test_*.py > /dev/null 2>&1; then
+            PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -v -p no:cacheprovider tests/devices
+          else
+            echo "::notice::no tests yet"
+          fi
+
+  container:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost || true
+      - name: Pull the published x86_64 image
+        run: |
+          command -v podman || (sudo apt-get update -qq && sudo apt-get install -y -qq podman)
+          sudo podman pull -q "$IMAGE:latest-amd64"
+          sudo podman image inspect "$IMAGE:latest-amd64" --format '{{index .Labels "org.opencontainers.image.revision"}}'
+      - name: lucent-devices inside the image, on the runner's devices
+        run: |
+          mkdir -p out
+          # The runner's kernel log, as the tool would read it on a real system.
+          sudo journalctl -k -b 0 -o cat --no-pager > out/kernel.log
+          # The commit's code over the image's (the image may predate it).
+          sudo podman run --rm -v /run/udev:/run/udev:ro -v ./system_files:/src:ro -v ./out:/out \
+            "$IMAGE:latest-amd64" bash -euxc '
+              udevadm info --export-db > /out/udev.txt
+              cp -r /src/usr/lib/lucent/. /usr/lib/lucent/ && cp /src/usr/bin/lucent-devices /usr/bin/ || exit 0
+              lucent-devices --kernel-log /out/kernel.log --json | tee /out/devices.json
+              lucent-devices --kernel-log /out/kernel.log | tee /out/devices.txt
+              LANG=ru_RU.UTF-8 lucent-devices --kernel-log /out/kernel.log | tee /out/devices.ru.txt
+              # Live path (journalctl/dmesg inside a container: expected unreadable).
+              lucent-devices --json > /out/devices-live.json
+              python3 -c "import json; d = json.load(open(\"/out/devices.json\")); assert d[\"devices\"], d"
+            '
+          sudo chown -R "$USER" out
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: devices-container-x86_64
+          path: out
+          retention-days: 14
+
+  vm-x86:
+    if: github.event_name == 'workflow_dispatch' && inputs.vm
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    concurrency:
+      group: devices-vm-x86
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost || true
+          df -h /
+      - name: Tools and KVM
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils ovmf dosfstools mtools > /dev/null
+          command -v podman || sudo apt-get install -y -qq podman
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -r /dev/kvm && test -w /dev/kvm
+      - name: Build the test-only derived image
+        run: |
+          sudo podman build --pull=newer --build-arg IMAGE="$IMAGE:latest-amd64" \
+            -t localhost/lucent-devices-ci:latest -f tests/devices/vm/Containerfile .
+          sudo podman image inspect "$IMAGE:latest-amd64" --format '{{index .Labels "org.opencontainers.image.revision"}}' | tee image-revision.txt
+      - name: bootc-image-builder (qcow2)
+        run: |
+          mkdir -p output
+          sudo podman run --rm --privileged --pull=newer \
+            --security-opt label=type:unconfined_t \
+            -v ./tests/devices/vm/config.toml:/config.toml:ro \
+            -v ./output:/output \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            quay.io/centos-bootc/bootc-image-builder:latest \
+            --type qcow2 --rootfs btrfs \
+            localhost/lucent-devices-ci:latest
+          sudo chown -R "$USER" output
+          sudo podman rmi -a -f > /dev/null || true
+      - name: Boot under KVM (emulated hardware) and record
+        run: |
+          truncate -s 256M out.img && mkfs.vfat -n DEVOUT out.img
+          truncate -s 64M stick.img && mkfs.vfat -n STICK stick.img
+          cp /usr/share/OVMF/OVMF_VARS_4M.fd vars.fd
+          # Sound (HDA codec, USB audio), network (e1000e, offline), USB
+          # keyboard/tablet/stick on xHCI, standard VGA, and pci-testdev:
+          # a PCI device no Linux driver claims ("Needs a driver" path).
+          timeout 1500 qemu-system-x86_64 -enable-kvm -cpu host -machine q35 -smp 2 -m 4096 \
+            -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
+            -drive if=pflash,format=raw,file=vars.fd \
+            -drive file=output/qcow2/disk.qcow2,format=qcow2,if=virtio \
+            -drive file=out.img,format=raw,if=virtio \
+            -nic user,model=e1000e,restrict=on \
+            -audiodev none,id=snd0 -device intel-hda -device hda-duplex,audiodev=snd0 \
+            -device qemu-xhci,id=xhci -device usb-kbd,bus=xhci.0 -device usb-tablet,bus=xhci.0 \
+            -device usb-audio,bus=xhci.0,audiodev=snd0 \
+            -drive if=none,id=stick,file=stick.img,format=raw -device usb-storage,bus=xhci.0,drive=stick \
+            -device pci-testdev \
+            -display none -serial file:serial.log -no-reboot || echo "qemu exit $?"
+          mkdir -p rec
+          mcopy -s -i out.img ::* rec/ || true
+          cp serial.log image-revision.txt rec/
+          ls -la rec
+          tail -n 40 serial.log
+          test -s rec/udev.txt
+      - name: Show lucent-devices output
+        if: always()
+        run: |
+          for f in rec/devices.txt rec/devices.ru.txt rec/devices.err rec/lspci.txt; do
+            echo "== $f"; cat "$f" 2>/dev/null || true
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: devices-vm-x86_64
+          path: rec
+          retention-days: 14

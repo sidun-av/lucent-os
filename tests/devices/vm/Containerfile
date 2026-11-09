@@ -1,0 +1,11 @@
+# TEST-ONLY derivative of the published image for .github/workflows/devices.yml:
+# boots once under QEMU/KVM, records what udev and the kernel saw
+# (rootfs/usr/libexec/lucent-devices-ci/dump.sh) onto a second disk, then
+# powers off. Never pushed. Build context: the repo root, so lucent-devices
+# comes from the commit under test, not from the published image.
+ARG IMAGE=ghcr.io/sidun-av/lucent-os:latest
+FROM ${IMAGE}
+COPY tests/devices/vm/rootfs/ /
+COPY system_files/usr/lib/lucent/ /usr/lib/lucent/
+COPY system_files/usr/bin/ /usr/bin/
+RUN systemctl enable lucent-devices-ci.service && bootc container lint

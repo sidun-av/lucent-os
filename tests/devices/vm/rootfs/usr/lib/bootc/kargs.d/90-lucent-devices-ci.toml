@@ -1,0 +1,2 @@
+# TEST-ONLY (tests/devices/vm): kernel and service messages on the serial port.
+kargs = ["console=ttyS0,115200"]
