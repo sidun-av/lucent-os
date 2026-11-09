@@ -23,6 +23,7 @@ tools/vm/shot.sh out.png     # QMP screendump
 tools/vm/keys.sh meta        # Win key alone; also meta-e, alt-tab, alt-shift, esc, alt-f4
 tools/vm/keys.sh --type 'text'
 tools/vm/click.sh 640 400 right   # pointer click at pixel X Y (left/right/middle)
+tools/vm/usb.sh attach stick.img  # hot-plug a raw USB stick image (usb.sh detach pulls it out)
 tools/vm/run.sh --stop       # ACPI power-down, then kill
 ```
 

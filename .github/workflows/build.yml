@@ -54,6 +54,13 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: pytest -v
+      - name: This PC (kio_thispc logic, defaults, translations)
+        run: |
+          sudo apt-get install -y -qq cmake qt6-base-dev
+          cmake -S build_files/thispc -B /tmp/thispc
+          cmake --build /tmp/thispc --parallel
+          (cd /tmp/thispc && ctest --output-on-failure)
+          pytest -v -p no:cacheprovider build_files/thispc/tests
 
   image:
     needs: test
