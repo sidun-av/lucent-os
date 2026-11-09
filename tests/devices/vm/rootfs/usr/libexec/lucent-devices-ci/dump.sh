@@ -25,6 +25,18 @@ if command -v lucent-devices > /dev/null; then
     # Without the right to read the kernel log it must say so, not guess.
     runuser -u nobody -- lucent-devices --json > "$out/devices-nobody.json" 2>> "$out/devices.err"
 fi
+# A real "no driver" state: unbind the sound card's driver, as if Lucent had
+# no driver for it, and record again.
+for dev in /sys/bus/pci/drivers/snd_hda_intel/0000:*; do
+    [ -e "$dev" ] && echo "${dev##*/}" > /sys/bus/pci/drivers/snd_hda_intel/unbind
+done
+sleep 3
+udevadm settle -t 60
+udevadm info --export-db > "$out/udev-unbound.txt" 2>&1
+if command -v lucent-devices > /dev/null; then
+    lucent-devices --json > "$out/devices-unbound.json" 2>> "$out/devices.err"
+    lucent-devices > "$out/devices-unbound.txt" 2>> "$out/devices.err"
+fi
 ls -la "$out"
 sync
 umount "$out"

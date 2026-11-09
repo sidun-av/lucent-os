@@ -1,0 +1,525 @@
+P: /devices/pci0000:00/0000:00:00.0
+M: 0000:00:00.0
+U: pci
+E: DEVPATH=/devices/pci0000:00/0000:00:00.0
+E: PCI_CLASS=60000
+E: PCI_ID=8086:4621
+E: MODALIAS=pci:v00008086d00004621sv000017AAsd00003F18bc06sc00i00
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Intel Corporation
+E: ID_MODEL_FROM_DATABASE=12th Gen Core Processor Host Bridge/DRAM Registers
+
+P: /devices/pci0000:00/0000:00:02.0
+M: 0000:00:02.0
+U: pci
+V: i915
+E: DEVPATH=/devices/pci0000:00/0000:00:02.0
+E: DRIVER=i915
+E: PCI_CLASS=30000
+E: PCI_ID=8086:46A6
+E: MODALIAS=pci:v00008086d000046A6sv000017AAsd00003F18bc03sc00i00
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Intel Corporation
+E: ID_MODEL_FROM_DATABASE=Alder Lake-P GT2 [Iris Xe Graphics]
+
+P: /devices/pci0000:00/0000:00:02.0/drm/card1
+M: card1
+U: drm
+T: drm_minor
+D: c 226:1
+N: dri/card1
+E: DEVPATH=/devices/pci0000:00/0000:00:02.0/drm/card1
+E: DEVNAME=/dev/dri/card1
+E: DEVTYPE=drm_minor
+E: SUBSYSTEM=drm
+
+P: /devices/pci0000:00/0000:00:02.0/drm/card1/card1-eDP-1
+M: card1-eDP-1
+U: drm
+T: drm_connector
+E: DEVPATH=/devices/pci0000:00/0000:00:02.0/drm/card1/card1-eDP-1
+E: DEVTYPE=drm_connector
+E: SUBSYSTEM=drm
+
+P: /devices/pci0000:00/0000:00:02.0/drm/renderD128
+M: renderD128
+U: drm
+T: drm_minor
+E: DEVPATH=/devices/pci0000:00/0000:00:02.0/drm/renderD128
+E: DEVTYPE=drm_minor
+E: SUBSYSTEM=drm
+
+P: /devices/pci0000:00/0000:00:04.0
+M: 0000:00:04.0
+U: pci
+E: DEVPATH=/devices/pci0000:00/0000:00:04.0
+E: PCI_CLASS=118000
+E: PCI_ID=8086:461D
+E: MODALIAS=pci:v00008086d0000461Dsv000017AAsd00003F18bc11sc80i00
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Intel Corporation
+E: ID_MODEL_FROM_DATABASE=Alder Lake Innovation Platform Framework Processor Participant
+
+P: /devices/pci0000:00/0000:00:14.0
+M: 0000:00:14.0
+U: pci
+V: xhci_hcd
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0
+E: DRIVER=xhci_hcd
+E: PCI_CLASS=C0330
+E: PCI_ID=8086:51ED
+E: MODALIAS=pci:v00008086d000051EDsv000017AAsd00003F18bc0Csc03i30
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Intel Corporation
+E: ID_MODEL_FROM_DATABASE=Alder Lake PCH USB 3.2 xHCI Host Controller
+
+P: /devices/pci0000:00/0000:00:14.0/usb3
+M: usb3
+U: usb
+T: usb_device
+V: usb
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3
+E: DEVTYPE=usb_device
+E: DRIVER=usb
+E: PRODUCT=1d6b/2/614
+E: TYPE=9/0/1
+E: SUBSYSTEM=usb
+E: ID_VENDOR_ID=1d6b
+E: ID_MODEL_ID=0002
+E: ID_VENDOR_FROM_DATABASE=Linux Foundation
+E: ID_MODEL_FROM_DATABASE=2.0 root hub
+E: ID_USB_INTERFACES=:090000:
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-1
+M: 3-1
+U: usb
+T: usb_device
+V: usb
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-1
+E: DEVTYPE=usb_device
+E: DRIVER=usb
+E: PRODUCT=781/5583/100
+E: TYPE=0/0/0
+E: SUBSYSTEM=usb
+E: ID_VENDOR=SanDisk
+E: ID_VENDOR_ID=0781
+E: ID_MODEL=Ultra_Fit
+E: ID_MODEL_ENC=Ultra\x20Fit\x20\x20\x20\x20\x20\x20\x20\x20
+E: ID_MODEL_ID=5583
+E: ID_VENDOR_FROM_DATABASE=SanDisk Corp.
+E: ID_MODEL_FROM_DATABASE=Ultra Fit
+E: ID_USB_INTERFACES=:080650:
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-1/3-1:1.0
+M: 3-1:1.0
+U: usb
+T: usb_interface
+V: usb-storage
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-1/3-1:1.0
+E: DEVTYPE=usb_interface
+E: DRIVER=usb-storage
+E: INTERFACE=8/6/80
+E: SUBSYSTEM=usb
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-1/3-1:1.0/host2/target2:0:0/2:0:0:0/block/sda
+M: sda
+U: block
+T: disk
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-1/3-1:1.0/host2/target2:0:0/2:0:0:0/block/sda
+E: DEVTYPE=disk
+E: SUBSYSTEM=block
+E: ID_BUS=usb
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-2
+M: 3-2
+U: usb
+T: usb_device
+V: usb
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-2
+E: DEVTYPE=usb_device
+E: DRIVER=usb
+E: PRODUCT=46d/c077/7200
+E: SUBSYSTEM=usb
+E: ID_VENDOR=Logitech
+E: ID_VENDOR_ID=046d
+E: ID_MODEL=USB_Optical_Mouse
+E: ID_MODEL_ID=c077
+E: ID_VENDOR_FROM_DATABASE=Logitech, Inc.
+E: ID_MODEL_FROM_DATABASE=Mouse
+E: ID_USB_INTERFACES=:030102:
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-2/3-2:1.0
+M: 3-2:1.0
+U: usb
+T: usb_interface
+V: usbhid
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-2/3-2:1.0
+E: DEVTYPE=usb_interface
+E: DRIVER=usbhid
+E: INTERFACE=3/1/2
+E: SUBSYSTEM=usb
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-2/3-2:1.0/0003:046D:C077.0002
+M: 0003:046D:C077.0002
+U: hid
+V: hid-generic
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-2/3-2:1.0/0003:046D:C077.0002
+E: DRIVER=hid-generic
+E: HID_NAME=Logitech USB Optical Mouse
+E: SUBSYSTEM=hid
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-2/3-2:1.0/0003:046D:C077.0002/input/input14
+M: input14
+U: input
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-2/3-2:1.0/0003:046D:C077.0002/input/input14
+E: NAME="Logitech USB Optical Mouse"
+E: SUBSYSTEM=input
+E: ID_INPUT=1
+E: ID_INPUT_MOUSE=1
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-4
+M: 3-4
+U: usb
+T: usb_device
+V: usb
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-4
+E: DEVTYPE=usb_device
+E: DRIVER=usb
+E: PRODUCT=6cb/a8/0
+E: SUBSYSTEM=usb
+E: ID_VENDOR_ID=06cb
+E: ID_MODEL_ID=00a8
+E: ID_VENDOR_FROM_DATABASE=Synaptics, Inc.
+E: ID_USB_INTERFACES=:ff0000:
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-4/3-4:1.0
+M: 3-4:1.0
+U: usb
+T: usb_interface
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-4/3-4:1.0
+E: DEVTYPE=usb_interface
+E: INTERFACE=255/0/0
+E: SUBSYSTEM=usb
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-6
+M: 3-6
+U: usb
+T: usb_device
+V: usb
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-6
+E: DEVTYPE=usb_device
+E: DRIVER=usb
+E: PRODUCT=4f2/b6dd/1015
+E: TYPE=239/2/1
+E: SUBSYSTEM=usb
+E: ID_VENDOR=Chicony_Electronics_Co.,Ltd.
+E: ID_VENDOR_ID=04f2
+E: ID_MODEL=Integrated_Camera
+E: ID_MODEL_ENC=Integrated\x20Camera
+E: ID_MODEL_ID=b6dd
+E: ID_VENDOR_FROM_DATABASE=Chicony Electronics Co., Ltd
+E: ID_USB_INTERFACES=:0e0100:0e0200:
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-6/3-6:1.0
+M: 3-6:1.0
+U: usb
+T: usb_interface
+V: uvcvideo
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-6/3-6:1.0
+E: DEVTYPE=usb_interface
+E: DRIVER=uvcvideo
+E: INTERFACE=14/1/0
+E: SUBSYSTEM=usb
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-6/3-6:1.0/video4linux/video0
+M: video0
+U: video4linux
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-6/3-6:1.0/video4linux/video0
+E: SUBSYSTEM=video4linux
+E: ID_V4L_CAPABILITIES=:capture:
+E: ID_V4L_PRODUCT=Integrated Camera: Integrated C
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-6/3-6:1.1
+M: 3-6:1.1
+U: usb
+T: usb_interface
+V: uvcvideo
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-6/3-6:1.1
+E: DEVTYPE=usb_interface
+E: DRIVER=uvcvideo
+E: INTERFACE=14/2/0
+E: SUBSYSTEM=usb
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-10
+M: 3-10
+U: usb
+T: usb_device
+V: usb
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-10
+E: DEVTYPE=usb_device
+E: DRIVER=usb
+E: PRODUCT=8087/33/0
+E: TYPE=224/1/1
+E: SUBSYSTEM=usb
+E: ID_VENDOR_ID=8087
+E: ID_MODEL_ID=0033
+E: ID_VENDOR_FROM_DATABASE=Intel Corp.
+E: ID_MODEL_FROM_DATABASE=AX211 Bluetooth
+E: ID_USB_INTERFACES=:e00101:
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-10/3-10:1.0
+M: 3-10:1.0
+U: usb
+T: usb_interface
+V: btusb
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-10/3-10:1.0
+E: DEVTYPE=usb_interface
+E: DRIVER=btusb
+E: INTERFACE=224/1/1
+E: SUBSYSTEM=usb
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-10/3-10:1.0/bluetooth/hci0
+M: hci0
+U: bluetooth
+T: host
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-10/3-10:1.0/bluetooth/hci0
+E: DEVTYPE=host
+E: SUBSYSTEM=bluetooth
+
+P: /devices/pci0000:00/0000:00:14.0/usb3/3-10/3-10:1.0/bluetooth/hci0/rfkill2
+M: rfkill2
+U: rfkill
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb3/3-10/3-10:1.0/bluetooth/hci0/rfkill2
+E: RFKILL_NAME=hci0
+E: RFKILL_TYPE=bluetooth
+E: RFKILL_STATE=1
+E: SUBSYSTEM=rfkill
+
+P: /devices/pci0000:00/0000:00:14.3
+M: 0000:00:14.3
+U: pci
+V: iwlwifi
+E: DEVPATH=/devices/pci0000:00/0000:00:14.3
+E: DRIVER=iwlwifi
+E: PCI_CLASS=28000
+E: PCI_ID=8086:51F0
+E: MODALIAS=pci:v00008086d000051F0sv00008086sd00000090bc02sc80i00
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Intel Corporation
+E: ID_MODEL_FROM_DATABASE=Alder Lake-P PCH CNVi WiFi (Wi-Fi 6E AX211 160MHz)
+
+P: /devices/pci0000:00/0000:00:14.3/net/wlp0s20f3
+M: wlp0s20f3
+U: net
+T: wlan
+E: DEVPATH=/devices/pci0000:00/0000:00:14.3/net/wlp0s20f3
+E: DEVTYPE=wlan
+E: INTERFACE=wlp0s20f3
+E: SUBSYSTEM=net
+
+P: /devices/pci0000:00/0000:00:14.3/ieee80211/phy0/rfkill1
+M: rfkill1
+U: rfkill
+E: DEVPATH=/devices/pci0000:00/0000:00:14.3/ieee80211/phy0/rfkill1
+E: RFKILL_NAME=phy0
+E: RFKILL_TYPE=wlan
+E: RFKILL_STATE=1
+E: SUBSYSTEM=rfkill
+
+P: /devices/pci0000:00/0000:00:15.0
+M: 0000:00:15.0
+U: pci
+V: intel-lpss
+E: DEVPATH=/devices/pci0000:00/0000:00:15.0
+E: DRIVER=intel-lpss
+E: PCI_CLASS=C8000
+E: PCI_ID=8086:51E8
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Intel Corporation
+E: ID_MODEL_FROM_DATABASE=Alder Lake PCH Serial IO I2C Controller #0
+
+P: /devices/pci0000:00/0000:00:15.0/i2c_designware.0/i2c-0/i2c-ELAN0670:00
+M: i2c-ELAN0670:00
+U: i2c
+V: i2c_hid_acpi
+E: DEVPATH=/devices/pci0000:00/0000:00:15.0/i2c_designware.0/i2c-0/i2c-ELAN0670:00
+E: DRIVER=i2c_hid_acpi
+E: MODALIAS=acpi:ELAN0670:PNP0C50:
+E: SUBSYSTEM=i2c
+
+P: /devices/pci0000:00/0000:00:15.0/i2c_designware.0/i2c-0/i2c-ELAN0670:00/0018:04F3:3150.0001
+M: 0018:04F3:3150.0001
+U: hid
+V: hid-multitouch
+E: DEVPATH=/devices/pci0000:00/0000:00:15.0/i2c_designware.0/i2c-0/i2c-ELAN0670:00/0018:04F3:3150.0001
+E: DRIVER=hid-multitouch
+E: HID_NAME=ELAN0670:00 04F3:3150
+E: SUBSYSTEM=hid
+
+P: /devices/pci0000:00/0000:00:15.0/i2c_designware.0/i2c-0/i2c-ELAN0670:00/0018:04F3:3150.0001/input/input12
+M: input12
+U: input
+E: DEVPATH=/devices/pci0000:00/0000:00:15.0/i2c_designware.0/i2c-0/i2c-ELAN0670:00/0018:04F3:3150.0001/input/input12
+E: NAME="ELAN0670:00 04F3:3150 Touchpad"
+E: SUBSYSTEM=input
+E: ID_INPUT=1
+E: ID_INPUT_TOUCHPAD=1
+
+P: /devices/pci0000:00/0000:00:1f.3
+M: 0000:00:1f.3
+U: pci
+V: sof-audio-pci-intel-tgl
+E: DEVPATH=/devices/pci0000:00/0000:00:1f.3
+E: DRIVER=sof-audio-pci-intel-tgl
+E: PCI_CLASS=40100
+E: PCI_ID=8086:51C8
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Intel Corporation
+E: ID_MODEL_FROM_DATABASE=Alder Lake PCH-P High Definition Audio Controller
+
+P: /devices/pci0000:00/0000:00:1f.3/skl_hda_dsp_generic/sound/card0
+M: card0
+U: sound
+E: DEVPATH=/devices/pci0000:00/0000:00:1f.3/skl_hda_dsp_generic/sound/card0
+E: SUBSYSTEM=sound
+E: ID_MODEL_FROM_DATABASE=Alder Lake PCH-P High Definition Audio Controller
+
+P: /devices/pci0000:00/0000:00:1f.4
+M: 0000:00:1f.4
+U: pci
+V: i801_smbus
+E: DEVPATH=/devices/pci0000:00/0000:00:1f.4
+E: DRIVER=i801_smbus
+E: PCI_CLASS=C0500
+E: PCI_ID=8086:51A3
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Intel Corporation
+E: ID_MODEL_FROM_DATABASE=Alder Lake PCH-P SMBus Host Controller
+
+P: /devices/pci0000:00/0000:00:1c.0
+M: 0000:00:1c.0
+U: pci
+V: pcieport
+E: DEVPATH=/devices/pci0000:00/0000:00:1c.0
+E: DRIVER=pcieport
+E: PCI_CLASS=60400
+E: PCI_ID=8086:51BC
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Intel Corporation
+E: ID_MODEL_FROM_DATABASE=Alder Lake PCI Express Root Port
+
+P: /devices/pci0000:00/0000:00:1c.0/0000:01:00.0
+M: 0000:01:00.0
+U: pci
+V: nvme
+E: DEVPATH=/devices/pci0000:00/0000:00:1c.0/0000:01:00.0
+E: DRIVER=nvme
+E: PCI_CLASS=10802
+E: PCI_ID=144D:A80A
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Samsung Electronics Co Ltd
+E: ID_MODEL_FROM_DATABASE=NVMe SSD Controller PM9A1/PM9A3/980PRO
+
+P: /devices/pci0000:00/0000:00:1c.0/0000:01:00.0/nvme/nvme0/nvme0n1
+M: nvme0n1
+U: block
+T: disk
+E: DEVPATH=/devices/pci0000:00/0000:00:1c.0/0000:01:00.0/nvme/nvme0/nvme0n1
+E: DEVTYPE=disk
+E: SUBSYSTEM=block
+
+P: /devices/pci0000:00/0000:00:1c.0/0000:01:00.0/nvme/nvme0/nvme0n1/nvme0n1p1
+M: nvme0n1p1
+U: block
+T: partition
+E: DEVPATH=/devices/pci0000:00/0000:00:1c.0/0000:01:00.0/nvme/nvme0/nvme0n1/nvme0n1p1
+E: DEVTYPE=partition
+E: SUBSYSTEM=block
+
+P: /devices/pci0000:00/0000:00:1c.4/0000:02:00.0
+M: 0000:02:00.0
+U: pci
+E: DEVPATH=/devices/pci0000:00/0000:00:1c.4/0000:02:00.0
+E: PCI_CLASS=28000
+E: PCI_ID=14E4:43B1
+E: MODALIAS=pci:v000014E4d000043B1sv00001028sd00000019bc02sc80i00
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Broadcom Inc. and subsidiaries
+E: ID_MODEL_FROM_DATABASE=BCM4352 802.11ac Dual Band Wireless Network Adapter
+
+P: /devices/pci0000:00/0000:00:1c.5/0000:03:00.0
+M: 0000:03:00.0
+U: pci
+V: r8169
+E: DEVPATH=/devices/pci0000:00/0000:00:1c.5/0000:03:00.0
+E: DRIVER=r8169
+E: PCI_CLASS=20000
+E: PCI_ID=10EC:8168
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Realtek Semiconductor Co., Ltd.
+E: ID_MODEL_FROM_DATABASE=RTL8111/8168/8211/8411 PCI Express Gigabit Ethernet Controller
+
+P: /devices/pci0000:00/0000:00:1c.5/0000:03:00.0/net/enp3s0
+M: enp3s0
+U: net
+E: DEVPATH=/devices/pci0000:00/0000:00:1c.5/0000:03:00.0/net/enp3s0
+E: INTERFACE=enp3s0
+E: SUBSYSTEM=net
+
+P: /devices/pci0000:00/0000:00:1c.6/0000:04:00.0
+M: 0000:04:00.0
+U: pci
+E: DEVPATH=/devices/pci0000:00/0000:00:1c.6/0000:04:00.0
+E: PCI_CLASS=28000
+E: PCI_ID=10EC:B852
+E: SUBSYSTEM=pci
+E: ID_VENDOR_FROM_DATABASE=Realtek Semiconductor Co., Ltd.
+E: ID_MODEL_FROM_DATABASE=RTL8852BE PCIe 802.11ax Wireless Network Controller
+
+P: /devices/platform/i8042/serio0
+M: serio0
+U: serio
+V: atkbd
+E: DEVPATH=/devices/platform/i8042/serio0
+E: DRIVER=atkbd
+E: SUBSYSTEM=serio
+
+P: /devices/platform/i8042/serio0/input/input3
+M: input3
+U: input
+E: DEVPATH=/devices/platform/i8042/serio0/input/input3
+E: NAME="AT Translated Set 2 keyboard"
+E: SUBSYSTEM=input
+E: ID_INPUT=1
+E: ID_INPUT_KEY=1
+E: ID_INPUT_KEYBOARD=1
+
+P: /devices/LNXSYSTM:00/LNXPWRBN:00/input/input2
+M: input2
+U: input
+E: DEVPATH=/devices/LNXSYSTM:00/LNXPWRBN:00/input/input2
+E: NAME="Power Button"
+E: SUBSYSTEM=input
+E: ID_INPUT=1
+E: ID_INPUT_KEY=1
+
+P: /devices/platform/regulatory.0
+M: regulatory.0
+U: platform
+E: DEVPATH=/devices/platform/regulatory.0
+E: SUBSYSTEM=platform
+
+P: /devices/virtual/net/lo
+M: lo
+U: net
+E: DEVPATH=/devices/virtual/net/lo
+E: INTERFACE=lo
+E: SUBSYSTEM=net
+
+P: /devices/virtual/block/zram0
+M: zram0
+U: block
+T: disk
+E: DEVPATH=/devices/virtual/block/zram0
+E: DEVTYPE=disk
+E: SUBSYSTEM=block

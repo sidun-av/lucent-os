@@ -75,12 +75,19 @@ jobs:
           sudo podman run --rm -v /run/udev:/run/udev:ro -v ./system_files:/src:ro -v ./out:/out \
             "$IMAGE:latest-amd64" bash -euxc '
               udevadm info --export-db > /out/udev.txt
+              # The copy the published image ships (proves it is wired in),
+              # if that image already has it.
+              if command -v lucent-devices; then
+                lucent-devices --kernel-log /out/kernel.log > /out/devices-image.txt || test $? = 1
+                cat /out/devices-image.txt
+              fi
               cp -r /src/usr/lib/lucent/. /usr/lib/lucent/ && cp /src/usr/bin/lucent-devices /usr/bin/ || exit 0
               lucent-devices --kernel-log /out/kernel.log --json | tee /out/devices.json
               lucent-devices --kernel-log /out/kernel.log | tee /out/devices.txt
               LANG=ru_RU.UTF-8 lucent-devices --kernel-log /out/kernel.log | tee /out/devices.ru.txt
               # Live path (journalctl/dmesg inside a container: expected unreadable).
-              lucent-devices --json > /out/devices-live.json
+              lucent-devices --json > /out/devices-live.json || test $? = 1
+              python3 -c "import json; d = json.load(open(\"/out/devices-live.json\")); print(d[\"summary\"], d[\"kernel_log\"])"
               python3 -c "import json; d = json.load(open(\"/out/devices.json\")); assert d[\"devices\"], d"
             '
           sudo chown -R "$USER" out

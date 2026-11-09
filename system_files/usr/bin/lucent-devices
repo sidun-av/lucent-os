@@ -1,0 +1,8 @@
+#!/usr/bin/python3 -P
+"""Lucent: list this computer's devices and whether each one works (docs/specs/devices-page.md)."""
+import sys
+
+sys.path.insert(0, "/usr/lib/lucent")
+from lucent_devices.cli import main  # noqa: E402
+
+raise SystemExit(main())
