@@ -1,65 +1,104 @@
 #!/usr/bin/env python3
-"""Generate the Lucent Kvantum theme (widget style for Qt apps), light + dark.
+"""Generate the Lucent Kvantum themes (widget style for Qt apps): Pebble Drift,
+light + dark, one theme per accent swatch.
 
 Breeze has no knobs for radii, field shapes or menu metrics, so native Qt
 apps (Dolphin, System Settings' widgets, Konsole, Ark, Okular...) are drawn
-with Kvantum, an SVG-driven Qt style. This script writes one theme folder
-with both variants (Kvantum's "Dark in the light folder" layout):
+with Kvantum, an SVG-driven Qt style. Every theme folder holds both variants
+(Kvantum's "Dark in the light folder" layout); widgetStyle=lucent picks the
+light one, lucent-dark the dark one:
 
-  Lucent/Lucent.kvconfig + Lucent.svg            widgetStyle=kvantum
-  Lucent/LucentDark.kvconfig + LucentDark.svg    widgetStyle=kvantum-dark
+  Lucent/Lucent{,Dark}.{kvconfig,svg}                  Indigo (the default)
+  Lucent<Accent>/Lucent<Accent>{,Dark}.{kvconfig,svg}  Azure, Lagoon, ... Slate
 
-Shapes and colours come from docs/mockups/lucent.css:
-  fields and push buttons   --field, radius 10, no border (buttons: 1 px --line)
-  tool buttons              flat; grouped toolbar buttons form a segmented
-                            control (.seg): --field track, raised --win-bg segment
-  menus / combo popups      --popup-bg, radius 12, 1 px line, soft shadow
-  menu items, list items    radius 8 pills: hover --hover, selection --sel
-  scrollbars                thin overlay pills (transient)
-  checkboxes / radios       .chk: 18 px, radius 6, accent when on
+Kvantum's SVGs can't follow the palette, so an accent is a theme; `lucent-theme`
+switches between them (~/.config/Kvantum/kvantum.kvconfig).
+
+Shapes and colours come from docs/mockups/concepts-2026/pebble-drift/
+pebble-drift.css (design/tokens.py):
+  push buttons, combos, the "on" segment and tab   raised pillow: --surface-raised
+        -> -raised-2 gradient, 1 px ring, 1 px soft drop, top highlight, radius 10
+  fields, spin boxes, segmented tracks, progress    sunken well: --surface-sunken,
+        inner ring + top inner shadow (--shadow-sunken), radius 10
+  menus / combo popups / tooltips                   --surface-popover, radius 12,
+        hairline, long soft shadow
+  menu items                                        --accent-soft pill
+  item views                                        hover --state-hover; selected
+        --surface-selected with a --accent-ring outline (.card.sel)
+  checkboxes / radios                               18 px, radius 6, accent when on
 Every element Kvantum's built-in default theme would otherwise supply is
 generated here, so nothing falls back to its dark "Enlightenment" look.
 
 Run: python3 design/gen_kvantum.py
-Output: system_files/usr/share/Kvantum/Lucent/
+Output: system_files/usr/share/Kvantum/Lucent*/
 """
+import shutil
+import sys
+import math
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "system_files/usr/share/Kvantum/Lucent"
+import tokens
 
-LIGHT = dict(
-    name="Lucent", dark=False,
-    text="#1b1f27", text2="#4c5463", text3="#6a7282", disabled="#9aa1ae",
-    window="#f4f5f8", base="#ffffff", alt_base="#f7f8fa", field="#eceef3",
-    field_hover="#e4e7ee", field_press="#dce0e8", seg_on="#ffffff",
-    line="rgba(20,28,45,.10)", line_strong="rgba(20,28,45,.16)", line_btn="rgba(20,28,45,.12)",
-    hover="rgba(20,28,45,.05)", press="rgba(20,28,45,.09)",
-    sel="rgba(59,110,245,.14)", sel_soft="rgba(59,110,245,.10)", sel_hover="rgba(59,110,245,.20)", sel_press="rgba(59,110,245,.24)",
-    accent="#3b6ef5", accent_hover="#2f5fe0", accent_text="#ffffff",
-    text_sel="#c9d7fd",
-    popup="rgba(250,251,253,.92)", popup_line="rgba(20,28,45,.10)",
-    shadow="rgba(10,15,30,.16)", tooltip="rgba(250,251,253,.97)",
-    scroll="rgba(20,28,45,.30)", scroll_hover="rgba(20,28,45,.45)",
-    check_border="rgba(20,28,45,.28)", check_bg="#ffffff",
-    link="#2f5fe0", visited="#7c4dc4", focus="rgba(59,110,245,.55)",
-)
-DARK = dict(
-    name="LucentDark", dark=True,
-    text="#eef0f5", text2="#b4bac6", text3="#959cab", disabled="#6c7380",
-    window="#191b21", base="#1f2229", alt_base="#23262d", field="#2b2f38",
-    field_hover="#323743", field_press="#383e4b", seg_on="#3a404d",
-    line="rgba(255,255,255,.09)", line_strong="rgba(255,255,255,.15)", line_btn="rgba(255,255,255,.08)",
-    hover="rgba(255,255,255,.06)", press="rgba(255,255,255,.10)",
-    sel="rgba(91,139,255,.22)", sel_soft="rgba(91,139,255,.16)", sel_hover="rgba(91,139,255,.28)", sel_press="rgba(91,139,255,.34)",
-    accent="#5b8bff", accent_hover="#6e98ff", accent_text="#ffffff",
-    text_sel="#2f4a8f",
-    popup="rgba(34,37,45,.94)", popup_line="rgba(255,255,255,.10)",
-    shadow="rgba(0,0,0,.38)", tooltip="rgba(34,37,45,.98)",
-    scroll="rgba(255,255,255,.30)", scroll_hover="rgba(255,255,255,.45)",
-    check_border="rgba(255,255,255,.30)", check_bg="#1f2229",
-    link="#7ea4ff", visited="#b08cff", focus="rgba(91,139,255,.60)",
-)
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "system_files/usr/lib/lucent"))
+from lucent_theme import accents  # noqa: E402
+
+KV = ROOT / "system_files/usr/share/Kvantum"
+
+
+def theme_name(accent_id: str) -> str:
+    """Kvantum theme (= folder) for an accent: Indigo keeps the plain name."""
+    return "Lucent" if accent_id == "indigo" else "Lucent" + accents.find(accent_id).name
+
+
+def first_shadow(value: str, index: int = 0) -> str:
+    return tokens.shadows(value)[index][4]
+
+
+def theme_dict(tk: dict, accent_id: str, dark: bool) -> dict:
+    """The colours this generator draws with, from one mode's tokens and accent."""
+    a = accents.palette(accent_id, dark)
+    win = tk["surface-window-solid"]
+    flat = lambda v, under=win: tokens.flatten(v, under)
+    if accent_id == "indigo":
+        selected, selected2 = tk["surface-selected"], tk["surface-selected-2"]
+    else:   # the same accent tint as Indigo's --surface-selected, in this accent
+        k = .16 if dark else .08
+        selected = flat(tokens.rgba_str(a["accent"], k), tk["surface-raised"])
+        selected2 = flat(tokens.rgba_str(a["accent"], k), tk["surface-raised-2"])
+    raised, raised2 = tk["surface-raised"], tk["surface-raised-2"]
+    sh_raised = tokens.shadows(tk["shadow-raised"])
+    sh_sunken = tokens.shadows(tk["shadow-sunken"])
+    return dict(
+        name=theme_name(accent_id) + ("Dark" if dark else ""), dark=dark, accent_id=accent_id,
+        text=tk["text-primary"], text2=tk["text-secondary"], text3=tk["text-tertiary"],
+        disabled=tk["text-disabled"],
+        window=win, base=raised2 if dark else raised, alt_base=raised2 if dark else raised,
+        raised=raised, raised2=raised2,
+        hover_top=flat(tk["state-hover"], raised), hover_bottom=flat(tk["state-hover"], raised2),
+        press_fill=flat(tk["state-pressed"], raised2),
+        ring=sh_raised[0][4],                          # 0 0 0 1px ring of --shadow-raised
+        drop=sh_raised[1][4],                          # 0 1px 2px drop
+        highlight=tokens.shadows(tk["highlight-top"])[0][4],
+        well=tk["surface-sunken"], well_strong=tk["surface-sunken-strong"],
+        well_shadow=sh_sunken[0][4], well_ring=sh_sunken[1][4],
+        well_hover=tokens.rgba_str(tk["surface-sunken"], tokens.color(tk["surface-sunken"])[3] * 1.5),
+        line=tk["line"], line_strong=tk["line-strong"], line_control=tk["line-control"],
+        hover=tk["state-hover"], press=tk["state-pressed"],
+        selected=selected, selected2=selected2,
+        accent=a["accent"], accent_hover=a["accent-hover"], accent_pressed=a["accent-pressed"],
+        accent_ink=a["accent-text"], on_accent=a["text-on-accent"], accent_ring=a["accent-ring"],
+        accent_soft=a["accent-soft"], accent_soft_strong=a["accent-soft-strong"],
+        popup=tk["surface-popover"], popup_line=tk["line-strong"] if dark else tk["line"],
+        shadow=tokens.rgba_str(first_shadow(tk["shadow-popover"], -1), .30 if not dark else .55),
+        tooltip=tk["surface-popover"],
+        scroll=tk["line-control"], scroll_hover=tokens.rgba_str(tk["line-control"], .55 if not dark else .6),
+        check_border=tk["line-control"],
+        knob_top=tk["knob"].split("(")[1].split(",")[0].strip(), knob_bottom=tk["knob"].rsplit(",", 1)[1].strip(" )"),
+        link=a["accent-text"], visited=tk["accent-2"], danger=tk["status-danger"],
+    )
+
+
 NONE = "none"
 
 
@@ -199,6 +238,142 @@ def empty_frame(svg, name):
     empty(svg, name)
 
 
+# ------------------------------------------------- layered (Pebble) frames ----
+def rr_poly(x0, y0, x1, y1, r, seg=8):
+    """A rounded rectangle as a polygon (arcs in `seg` steps per corner)."""
+    r = max(0.0, min(r, (x1 - x0) / 2, (y1 - y0) / 2))
+    pts = []
+    for cx, cy, a0 in ((x1 - r, y0 + r, -90), (x1 - r, y1 - r, 0), (x0 + r, y1 - r, 90), (x0 + r, y0 + r, 180)):
+        for k in range(seg + 1 if r else 1):
+            a = math.radians(a0 + 90 * k / seg)
+            pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+    return pts
+
+
+def clip(poly, x0, y0, x1, y1):
+    """Sutherland-Hodgman: a convex polygon cut to a rectangle."""
+    def cut(pts, inside, inter):
+        out = []
+        for i, cur in enumerate(pts):
+            prev = pts[i - 1]
+            if inside(cur):
+                if not inside(prev):
+                    out.append(inter(prev, cur))
+                out.append(cur)
+            elif inside(prev):
+                out.append(inter(prev, cur))
+        return out
+
+    def at_x(p, q, x):
+        t = (x - p[0]) / (q[0] - p[0])
+        return (x, p[1] + t * (q[1] - p[1]))
+
+    def at_y(p, q, y):
+        t = (y - p[1]) / (q[1] - p[1])
+        return (p[0] + t * (q[0] - p[0]), y)
+
+    pts = poly
+    for inside, inter in ((lambda p: p[0] >= x0 - 1e-9, lambda p, q: at_x(p, q, x0)),
+                          (lambda p: p[0] <= x1 + 1e-9, lambda p, q: at_x(p, q, x1)),
+                          (lambda p: p[1] >= y0 - 1e-9, lambda p, q: at_y(p, q, y0)),
+                          (lambda p: p[1] <= y1 + 1e-9, lambda p, q: at_y(p, q, y1))):
+        if len(pts) < 3:
+            return []
+        pts = cut(pts, inside, inter)
+    # drop slivers (a polygon reduced to a line on the cell edge)
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    if len(pts) < 3 or max(xs) - min(xs) < 1e-6 or max(ys) - min(ys) < 1e-6:
+        return []
+    return pts
+
+
+def poly_d(pts, ox, oy):
+    def n(v):
+        return f"{v:.2f}".rstrip("0").rstrip(".")
+    return "M" + " L".join(f"{n(x - ox)},{n(y - oy)}" for x, y in pts) + " Z"
+
+
+def layered(svg, name, R, layers, inset=(0, 0, 0, 0), E=24, interior=True):
+    """Nine Kvantum objects (name-topleft ... name, like frame()) cut from one
+    nominal rounded box drawn in layers. Each piece only holds geometry inside
+    its own cell (QtSvg sizes elements by their unclipped content), so the
+    pieces are clipped polygons, not one shape under a clip-path. Gradients
+    use user-space coordinates of the whole nominal box.
+
+    inset = (left, top, right, bottom): transparent room around the shape
+    (e.g. 1 px at the bottom for the drop shadow). Layers, drawn in order:
+      ("shape", paint, inset_px, dy)          the box, shrunk and/or moved
+      ("band", paint, outer_inset, inner_inset) a ring between two boxes
+      ("topline", paint, inset_px, height)    a line along the inside top
+    paint: css colour, or ("vgrad", top, bottom) over the box's height.
+    """
+    il, it, ir, ib = inset
+    S = R + max(inset)
+    N = 2 * S + E
+    x0, y0, x1, y1 = il, it, N - ir, N - ib
+
+    def box(d, dy=0):
+        return rr_poly(x0 + d, y0 + d + dy, x1 - d, y1 - d + dy, max(R - d, 0))
+
+    shapes = []
+    for kind, pnt, a, b in layers:
+        if kind == "shape":
+            shapes.append(([box(a, b)], pnt, False))
+        elif kind == "band":
+            shapes.append(([box(a), box(b)], pnt, True))
+        elif kind == "topline":
+            shapes.append(([clip(box(a), -1, y0 + a, N + 1, y0 + a + b)], pnt, False))
+    cells = {"topleft": (0, 0, S, S), "top": (S, 0, S + E, S), "topright": (S + E, 0, N, S),
+             "left": (0, S, S, S + E), name: (S, S, S + E, S + E), "right": (S + E, S, N, S + E),
+             "bottomleft": (0, S + E, S, N), "bottom": (S, S + E, S + E, N), "bottomright": (S + E, S + E, N, N)}
+    for pos, (cx0, cy0, cx1, cy1) in cells.items():
+        if pos == name and not interior:
+            continue
+        body = []
+        for polys, pnt, evenodd in shapes:
+            cut = [clip(pl, cx0, cy0, cx1, cy1) for pl in polys]
+            cut = [c for c in cut if c]
+            if not cut:
+                continue
+            # (a band whose inner box covers the whole cell cancels out under evenodd)
+            d = " ".join(poly_d(c, cx0, cy0) for c in cut)
+            if isinstance(pnt, tuple):
+                g = svg.gradient("linearGradient", [(0, pnt[1]), (1, pnt[2])], x1=0, y1=y0 - cy0, x2=0, y2=y1 - cy0,
+                                 gradientUnits="userSpaceOnUse")
+                fill = f'fill="{g}"'
+            else:
+                fill = paint(pnt)
+            rule = ' fill-rule="evenodd"' if evenodd else ""
+            body.append(f'<path d="{d}" {fill}{rule}/>')
+        eid = pos if pos == name else f"{name}-{pos}"
+        svg.add(eid, cx1 - cx0, cy1 - cy0, "".join(body))
+
+
+def lbox(svg, el, state, R, layers, inset=(0, 0, 0, 0), expand=True):
+    """A state of an element drawn with layered(): tight frames (radius 3,
+    for frame.expansion=0 uses) plus `expand-` frames with the real radius."""
+    layered(svg, f"{el}-{state}", min(R, 3), layers, inset)
+    if expand:
+        layered(svg, f"expand-{el}-{state}", R, layers, inset)
+
+
+def pillow(t, top, bottom=None, drop=True, highlight=True):
+    """Raised pillow control (.pb.raised / .btn): ring, soft 1 px drop, fill, top light."""
+    fill = ("vgrad", top, bottom) if bottom and bottom != top else top
+    layers = []
+    if drop:
+        layers.append(("shape", t["drop"], 0, 1))
+    layers += [("band", t["ring"], 0, 1), ("shape", fill, 1, 0)]
+    if highlight:
+        layers.append(("topline", t["highlight"], 1, 1))
+    return layers
+
+
+def well(t, fill, ring=None):
+    """Sunken well (.field / .seg / tracks): fill, inner hairline, inner top shadow."""
+    return [("shape", fill, 0, 0), ("band", ring or t["well_ring"], 0, 1), ("topline", t["well_shadow"], 1, 1)]
+
+
 # ------------------------------------------------------------ indicators ----
 def chevron(svg, eid, direction, color, size=16, w=1.6):
     pts = {"down": "4.5,6.5 8,10 11.5,6.5", "up": "4.5,9.5 8,6 11.5,9.5",
@@ -228,19 +403,22 @@ def arrows(svg, base, t, flat=False):
 
 
 def checkbox(svg, t, prefix=""):
+    """18 px, radius 6 (--radius-chip): a small pillow; accent fill + tick when on."""
     S = 18
-    def sq(fill, stroke, mark=""):
-        b = f'<rect x="0.75" y="0.75" width="16.5" height="16.5" rx="5.25" {paint(fill)} {paint(stroke, "stroke")} stroke-width="1.5"/>'
-        return b + mark
-    tick = '<polyline points="5,9.3 7.8,12 13,6.4" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
-    dash = '<path d="M5.5,9 H12.5" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>'
+    g = svg.gradient("linearGradient", [(0, t["raised"]), (1, t["raised2"])], x1=0, y1=0, x2=0, y2=1)
+    def sq(fill, stroke, w=1.25):
+        return (f'<rect x="{w / 2}" y="{w / 2}" width="{S - w}" height="{S - w}" rx="{6 - w / 2}" '
+                f'fill="{fill}" {paint(stroke, "stroke")} stroke-width="{w}"/>')
+    ink = css2svg(t["on_accent"])[0]
+    tick = f'<polyline points="5,9.3 7.8,12 13,6.4" fill="none" stroke="{ink}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+    dash = f'<path d="M5.5,9 H12.5" stroke="{ink}" stroke-width="2" stroke-linecap="round"/>'
     on = lambda c: f'<rect width="18" height="18" rx="6" {paint(c)}/>'
     p = prefix
-    svg.add(f"{p}checkbox-normal", S, S, sq(t["check_bg"], t["check_border"]))
-    svg.add(f"{p}checkbox-focused", S, S, sq(t["check_bg"], t["accent"]))
-    svg.add(f"{p}checkbox-pressed", S, S, sq(t["field"], t["accent"]))
-    svg.add(f"{p}checkbox-disabled", S, S, sq(t["field"], t["line_strong"]))
-    for st, c in (("normal", t["accent"]), ("focused", t["accent_hover"]), ("pressed", t["accent_hover"]),
+    svg.add(f"{p}checkbox-normal", S, S, sq(g, t["line_control"]))
+    svg.add(f"{p}checkbox-focused", S, S, sq(g, t["accent"], 1.5))
+    svg.add(f"{p}checkbox-pressed", S, S, sq(css2svg(t["press_fill"])[0], t["accent"], 1.5))
+    svg.add(f"{p}checkbox-disabled", S, S, sq(css2svg(t["window"])[0], t["line_strong"]))
+    for st, c in (("normal", t["accent"]), ("focused", t["accent_hover"]), ("pressed", t["accent_pressed"]),
                   ("disabled", t["disabled"])):
         svg.add(f"{p}checkbox-checked-{st}", S, S, on(c) + tick)
         svg.add(f"{p}checkbox-tristate-{st}", S, S, on(c) + dash)
@@ -248,16 +426,19 @@ def checkbox(svg, t, prefix=""):
 
 def radio(svg, t, prefix=""):
     S = 18
-    ring = lambda fill, stroke: f'<circle cx="9" cy="9" r="8.25" {paint(fill)} {paint(stroke, "stroke")} stroke-width="1.5"/>'
+    g = svg.gradient("linearGradient", [(0, t["raised"]), (1, t["raised2"])], x1=0, y1=0, x2=0, y2=1)
+    ring = lambda fill, stroke, w=1.25: (f'<circle cx="9" cy="9" r="{9 - w / 2}" fill="{fill}" '
+                                         f'{paint(stroke, "stroke")} stroke-width="{w}"/>')
     p = prefix
-    svg.add(f"{p}radio-normal", S, S, ring(t["check_bg"], t["check_border"]))
-    svg.add(f"{p}radio-focused", S, S, ring(t["check_bg"], t["accent"]))
-    svg.add(f"{p}radio-pressed", S, S, ring(t["field"], t["accent"]))
-    svg.add(f"{p}radio-disabled", S, S, ring(t["field"], t["line_strong"]))
-    for st, c in (("normal", t["accent"]), ("focused", t["accent_hover"]), ("pressed", t["accent_hover"]),
+    dot = css2svg(t["on_accent"])[0]
+    svg.add(f"{p}radio-normal", S, S, ring(g, t["line_control"]))
+    svg.add(f"{p}radio-focused", S, S, ring(g, t["accent"], 1.5))
+    svg.add(f"{p}radio-pressed", S, S, ring(css2svg(t["press_fill"])[0], t["accent"], 1.5))
+    svg.add(f"{p}radio-disabled", S, S, ring(css2svg(t["window"])[0], t["line_strong"]))
+    for st, c in (("normal", t["accent"]), ("focused", t["accent_hover"]), ("pressed", t["accent_pressed"]),
                   ("disabled", t["disabled"])):
         svg.add(f"{p}radio-checked-{st}", S, S, f'<circle cx="9" cy="9" r="9" {paint(c)}/>'
-                                              f'<circle cx="9" cy="9" r="3.6" fill="#ffffff"/>')
+                                              f'<circle cx="9" cy="9" r="3.6" fill="{dot}"/>')
 
 
 # ----------------------------------------------------------------- popups ---
@@ -308,102 +489,113 @@ def popup(svg, name, d, F, fill, line, shadow, dy=0):
 # ------------------------------------------------------------------ theme ----
 def build(t):
     svg = Svg()
-    # push buttons (.btn): field, 1 px line, radius 10; default = accent ring
-    for st, fill, line in (("normal", t["field"], t["line_btn"]), ("focused", t["field_hover"], t["line_btn"]),
-                           ("pressed", t["field_press"], t["line_strong"]), ("toggled", t["field_press"], t["line_strong"])):
-        box(svg, "button", st, 10, fill, line)
+    raised = pillow(t, t["raised"], t["raised2"])
+    hovered = pillow(t, t["hover_top"], t["hover_bottom"])
+    pressed = pillow(t, t["press_fill"], drop=False, highlight=False)
+    PI = (0, 0, 0, 1)        # pillow inset: 1 px at the bottom for the drop shadow
+    # push buttons (.btn): raised pillow, radius 10; default = accent ring
+    for st, layers in (("normal", raised), ("focused", hovered), ("pressed", pressed), ("toggled", pressed)):
+        lbox(svg, "button", st, 10, layers, PI)
     frame(svg, "button-default", 3, 3, NONE, t["accent"], sw=1)
     frame(svg, "expand-button-default", 10, 10, NONE, t["accent"], sw=1.5)
     empty(svg, "button-default-indicator")
-    # tool buttons (flat): hover/press tints, toggled = soft "on" (.tbtn.on)
-    for st, fill in (("normal", NONE), ("focused", t["hover"]), ("pressed", t["press"]), ("toggled", t["press"])):
-        box(svg, "tbutton", st, 8, fill)
-    # grouped toolbar buttons = segmented control (.seg): track + raised segment
-    for st, fill, line in (("normal", t["field"], NONE), ("focused", t["field_hover"], NONE),
-                           ("pressed", t["field_press"], NONE), ("toggled", t["seg_on"], t["line_btn"])):
-        box(svg, "seg", st, 9, fill, line)
-    sep = f'<rect x="1" y="0" width="1" height="24" {paint(t["line_strong"])}/>'
+    # tool buttons (.pb.flat): flat; hover/press tint; "on" = raised pillow
+    for st, fill in (("normal", NONE), ("focused", t["hover"]), ("pressed", t["press"])):
+        box(svg, "tbutton", st, 10, fill)
+    lbox(svg, "tbutton", "toggled", 10, raised, PI)
+    # grouped toolbar buttons = segmented control (.seg): sunken track, raised "on" segment
+    lbox(svg, "seg", "normal", 10, well(t, t["well"]))
+    lbox(svg, "seg", "focused", 10, well(t, t["well_hover"]))
+    lbox(svg, "seg", "pressed", 10, well(t, t["well_strong"]))
+    lbox(svg, "seg", "toggled", 9, raised, PI)
+    sep = f'<rect x="1" y="4" width="1" height="16" {paint(t["line_strong"])}/>'
     svg.add("seg-separator-normal", 3, 24, sep)
     svg.add("seg-separator-top", 3, 3, "")
     svg.add("seg-separator-bottom", 3, 3, "")
-    # line edits / spin boxes (.search, .crumbs): field, radius 10, accent ring on focus
+    # line edits / spin boxes (.field): sunken well, radius 10; focus = raised + 2 px accent ring
+    focus = [("shape", t["raised"], 0, 0), ("band", t["accent_ring"], 0, 2)]
     for el in ("lineedit", "spin"):
-        box(svg, el, "normal", 10, t["field"])
-        box(svg, el, "focused", 10, t["base"], t["focus"])
-        box(svg, el, "pressed", 10, t["field_press"])
-    # combo boxes: like push buttons
-    for st, fill, line in (("normal", t["field"], t["line_btn"]), ("focused", t["field_hover"], t["line_btn"]),
-                           ("pressed", t["field_press"], t["line_strong"]), ("toggled", t["field_press"], t["line_strong"])):
-        box(svg, "combo", st, 10, fill, line)
-    # item views (.si / file items): radius 8 pills
+        lbox(svg, el, "normal", 10, well(t, t["well"]))
+        lbox(svg, el, "focused", 10, focus)
+        lbox(svg, el, "pressed", 10, well(t, t["well_strong"]))
+    # combo boxes: pillow controls like push buttons
+    for st, layers in (("normal", raised), ("focused", hovered), ("pressed", pressed), ("toggled", pressed)):
+        lbox(svg, "combo", st, 10, layers, PI)
+    # item views: hover --state-hover; selected = .card.sel (--surface-selected + accent outline)
     # Kvantum: "pressed" = selected in the focused view, "toggled" = selected elsewhere
-    for st, fill in (("normal", NONE), ("focused", t["hover"]), ("pressed", t["sel"]), ("toggled", t["sel_soft"])):
-        box(svg, "itemview", st, 8, fill, ix=4, iy=1)
-    # menus (popups): radius 12, line, soft shadow
+    box(svg, "itemview", "normal", 10, NONE, ix=4, iy=1)
+    box(svg, "itemview", "focused", 10, t["hover"], ix=4, iy=1)
+    IV = (4, 1, 4, 1)
+    lbox(svg, "itemview", "pressed", 10, [("shape", t["selected"], 0, 0), ("band", t["accent_ring"], 0, 1.5)], IV)
+    lbox(svg, "itemview", "toggled", 10, [("shape", t["selected"], 0, 0), ("band", t["line_strong"], 0, 1)], IV)
+    # menus (popups): --surface-popover, radius 12, hairline, long soft shadow
     popup(svg, "menu", 14, 12, t["popup"], t["popup_line"], t["shadow"])
-    popup(svg, "tooltip", 8, 8, t["tooltip"], t["popup_line"], t["shadow"])
-    # menu items: inset pill on hover (menu items are spread to the menu edge)
-    for st, fill in (("normal", NONE), ("focused", t["sel"]), ("pressed", t["sel_press"]), ("toggled", t["sel"])):
+    popup(svg, "tooltip", 8, 10, t["tooltip"], t["popup_line"], t["shadow"])
+    # menu items: accent-soft pill on hover (menu items are spread to the menu edge)
+    for st, fill in (("normal", NONE), ("focused", t["accent_soft"]), ("pressed", t["accent_soft_strong"]),
+                     ("toggled", t["accent_soft"])):
         box(svg, "menuitem", st, 8, fill, ix=6, iy=1)
     sepw = 300
     svg.add("menuitem-separator", sepw, 9, f'<rect x="12" y="4" width="{sepw - 24}" height="1" {paint(t["line"])}/>')
     empty(svg, "menuitem-tearoff-normal", 20, 8)
     empty(svg, "menuitem-tearoff-focused", 20, 8)
-    # menubar items: pill on hover/open
+    # menubar items (.menus span): radius 8 pill on hover/open
     for st, fill in (("normal", NONE), ("focused", t["hover"]), ("pressed", t["press"]), ("toggled", t["press"])):
-        box(svg, "menubaritem", st, 7, fill)
-    # tabs: pills (.seg-like), selected = raised
-    for st, fill, line in (("normal", NONE, NONE), ("focused", t["hover"], NONE),
-                           ("pressed", t["press"], NONE), ("toggled", t["seg_on"], t["line_btn"])):
-        box(svg, "tab", st, 8, fill, line)
-    frame(svg, "tabframe-normal", 6, 6, t["base"], t["line"])
-    frame(svg, "expand-tabframe-normal", 12, 12, t["base"], t["line"])
-    # group boxes / generic frames: cards with a hairline
-    frame(svg, "group-normal", 6, 6, t["alt_base"], t["line"])
+        box(svg, "menubaritem", st, 8, fill)
+    # tabs: flat; the selected tab is a raised pillow (like .tabs span.on)
+    for st, fill in (("normal", NONE), ("focused", t["hover"]), ("pressed", t["press"])):
+        box(svg, "tab", st, 9, fill)
+    lbox(svg, "tab", "toggled", 9, raised, PI)
+    card = [("shape", ("vgrad", t["raised"], t["raised2"]), 0, 0), ("band", t["ring"], 0, 1)]
+    layered(svg, "tabframe-normal", 3, card)
+    layered(svg, "expand-tabframe-normal", 14, card)
+    # group boxes: cards (raised fill + ring), generic frames: hairline
+    layered(svg, "group-normal", 10, card)
     frame(svg, "common-normal", 4, 4, NONE, t["line"], interior=False)
     empty(svg, "common-normal")
-    frame(svg, "common-focused", 4, 4, NONE, t["focus"], interior=False)
+    frame(svg, "common-focused", 4, 4, NONE, t["accent_ring"], interior=False)
     empty(svg, "common-focused")
-    # header sections (details view): flat, bottom line, thin separators
-    for st, fill in (("normal", t["base"]), ("focused", t["alt_base"]), ("pressed", t["field"]), ("toggled", t["base"])):
+    # header sections (details view): flat, bottom hairline, thin separators
+    for st, fill in (("normal", NONE), ("focused", t["hover"]), ("pressed", t["press"]), ("toggled", NONE)):
         for pos in ("topleft", "top", "topright", "left", "right"):
             empty(svg, f"header-{st}-{pos}", 3, 3)
         for pos in ("bottomleft", "bottom", "bottomright"):
-            svg.add(f"header-{st}-{pos}", 3, 3, f'<rect width="3" height="3" {paint(t["line"])}/>')
-        svg.add(f"header-{st}", 8, 8, f'<rect width="8" height="8" {paint(fill)}/>')
-    svg.add("header-separator", 3, 24, f'<rect x="0" y="6" width="3" height="12" {paint(t["line"])}/>')
+            svg.add(f"header-{st}-{pos}", 3, 3, f'<rect y="2" width="3" height="1" {paint(t["line"])}/>')
+        svg.add(f"header-{st}", 8, 8, f'<rect width="8" height="8" {paint(fill)}/>' if fill != NONE else "")
+    svg.add("header-separator", 3, 24, f'<rect x="1" y="6" width="1" height="12" {paint(t["line"])}/>')
     # scrollbars: transient overlay pills
     for st, c in (("normal", t["scroll"]), ("focused", t["scroll_hover"]), ("pressed", t["scroll_hover"])):
         frame(svg, f"scrollbarslider-{st}", 5, 3, c, ix=2, iy=0)
     for st in ("normal", "focused", "pressed"):
         empty(svg, f"grip-{st}")
     frame(svg, "scrollgroove-normal", 5, 3, NONE)
-    # sliders (volume etc.): 4 px track, accent fill, white knob
-    for st, c in (("normal", t["field_press"]), ("toggled", t["accent"])):
-        frame(svg, f"slider-{st}", 2, 2, c)
+    # sliders: sunken track, accent fill, knob (--knob) with a soft shadow
+    frame(svg, "slider-normal", 3, 3, t["well_strong"])
+    frame(svg, "slider-toggled", 3, 3, t["accent"])
     empty(svg, "slider-tick-normal", 5, 1)
-    for st, ring in (("normal", t["line_strong"]), ("focused", t["accent"]), ("pressed", t["accent"]),
+    kg = svg.gradient("linearGradient", [(0, t["knob_top"]), (1, t["knob_bottom"])], x1=0, y1=0, x2=0, y2=1)
+    for st, ring in (("normal", t["ring"]), ("focused", t["accent"]), ("pressed", t["accent"]),
                      ("disabled", t["line"])):
         svg.add(f"slidercursor-{st}", 20, 20,
-                f'<circle cx="10" cy="10.6" r="9" fill="#000000" fill-opacity="0.10"/>'
-                f'<circle cx="10" cy="10" r="8.5" fill="#ffffff" {paint(ring, "stroke")} stroke-width="1"/>')
-    # progress bars: field track, accent bar
-    frame(svg, "progress-normal", 3, 3, t["field"])
-    frame(svg, "expand-progress-normal", 4, 4, t["field"])
+                f'<circle cx="10" cy="10.8" r="9" fill="#141e50" fill-opacity="0.22"/>'
+                f'<circle cx="10" cy="10" r="8.5" fill="{kg}" {paint(ring, "stroke")} stroke-width="1"/>')
+    # progress bars (.prog): sunken strong track, flat accent fill, radius 5
+    frame(svg, "progress-normal", 3, 3, t["well_strong"])
+    frame(svg, "expand-progress-normal", 5, 5, t["well_strong"])
     frame(svg, "progress-pattern-normal", 3, 3, t["accent"])
-    frame(svg, "expand-progress-pattern-normal", 4, 4, t["accent"])
+    frame(svg, "expand-progress-pattern-normal", 5, 5, t["accent"])
     frame(svg, "progress-pattern-disabled", 3, 3, t["disabled"])
-    frame(svg, "expand-progress-pattern-disabled", 4, 4, t["disabled"])
-    # toolbars, docks, title bars, status bar: flat (window colour)
+    frame(svg, "expand-progress-pattern-disabled", 5, 5, t["disabled"])
+    # toolbars, docks, title bars, status bar: flat (window colour, one-row header)
     for el in ("toolbar-normal", "dock-normal", "dock-focused", "titlebar-normal", "titlebar-focused"):
         empty_frame(svg, el)
     empty(svg, "toolbar-handle", 8, 8)
-    svg.add("toolbar-separator", 9, 24, f'<rect x="4" y="4" width="1" height="16" {paint(t["line"])}/>')
-    # splitters: a hairline like the mockup's sidebar border
+    svg.add("toolbar-separator", 13, 26, f'<rect x="6" y="0" width="1" height="26" {paint(t["line_strong"])}/>')
+    # splitters: a hairline
     for st in ("normal", "focused", "pressed"):
-        svg.add(f"splitter-{st}", 8, 8, f'<rect x="0" width="8" height="8" {paint(t["line"] if st == "normal" else t["focus"])}/>')
+        svg.add(f"splitter-{st}", 8, 8, f'<rect x="0" width="8" height="8" {paint(t["line"] if st == "normal" else t["accent_ring"])}/>')
         empty(svg, f"splitter-grip-{st}", 16, 16)
-    # focus rectangle: none (Lucent shows focus through field rings)
+    # focus rectangle: none (focus shows as field rings)
     for pos in ("top", "bottom", "left", "right", "topleft", "topright", "bottomleft", "bottomright"):
         empty(svg, f"focus-{pos}", 1, 1)
     # indicators
@@ -412,15 +604,15 @@ def build(t):
     for st, c in (("normal", t["text3"]), ("focused", t["text"]), ("pressed", t["text"]), ("disabled", t["disabled"])):
         chevron(svg, f"tree-plus-{st}", "right", c)
         chevron(svg, f"tree-minus-{st}", "down", c)
+    xp = 'M5.5,5.5 L10.5,10.5 M10.5,5.5 L5.5,10.5'
     for st, c in (("normal", t["text3"]), ("focused", t["text"]), ("pressed", t["text"]),
                   ("toggled", t["text2"]), ("disabled", t["disabled"])):
         svg.add(f"tab-close-{st}", 16, 16,
-                (f'<circle cx="8" cy="8" r="8" {paint(t["press"])}/>' if st in ("focused", "pressed") else "") +
-                f'<path d="M5.5,5.5 L10.5,10.5 M10.5,5.5 L5.5,10.5" stroke="{css2svg(c)[0]}" stroke-width="1.5" stroke-linecap="round"/>')
-    svg.add("tab-close-toggledFocused", 16, 16, f'<circle cx="8" cy="8" r="8" {paint(t["press"])}/>'
-            f'<path d="M5.5,5.5 L10.5,10.5 M10.5,5.5 L5.5,10.5" stroke="{css2svg(t["text"])[0]}" stroke-width="1.5" stroke-linecap="round"/>')
-    svg.add("tab-close-toggledPressed", 16, 16, f'<circle cx="8" cy="8" r="8" {paint(t["press"])}/>'
-            f'<path d="M5.5,5.5 L10.5,10.5 M10.5,5.5 L5.5,10.5" stroke="{css2svg(t["text"])[0]}" stroke-width="1.5" stroke-linecap="round"/>')
+                (f'<rect width="16" height="16" rx="5" {paint(t["press"])}/>' if st in ("focused", "pressed") else "") +
+                f'<path d="{xp}" {paint(c, "stroke")} stroke-width="1.5" stroke-linecap="round"/>')
+    for st in ("toggledFocused", "toggledPressed"):
+        svg.add(f"tab-close-{st}", 16, 16, f'<rect width="16" height="16" rx="5" {paint(t["press"])}/>'
+                f'<path d="{xp}" {paint(t["text"], "stroke")} stroke-width="1.5" stroke-linecap="round"/>')
     empty(svg, "tab-tear", 2, 16)
     checkbox(svg, t)
     radio(svg, t)
@@ -431,7 +623,7 @@ def build(t):
             chevron(svg, f"mdi-{b}-{st}", "down", t["text2"])
     chevron(svg, "mdi-menu-normal", "down", t["text2"])
     # dial (rare): plain circles
-    svg.add("dial", 64, 64, f'<circle cx="32" cy="32" r="31" {paint(t["field"])} {paint(t["line"], "stroke")}/>')
+    svg.add("dial", 64, 64, f'<circle cx="32" cy="32" r="31" {paint(t["raised"])} {paint(t["line"], "stroke")}/>')
     svg.add("dial-notches", 64, 64, "")
     svg.add("dial-handle", 8, 8, f'<circle cx="4" cy="4" r="4" {paint(t["accent"])}/>')
     return svg
@@ -440,16 +632,16 @@ def build(t):
 def kvconfig(t):
     dark = t["dark"]
     tx, tx2 = t["text"], t["text2"]
+    accent = accents.find(t["accent_id"]).name
     gc = dict(
-        window=t["window"], base=t["base"], alt_base=t["alt_base"], button=t["field"],
-        light=t["field_hover"] if dark else "#ffffff", mid_light=t["field_hover"],
-        dark="#0d0f13" if dark else "#c3c8d2", mid="#2b2f38" if dark else "#dfe3ea",
+        button=t["raised"], light=t["raised"] if dark else "#ffffff", mid_light=t["raised2"],
+        dark=tokens.flatten(t["line_control"], t["window"]), mid=tokens.flatten(t["line_strong"], t["window"]),
     )
-    return f"""# Lucent{' Dark' if dark else ''}: Kvantum theme generated by design/gen_kvantum.py
-# from docs/mockups/lucent.css. Do not edit by hand.
+    return f"""# {t['name']}: Lucent's Kvantum theme ({'dark' if dark else 'light'}, accent {accent}), generated by
+# design/gen_kvantum.py from docs/mockups/concepts-2026/pebble-drift/pebble-drift.css. Do not edit by hand.
 [%General]
 author=Lucent OS contributors
-comment=Lucent{' Dark' if dark else ''}: rounded fields, segmented toolbar buttons, soft menus
+comment=Lucent Pebble Drift{' Dark' if dark else ''} ({accent}): raised pillow controls, sunken fields, matte menus
 x11drag=menubar_and_primary_toolbar
 alt_mnemonic=true
 respect_DE=true
@@ -485,7 +677,7 @@ center_toolbar_handle=true
 slim_toolbars=false
 toolbutton_style=0
 spread_progressbar=true
-progressbar_thickness=6
+progressbar_thickness=8
 spread_header=true
 menubar_mouse_tracking=true
 merge_menubar_with_toolbar=false
@@ -540,16 +732,16 @@ text.color={tx}
 window.text.color={tx}
 button.text.color={tx}
 disabled.text.color={t['disabled']}
-tooltip.base.color={kvcolor(t['tooltip'])[:7]}
+tooltip.base.color={tokens.flatten(t['tooltip'], t['window'])}
 tooltip.text.color={tx}
-highlight.text.color={t['accent_text']}
+highlight.text.color={t['on_accent']}
 link.color={t['link']}
 link.visited.color={t['visited']}
-progress.indicator.text.color={t['accent_text']}
+progress.indicator.text.color={t['on_accent']}
 
 [Hacks]
 respect_darkness=true
-transparent_dolphin_view=false
+transparent_dolphin_view=true
 transparent_ktitle_label=true
 transparent_menutitle=true
 tint_on_mouseover=0
@@ -572,7 +764,7 @@ frame.top=4
 frame.bottom=4
 frame.left=4
 frame.right=4
-frame.expansion=20
+frame.expansion=22
 interior=true
 interior.element=button
 indicator.element=arrow
@@ -594,7 +786,7 @@ min_height=+0.5font
 inherits=PanelButtonCommand
 frame.element=tbutton
 interior.element=tbutton
-frame.expansion=16
+frame.expansion=22
 text.margin.left=6
 text.margin.right=6
 text.normal.color={tx}
@@ -607,12 +799,12 @@ min_height=0
 [ToolbarButton]
 frame.element=seg
 interior.element=seg
-frame.expansion=18
+frame.expansion=20
 indicator.element=flat-arrow
 text.normal.color={tx2}
 text.focus.color={tx}
 text.press.color={tx}
-text.toggle.color={tx}
+text.toggle.color={t['accent_ink']}
 
 [Dock]
 inherits=PanelButtonCommand
@@ -719,7 +911,7 @@ frame.top=3
 frame.bottom=3
 frame.left=3
 frame.right=3
-frame.expansion=16
+frame.expansion=20
 text.margin.top=5
 text.margin.bottom=5
 text.margin.left=12
@@ -739,7 +931,7 @@ frame.top=6
 frame.bottom=6
 frame.left=6
 frame.right=6
-frame.expansion=24
+frame.expansion=28
 
 [TabBarFrame]
 inherits=GenericFrame
@@ -812,7 +1004,7 @@ frame.top=3
 frame.bottom=3
 frame.left=3
 frame.right=3
-frame.expansion=8
+frame.expansion=10
 text.margin=false
 text.normal.color={tx2}
 text.focus.color={tx}
@@ -827,7 +1019,7 @@ frame.top=3
 frame.bottom=3
 frame.left=3
 frame.right=3
-frame.expansion=8
+frame.expansion=10
 
 [ItemView]
 inherits=PanelButtonCommand
@@ -837,7 +1029,7 @@ frame.top=2
 frame.bottom=2
 frame.left=6
 frame.right=6
-frame.expansion=24
+frame.expansion=28
 text.margin.top=2
 text.margin.bottom=2
 text.margin.left=4
@@ -923,7 +1115,7 @@ frame.top=3
 frame.bottom=3
 frame.left=3
 frame.right=3
-frame.expansion=14
+frame.expansion=16
 text.margin.top=4
 text.margin.bottom=4
 text.margin.left=8
@@ -1014,12 +1206,23 @@ inherits=Window
 """
 
 
+def themes(tk=None):
+    """(folder, theme dict) for every accent and mode."""
+    tk = tk or tokens.load()
+    for a in accents.ACCENTS:
+        for dark in (False, True):
+            yield theme_name(a.id), theme_dict(tk.mode(dark), a.id, dark)
+
+
 def main():
-    OUT.mkdir(parents=True, exist_ok=True)
-    for t in (LIGHT, DARK):
-        (OUT / f"{t['name']}.svg").write_text(build(t).text(), encoding="utf-8")
-        (OUT / f"{t['name']}.kvconfig").write_text(kvconfig(t), encoding="utf-8")
-        print("wrote", OUT / t["name"])
+    for old in KV.glob("Lucent*"):
+        shutil.rmtree(old)
+    for folder, t in themes():
+        out = KV / folder
+        out.mkdir(parents=True, exist_ok=True)
+        (out / f"{t['name']}.svg").write_text(build(t).text(), encoding="utf-8")
+        (out / f"{t['name']}.kvconfig").write_text(kvconfig(t), encoding="utf-8")
+        print("wrote", out / t["name"])
 
 
 if __name__ == "__main__":
