@@ -564,7 +564,8 @@ private Q_SLOTS:
         const QList<Entry> entries = buildEntries({}, selectDrives({c}, HOME, {}, fakeStatFs), {}, HOME, fmt());
         const Entry *win = find(entries, QStringLiteral("drive-vdb1"));
         QCOMPARE(win->detail, QStringLiteral("121 GB free"));
-        QCOMPARE(win->detail2, QStringLiteral("Read-only · 476 GB"));
+        // just "Read-only": with the size it was cut off in Russian (VM)
+        QCOMPARE(win->detail2, QStringLiteral("Read-only"));
         QCOMPARE(win->target, QUrl::fromLocalFile(QStringLiteral("/run/media/anna/C")));
         QCOMPARE(win->icon, QStringLiteral("lucent-drive-windows-75"));
     }

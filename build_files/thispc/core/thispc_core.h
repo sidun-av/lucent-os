@@ -194,7 +194,6 @@ QString items(int count);
 QString free(const QString &size);
 QString ofTotal(const QString &size);
 QString readOnly();
-QString readOnly(const QString &size);
 QString usb(const QString &size);
 }
 

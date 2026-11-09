@@ -425,7 +425,7 @@ QList<Entry> buildEntries(const QList<Folder> &folders, const QList<Drive> &driv
         const QString total = fmt.bytes(d.total);
         if (d.free.has_value()) {
             e.detail = Text::free(fmt.bytes(*d.free));
-            e.detail2 = d.readOnly ? Text::readOnly(total) : d.kind == DriveKind::Removable ? Text::usb(total) : Text::ofTotal(total);
+            e.detail2 = d.readOnly ? Text::readOnly() : d.kind == DriveKind::Removable ? Text::usb(total) : Text::ofTotal(total);
         } else {
             e.detail = total;
             e.detail2 = d.readOnly ? Text::readOnly() : d.kind == DriveKind::Removable ? Text::usbDrive() : QString();

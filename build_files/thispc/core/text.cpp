@@ -75,11 +75,6 @@ QString readOnly()
     return TR("@info a drive whose files can't be changed", "Read-only");
 }
 
-QString readOnly(const QString &size)
-{
-    return TR1("@info a drive whose files can't be changed; %1 is its size", "Read-only · %1", size);
-}
-
 QString usb(const QString &size)
 {
     return TR1("@info %1 is the drive's size", "USB drive · %1", size);

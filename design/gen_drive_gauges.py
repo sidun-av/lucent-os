@@ -8,9 +8,13 @@ on a --gauge-track ring. Dolphin draws item icons, so the ring is the icon:
 lucent-drive-<kind>-<used %, in steps of 5> plus lucent-drive-<kind> (usage
 not known yet: track only), with the drive's glyph in the middle.
 
-KDE recolours the "ColorScheme-*" classes from the palette (light/dark, and
-the user's accent for the system drive); slate and violet sit between their
-light and dark token values so they read on both.
+The icons live in hicolor (design/gen_icons.py rebuilds the Lucent themes
+from scratch), and KDE recolours "ColorScheme-*" SVGs only in themes that
+follow the colour scheme, which hicolor doesn't (seen in the VM: dark glyphs
+on the dark window). So every colour sits between its light and dark token
+value and reads on both windows: the accent between #4257e8 and #7088ff,
+slate between #7c84a0 and #8d94ad, violet between #7a55e0 and #a084ff, and
+a mid grey-blue for the track and the glyph.
 
 Writes system_files/usr/share/icons/hicolor/scalable/devices/. Run from the
 repo root: python3 design/gen_drive_gauges.py
@@ -26,28 +30,24 @@ DRIVE_DOT = '<circle cx="16.5" cy="12" r="1"/>'
 HOME = '<path d="M4 11l8-7 8 7v8a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19z"/>'
 
 KINDS = {
-    # kind: (ring colour class or fixed colour, glyph, glyph dot)
-    "system": ("ColorScheme-Highlight", HOME, ""),
+    # kind: (ring colour, glyph, glyph dot)
+    "system": ("#5468f1", HOME, ""),            # --gauge-1 (accent): #4257e8 light, #7088ff dark
     "windows": ("#848ca6", DRIVE, DRIVE_DOT),   # --gauge-2: #7c84a0 light, #8d94ad dark
     "usb": ("#8c6cf0", DRIVE, DRIVE_DOT),       # --gauge-3: #7a55e0 light, #a084ff dark
     "other": ("#5f8fb0", DRIVE, DRIVE_DOT),
 }
-
-STYLE = ('<style type="text/css" id="current-color-scheme">'
-         '.ColorScheme-Text{color:#171a2b;}.ColorScheme-Highlight{color:#4257e8;}</style>')
+NEUTRAL = "#8a91ad"   # track (translucent) and glyph: legible on both windows
 R, W, C = 25.5, 7.0, 32.0
 
 
 def ring(color: str, step: int | None) -> str:
-    track = (f'<circle class="ColorScheme-Text" cx="{C}" cy="{C}" r="{R}" fill="none" '
-             f'stroke="currentColor" stroke-opacity=".13" stroke-width="{W}"/>')
+    track = (f'<circle cx="{C}" cy="{C}" r="{R}" fill="none" '
+             f'stroke="{NEUTRAL}" stroke-opacity=".3" stroke-width="{W}"/>')
     if not step:
         return track
     length = 2 * math.pi * R
     dash = length * step / 100
-    attrs = (f'class="{color}" stroke="currentColor"' if color.startswith("ColorScheme")
-             else f'stroke="{color}"')
-    arc = (f'<circle {attrs} cx="{C}" cy="{C}" r="{R}" fill="none" stroke-width="{W}" '
+    arc = (f'<circle cx="{C}" cy="{C}" r="{R}" fill="none" stroke="{color}" stroke-width="{W}" '
            f'stroke-linecap="round" stroke-dasharray="{dash:.2f} {length:.2f}" '
            f'transform="rotate(-90 {C} {C})"/>')
     return track + arc
@@ -56,13 +56,13 @@ def ring(color: str, step: int | None) -> str:
 def icon(kind: str, step: int | None) -> str:
     color, glyph, dot = KINDS[kind]
     # glyph: 24 px grid scaled to 22 px, centred
-    g = (f'<g class="ColorScheme-Text" transform="translate(20.5 20.5) scale(0.9583)" fill="none" '
-         f'stroke="currentColor" stroke-opacity=".78" stroke-width="1.9" stroke-linecap="round" '
+    g = (f'<g transform="translate(20.5 20.5) scale(0.9583)" fill="none" '
+         f'stroke="{NEUTRAL}" stroke-width="2" stroke-linecap="round" '
          f'stroke-linejoin="round">{glyph}'
-         + (f'<g fill="currentColor" stroke="none" fill-opacity=".78">{dot}</g>' if dot else "")
+         + (f'<g fill="{NEUTRAL}" stroke="none">{dot}</g>' if dot else "")
          + '</g>')
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">'
-            f'{STYLE}{ring(color, step)}{g}</svg>\n')
+            f'{ring(color, step)}{g}</svg>\n')
 
 
 def main() -> None:
