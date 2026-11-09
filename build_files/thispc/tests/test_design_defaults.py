@@ -84,11 +84,29 @@ def test_remote_view_props_group_this_pc_by_section(tmp_path):
 # ---- the Eject action (thispc-eject)
 
 def test_eject_accepts_only_this_pc_drives():
-    assert eject.device_for("thispc:/drive-sdb1") == "/dev/sdb1"
-    assert eject.device_for("thispc:///drive-sdb1/") == "/dev/sdb1"
-    assert eject.device_for("thispc:/drive-mmcblk0p1") == "/dev/mmcblk0p1"
+    no_mounts = lambda path: None
+    assert eject.device_for("thispc:/drive-sdb1", no_mounts) == "/dev/sdb1"
+    assert eject.device_for("thispc:///drive-sdb1/", no_mounts) == "/dev/sdb1"
+    assert eject.device_for("thispc:/drive-mmcblk0p1", no_mounts) == "/dev/mmcblk0p1"
     for bad in ("thispc:/drive-../sda", "thispc:/drive-sdb1;rm", "file:///dev/sdb1", "thispc:/folder-Documents", "thispc:/drive-"):
-        assert eject.device_for(bad) is None, bad
+        assert eject.device_for(bad, no_mounts) is None, bad
+
+
+def test_eject_gets_the_mount_point_of_a_mounted_drive():
+    # Dolphin hands a mounted drive's action its target, the mount point
+    # (seen in the VM: ['/usr/libexec/lucent/thispc-eject', '/run/media/lucent/KINGSTON'])
+    mounts = {"/run/media/lucent/KINGSTON": "/dev/sda", "/run/media/lucent/My Stick": "/dev/sdb1"}.get
+    assert eject.device_for("/run/media/lucent/KINGSTON", mounts) == "/dev/sda"
+    assert eject.device_for("file:///run/media/lucent/My%20Stick", mounts) == "/dev/sdb1"
+    assert eject.device_for("/var/home/lucent", mounts) is None
+
+
+def test_eject_powers_off_only_removable_disks():
+    assert eject.removable('{"blockdevices": [{"rm": true, "hotplug": false, "tran": "usb"}]}')
+    assert eject.removable('{"blockdevices": [{"rm": false, "hotplug": true, "tran": null}]}')
+    assert eject.removable('{"blockdevices": [{"rm": false, "hotplug": false, "tran": "usb"}]}')
+    assert not eject.removable('{"blockdevices": [{"rm": false, "hotplug": false, "tran": "nvme"}]}')
+    assert not eject.removable("")
 
 
 def test_eject_unmounts_every_mounted_partition():

@@ -7,6 +7,9 @@
 
 #include <QCryptographicHash>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegularExpression>
 #include <QSet>
 
@@ -145,7 +148,97 @@ int gaugeStep(const Space &space)
     return std::clamp(int(used / 5.0 + 0.5) * 5, 0, 100);
 }
 
+int bytePrecision(quint64 bytes)
+{
+    if (bytes < 1024)
+        return 0;
+    double value = double(bytes);
+    while (value >= 1024.0)
+        value /= 1024.0;
+    return value < 10.0 ? 1 : 0;
+}
+
 // ------------------------------------------------------------------ drives
+
+namespace
+{
+// GPT/MBR types that are never a user's drive (as udisks hides them).
+bool hiddenPartType(const QString &type)
+{
+    static const QSet<QString> hidden{
+        QStringLiteral("c12a7328-f81f-11d2-ba4b-00a0c93ec93b"), // EFI system
+        QStringLiteral("e3c9e316-0b5c-4db8-817d-f92df00215ae"), // Microsoft reserved
+        QStringLiteral("de94bba4-06d1-4d40-a16a-bfd50179d6ac"), // Windows recovery
+        QStringLiteral("21686148-6449-6e6f-744e-656564454649"), // BIOS boot
+        QStringLiteral("0x27"), // hidden NTFS recovery (MBR)
+        QStringLiteral("0xef"), // EFI (MBR)
+    };
+    return hidden.contains(type.toLower());
+}
+
+bool isContainer(const QString &fsType)
+{
+    static const QSet<QString> containers{QStringLiteral("swap"),
+                                          QStringLiteral("crypto_luks"),
+                                          QStringLiteral("bitlocker"),
+                                          QStringLiteral("lvm2_member"),
+                                          QStringLiteral("linux_raid_member"),
+                                          QStringLiteral("zfs_member")};
+    return containers.contains(fsType);
+}
+
+void walkLsblk(const QJsonArray &devices, bool parentRemovable, QList<Volume> &out)
+{
+    for (const QJsonValue &value : devices) {
+        const QJsonObject d = value.toObject();
+        const QString type = d.value(QLatin1String("type")).toString();
+        const QString tran = d.value(QLatin1String("tran")).toString();
+        const bool removable = parentRemovable || d.value(QLatin1String("rm")).toBool() || d.value(QLatin1String("hotplug")).toBool()
+            || tran == QLatin1String("usb") || tran == QLatin1String("mmc");
+        if (type != QLatin1String("loop") && type != QLatin1String("rom")) {
+            Volume v;
+            v.id = d.value(QLatin1String("kname")).toString();
+            v.device = QStringLiteral("/dev/") + v.id;
+            v.label = d.value(QLatin1String("label")).toString();
+            v.fsType = d.value(QLatin1String("fstype")).toString().toLower();
+            v.size = quint64(d.value(QLatin1String("size")).toDouble());
+            v.uuid = d.value(QLatin1String("uuid")).toString();
+            v.removable = removable;
+            v.ignored = hiddenPartType(d.value(QLatin1String("parttype")).toString());
+            v.fileSystem = !v.fsType.isEmpty() && !isContainer(v.fsType);
+            const QJsonArray mounts = d.value(QLatin1String("mountpoints")).toArray();
+            for (const QJsonValue &m : mounts) {
+                if (m.isString() && m.toString().startsWith(QLatin1Char('/'))) {
+                    v.mountPoint = m.toString();
+                    break;
+                }
+            }
+            if (!v.id.isEmpty() && (v.fileSystem || !v.fsType.isEmpty()))
+                out << v;
+        }
+        walkLsblk(d.value(QLatin1String("children")).toArray(), removable, out);
+    }
+}
+} // namespace
+
+QList<Volume> parseLsblk(const QByteArray &json)
+{
+    QList<Volume> out;
+    walkLsblk(QJsonDocument::fromJson(json).object().value(QLatin1String("blockdevices")).toArray(), false, out);
+    return out;
+}
+
+QString udisksPath(const QString &kname)
+{
+    QString escaped;
+    for (const QChar c : kname) {
+        if ((c >= QLatin1Char('a') && c <= QLatin1Char('z')) || (c >= QLatin1Char('A') && c <= QLatin1Char('Z')) || (c >= QLatin1Char('0') && c <= QLatin1Char('9')))
+            escaped += c;
+        else
+            escaped += QStringLiteral("_%1").arg(uint(c.unicode()), 2, 16, QLatin1Char('0'));
+    }
+    return QStringLiteral("/org/freedesktop/UDisks2/block_devices/") + escaped;
+}
 
 QStringList systemDevices(const QString &mountInfo, const std::function<QString(const QString &)> &canonical)
 {
@@ -328,14 +421,15 @@ QList<Entry> buildEntries(const QList<Folder> &folders, const QList<Drive> &driv
         e.name = QStringLiteral("drive-") + d.id;
         e.displayName = d.name;
         e.section = Section::Drives;
-        QString detail;
-        if (d.free.has_value())
-            detail = Text::freeOf(fmt.bytes(*d.free), fmt.bytes(d.total));
-        else if (d.kind == DriveKind::Removable)
-            detail = Text::usb(fmt.bytes(d.total));
-        else
-            detail = fmt.bytes(d.total);
-        e.detail = d.readOnly ? Text::readOnly(detail) : detail;
+        // Like the mockup's drive cards: what is free first, then what it is.
+        const QString total = fmt.bytes(d.total);
+        if (d.free.has_value()) {
+            e.detail = Text::free(fmt.bytes(*d.free));
+            e.detail2 = d.readOnly ? Text::readOnly(total) : d.kind == DriveKind::Removable ? Text::usb(total) : Text::ofTotal(total);
+        } else {
+            e.detail = total;
+            e.detail2 = d.readOnly ? Text::readOnly() : d.kind == DriveKind::Removable ? Text::usbDrive() : QString();
+        }
         e.icon = driveIcon(d);
         if (d.readOnly)
             e.overlays << QStringLiteral("emblem-locked");
@@ -353,7 +447,8 @@ QList<Entry> buildEntries(const QList<Folder> &folders, const QList<Drive> &driv
         e.section = Section::Recent;
         const QString parent = info.absolutePath();
         const QString folder = parent == home ? Text::home() : QFileInfo(parent).fileName();
-        e.detail = Text::recent(folder, fmt.date(r.modified));
+        e.detail = folder;
+        e.detail2 = fmt.date(r.modified);
         e.isDir = false;
         e.target = QUrl::fromLocalFile(r.path);
         e.localPath = r.path;

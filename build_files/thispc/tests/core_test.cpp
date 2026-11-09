@@ -7,6 +7,7 @@
 #include "../core/thispc_core.h"
 
 #include <QCollator>
+#include <QFile>
 #include <QTest>
 
 using namespace ThisPc;
@@ -162,6 +163,20 @@ private Q_SLOTS:
         QCOMPARE(gaugeStep(space(100, 1)), 100); // 99 %
     }
 
+    void sizesKeepThreeDigits()
+    {
+        // "21 GiB", "4.0 GiB", "476 GiB": one decimal only below 10 units,
+        // so a drive's line fits under its icon.
+        QCOMPARE(bytePrecision(4ull * GiB), 1);
+        QCOMPARE(bytePrecision(9ull * GiB + GiB / 2), 1);
+        QCOMPARE(bytePrecision(10ull * GiB), 0);
+        QCOMPARE(bytePrecision(476ull * GiB), 0);
+        QCOMPARE(bytePrecision(1023ull * 1024 * 1024), 0); // 1023 MiB
+        QCOMPARE(bytePrecision(1500), 1); // 1.5 KiB
+        QCOMPARE(bytePrecision(512), 0); // bytes
+        QCOMPARE(bytePrecision(0), 0);
+    }
+
     // ---- what belongs to the OS
 
     void systemDevicesFromMountInfo()
@@ -186,6 +201,91 @@ private Q_SLOTS:
             "/dev/zram0                              partition\t6029308\t\t0\t\t100\n"
             "/dev/sda3                               partition\t8388604\t\t0\t\t-2\n");
         QCOMPARE(swapDevices(swaps), (QStringList{QStringLiteral("/dev/zram0"), QStringLiteral("/dev/sda3")}));
+    }
+
+    // ---- volumes from lsblk (fresh every listing; Solid's cache in a
+    //      long-lived worker missed mounts and plug-ins)
+
+    void lsblkOfTheTestVm()
+    {
+        QFile f(QStringLiteral(THISPC_TEST_DATA "/lsblk-vm.json"));
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const QList<Volume> vols = parseLsblk(f.readAll());
+        QHash<QString, Volume> byId;
+        for (const Volume &v : vols)
+            byId.insert(v.id, v);
+
+        QVERIFY(!byId.contains(QStringLiteral("vda"))); // a partition table, not a file system
+        QVERIFY(byId.value(QStringLiteral("vda1")).ignored); // EFI system partition
+        QVERIFY(!byId.value(QStringLiteral("zram0")).fileSystem); // swap
+
+        const Volume c = byId.value(QStringLiteral("vdb1"));
+        QCOMPARE(c.device, QStringLiteral("/dev/vdb1"));
+        QCOMPARE(c.label, QStringLiteral("Local Disk (C:)"));
+        QCOMPARE(c.fsType, QStringLiteral("ntfs"));
+        QCOMPARE(c.size, quint64(4292870144));
+        QCOMPARE(c.mountPoint, QStringLiteral("/run/media/lucent/Local Disk (C:)"));
+        QVERIFY(!c.removable);
+        QVERIFY(c.fileSystem && !c.ignored);
+        QCOMPARE(c.uuid, QStringLiteral("6667B4D92A2B20D5"));
+
+        const Volume usb = byId.value(QStringLiteral("sda")); // a stick without a partition table
+        QVERIFY(usb.removable);
+        QCOMPARE(usb.label, QStringLiteral("KINGSTON"));
+        QCOMPARE(usb.mountPoint, QStringLiteral("/run/media/lucent/KINGSTON"));
+
+        // with the VM's system devices, This PC shows: Home, C:, the stick
+        const QStringList sys = systemDevices(QString::fromLatin1(VM_MOUNTINFO), same) + QStringList{QStringLiteral("/dev/zram0")};
+        QStringList names;
+        for (const Drive &d : selectDrives(vols, HOME, sys, fakeStatFs))
+            names << d.name;
+        QCOMPARE(names, (QStringList{QStringLiteral("Home"), QStringLiteral("Local Disk (C:)"), QStringLiteral("KINGSTON")}));
+    }
+
+    void lsblkTreeOfALaptop()
+    {
+        // lsblk's default tree: an SD card and a LUKS-encrypted USB disk,
+        // removable-ness and transport come from the disk.
+        const QByteArray json = R"({"blockdevices": [
+          {"kname": "mmcblk0", "path": "/dev/mmcblk0", "type": "disk", "fstype": null, "label": null, "uuid": null,
+           "size": 63864569856, "rm": false, "hotplug": true, "tran": null, "parttype": null, "mountpoints": [null],
+           "children": [{"kname": "mmcblk0p1", "path": "/dev/mmcblk0p1", "type": "part", "fstype": "exfat", "label": "CAMERA",
+                         "uuid": "1A2B-3C4D", "size": 63862472704, "rm": false, "hotplug": true, "tran": null,
+                         "parttype": "0x7", "mountpoints": [null]}]},
+          {"kname": "sdc", "path": "/dev/sdc", "type": "disk", "fstype": null, "label": null, "uuid": null,
+           "size": 1000204886016, "rm": false, "hotplug": false, "tran": "usb", "parttype": null, "mountpoints": [null],
+           "children": [{"kname": "sdc1", "path": "/dev/sdc1", "type": "part", "fstype": "crypto_LUKS", "label": null,
+                         "uuid": "u1", "size": 1000202788864, "rm": false, "hotplug": false, "tran": null,
+                         "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4", "mountpoints": [null],
+                         "children": [{"kname": "dm-3", "path": "/dev/mapper/luks-u1", "type": "crypt", "fstype": "ext4",
+                                       "label": "Backup", "uuid": "u2", "size": 1000186011648, "rm": false, "hotplug": false,
+                                       "tran": null, "parttype": null, "mountpoints": ["/run/media/anna/Backup"]}]}]},
+          {"kname": "nvme0n1p4", "path": "/dev/nvme0n1p4", "type": "part", "fstype": "ntfs", "label": "WINRE_DRV",
+           "uuid": "r", "size": 1048576000, "rm": false, "hotplug": false, "tran": "nvme",
+           "parttype": "de94bba4-06d1-4d40-a16a-bfd50179d6ac", "mountpoints": [null]},
+          {"kname": "nvme0n1p2", "path": "/dev/nvme0n1p2", "type": "part", "fstype": null, "label": null,
+           "uuid": null, "size": 16777216, "rm": false, "hotplug": false, "tran": "nvme",
+           "parttype": "e3c9e316-0b5c-4db8-817d-f92df00215ae", "mountpoints": [null]}
+        ]})";
+        QHash<QString, Volume> byId;
+        for (const Volume &v : parseLsblk(json))
+            byId.insert(v.id, v);
+        QVERIFY(byId.value(QStringLiteral("mmcblk0p1")).removable); // SD card (hot-plug)
+        QVERIFY(byId.value(QStringLiteral("mmcblk0p1")).mountPoint.isEmpty());
+        QVERIFY(!byId.value(QStringLiteral("sdc1")).fileSystem); // the LUKS container
+        const Volume backup = byId.value(QStringLiteral("dm-3"));
+        QCOMPARE(backup.device, QStringLiteral("/dev/dm-3"));
+        QVERIFY(backup.removable); // inherited from the USB disk
+        QCOMPARE(backup.label, QStringLiteral("Backup"));
+        QVERIFY(byId.value(QStringLiteral("nvme0n1p4")).ignored); // Windows recovery
+        QVERIFY(!byId.contains(QStringLiteral("nvme0n1p2"))); // MS reserved, no file system
+    }
+
+    void udisksObjectPaths()
+    {
+        QCOMPARE(udisksPath(QStringLiteral("sdb1")), QStringLiteral("/org/freedesktop/UDisks2/block_devices/sdb1"));
+        QCOMPARE(udisksPath(QStringLiteral("dm-3")), QStringLiteral("/org/freedesktop/UDisks2/block_devices/dm_2d3"));
+        QCOMPARE(udisksPath(QStringLiteral("mmcblk0p1")), QStringLiteral("/org/freedesktop/UDisks2/block_devices/mmcblk0p1"));
     }
 
     // ---- drives
@@ -403,6 +503,7 @@ private Q_SLOTS:
         QCOMPARE(docs->section, Section::Folders);
         QCOMPARE(docs->displayName, QStringLiteral("Documents"));
         QCOMPARE(docs->detail, QStringLiteral("212 items"));
+        QVERIFY(docs->detail2.isEmpty());
         QCOMPARE(docs->icon, QStringLiteral("folder-documents"));
         QVERIFY(docs->isDir);
         QCOMPARE(docs->target, QUrl::fromLocalFile(HOME + QStringLiteral("/Documents")));
@@ -413,7 +514,8 @@ private Q_SLOTS:
         QVERIFY(home);
         QCOMPARE(home->section, Section::Drives);
         QCOMPARE(home->displayName, QStringLiteral("Home"));
-        QCOMPARE(home->detail, QStringLiteral("410 GB free of 512 GB"));
+        QCOMPARE(home->detail, QStringLiteral("410 GB free"));
+        QCOMPARE(home->detail2, QStringLiteral("of 512 GB"));
         QCOMPARE(home->target, QUrl::fromLocalFile(HOME));
         QVERIFY(home->localPath.isEmpty()); // no folder preview over the ring icon
         QCOMPARE(home->icon, QStringLiteral("lucent-drive-system-20"));
@@ -421,14 +523,16 @@ private Q_SLOTS:
         const Entry *win = find(entries, QStringLiteral("drive-vdb1"));
         QVERIFY(win);
         QCOMPARE(win->displayName, QStringLiteral("Local Disk (C:)"));
-        QCOMPARE(win->detail, QStringLiteral("Read-only · 476 GB"));
+        QCOMPARE(win->detail, QStringLiteral("476 GB")); // not opened yet
+        QCOMPARE(win->detail2, QStringLiteral("Read-only"));
         QCOMPARE(win->target, QUrl(QStringLiteral("thispc:/drive-vdb1"))); // mounts on open
         QVERIFY(win->overlays.contains(QStringLiteral("emblem-locked")));
         QCOMPARE(win->mimeType, QStringLiteral("inode/directory"));
 
         const Entry *stick = find(entries, QStringLiteral("drive-sdb1"));
         QVERIFY(stick);
-        QCOMPARE(stick->detail, QStringLiteral("14.2 GB free of 32 GB"));
+        QCOMPARE(stick->detail, QStringLiteral("14.2 GB free"));
+        QCOMPARE(stick->detail2, QStringLiteral("USB drive · 32 GB"));
         QCOMPARE(stick->target, QUrl::fromLocalFile(QStringLiteral("/run/media/anna/KINGSTON")));
         QCOMPARE(stick->mimeType, QStringLiteral("inode/x-lucent-removable-drive")); // gets "Eject"
         QVERIFY(stick->overlays.isEmpty());
@@ -444,13 +548,14 @@ private Q_SLOTS:
         QVERIFY(doc && notes);
         QVERIFY(doc->name.startsWith(QLatin1String("recent-")));
         QCOMPARE(doc->displayName, QStringLiteral("Lease 2026.docx"));
-        QCOMPARE(doc->detail, QStringLiteral("Documents · Today"));
+        QCOMPARE(doc->detail, QStringLiteral("Documents"));
+        QCOMPARE(doc->detail2, QStringLiteral("Today"));
         QVERIFY(!doc->isDir);
         QCOMPARE(doc->size, qint64(48000));
         QCOMPARE(doc->target, QUrl::fromLocalFile(lease.path));
         QCOMPARE(doc->localPath, lease.path);
         QVERIFY(doc->mimeType.contains(QLatin1String("wordprocessingml")));
-        QCOMPARE(notes->detail, QStringLiteral("Home · Today"));
+        QCOMPARE(notes->detail, QStringLiteral("Home"));
     }
 
     void mountedWindowsDriveShowsFreeSpace()
@@ -458,7 +563,8 @@ private Q_SLOTS:
         Volume c = vol(QStringLiteral("vdb1"), QStringLiteral("ntfs"), 476 * GB, QStringLiteral("Local Disk (C:)"), QStringLiteral("/run/media/anna/C"));
         const QList<Entry> entries = buildEntries({}, selectDrives({c}, HOME, {}, fakeStatFs), {}, HOME, fmt());
         const Entry *win = find(entries, QStringLiteral("drive-vdb1"));
-        QCOMPARE(win->detail, QStringLiteral("Read-only · 121 GB free of 476 GB"));
+        QCOMPARE(win->detail, QStringLiteral("121 GB free"));
+        QCOMPARE(win->detail2, QStringLiteral("Read-only · 476 GB"));
         QCOMPARE(win->target, QUrl::fromLocalFile(QStringLiteral("/run/media/anna/C")));
         QCOMPARE(win->icon, QStringLiteral("lucent-drive-windows-75"));
     }
@@ -467,7 +573,8 @@ private Q_SLOTS:
     {
         Volume usb = vol(QStringLiteral("sdb1"), QStringLiteral("exfat"), 32 * GB, QStringLiteral("KINGSTON"), {}, true);
         const QList<Entry> entries = buildEntries({}, selectDrives({usb}, HOME, {}, fakeStatFs), {}, HOME, fmt());
-        QCOMPARE(find(entries, QStringLiteral("drive-sdb1"))->detail, QStringLiteral("USB drive · 32 GB"));
+        QCOMPARE(find(entries, QStringLiteral("drive-sdb1"))->detail, QStringLiteral("32 GB"));
+        QCOMPARE(find(entries, QStringLiteral("drive-sdb1"))->detail2, QStringLiteral("USB drive"));
     }
 
     void recentNamesAreStable()

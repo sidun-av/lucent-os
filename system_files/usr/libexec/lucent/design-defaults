@@ -153,9 +153,9 @@ def add_this_pc(xbel: str, title: str) -> str:
 # thispc:/ as the page is meant to look. Dolphin keeps one set of view
 # properties for every non-local location (remote/), used only when "one
 # view style for all folders" is off (/etc/xdg/dolphinrc GlobalViewProps).
-# Grouped by "Type" (the section), the grey line is "Owner" (the detail);
-# both are what kio_thispc puts there. No previews: they'd cover the ring
-# icons of the drives.
+# Grouped by "Type" (the section), the two grey lines are "Owner" and
+# "User Group" ("21 GiB free" / "of 40 GiB"); all three are what kio_thispc
+# puts there. No previews: they'd cover the ring icons of the drives.
 THISPC_VIEW = """[Dolphin]
 GroupedSorting=true
 GroupRole=type
@@ -164,7 +164,7 @@ SortFoldersFirst=true
 SortRole=text
 Version=4
 ViewMode=0
-VisibleRoles=Icons_text,Icons_owner,Compact_text,Compact_owner,Details_text,Details_owner,Details_modificationtime
+VisibleRoles=Icons_text,Icons_owner,Icons_group,Compact_text,Compact_owner,Details_text,Details_owner,Details_group,Details_modificationtime
 """
 
 

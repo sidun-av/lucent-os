@@ -5,7 +5,7 @@
 # at /ctx. Built against this image's KF6 and Qt, then the toolchain goes
 # again (only what this step added; nothing of the base is removed).
 #
-# Only stable KF6 interfaces are used (KIO::WorkerBase, Solid, KRecentDocument,
+# Only stable interfaces are used (KIO::WorkerBase, KRecentDocument, Solid,
 # KDEDModule): Dolphin and Frameworks updates don't touch this build.
 set -xeuo pipefail
 src=/ctx/build_files/thispc

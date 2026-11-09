@@ -1,6 +1,6 @@
 # Lucent "This PC" (docs/this-pc.md):
 #   thispc_core  - what the page lists and how it names it (Qt Core only, tested)
-#   kio_thispc   - the KIO worker behind thispc:/ (KF6 KIO + Solid)
+#   kio_thispc   - the KIO worker behind thispc:/ (KF6 KIO, lsblk, udisks)
 #   thispcnotifier - kded module: refresh thispc:/ when drives come and go
 # Without KF6 (e.g. on a developer's Mac) only the core and its tests build.
 cmake_minimum_required(VERSION 3.20)
@@ -22,6 +22,7 @@ target_link_libraries(thispc_text_en PUBLIC thispc_core)
 
 add_executable(core_test tests/core_test.cpp)
 target_link_libraries(core_test PRIVATE thispc_core thispc_text_en Qt6::Test)
+target_compile_definitions(core_test PRIVATE THISPC_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
 add_test(NAME core_test COMMAND core_test)
 
 find_package(KF6KIO QUIET)
@@ -35,7 +36,7 @@ if(KF6KIO_FOUND)
 
     add_library(kio_thispc MODULE worker.cpp core/text.cpp)
     target_compile_definitions(kio_thispc PRIVATE THISPC_KI18N TRANSLATION_DOMAIN="lucent-thispc")
-    target_link_libraries(kio_thispc PRIVATE thispc_core Qt6::DBus KF6::KIOCore KF6::Solid KF6::I18n KF6::CoreAddons)
+    target_link_libraries(kio_thispc PRIVATE thispc_core Qt6::DBus KF6::KIOCore KF6::I18n KF6::CoreAddons)
     set_target_properties(kio_thispc PROPERTIES OUTPUT_NAME thispc PREFIX "")
     install(TARGETS kio_thispc LIBRARY DESTINATION ${QT6_INSTALL_PLUGINS}/kf6/kio)
 

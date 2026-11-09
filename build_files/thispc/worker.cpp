@@ -15,11 +15,6 @@
 #include <KIO/WorkerBase>
 #include <KLocalizedString>
 #include <KRecentDocument>
-#include <Solid/Block>
-#include <Solid/Device>
-#include <Solid/StorageAccess>
-#include <Solid/StorageDrive>
-#include <Solid/StorageVolume>
 
 #include <QCoreApplication>
 #include <QDBusConnection>
@@ -30,6 +25,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QMimeDatabase>
+#include <QProcess>
 #include <QStandardPaths>
 
 #include <cstdio>
@@ -75,7 +71,7 @@ QString homePath()
 
 struct Gathered {
     QList<Volume> volumes;
-    QHash<QString, QString> udiById; // volume id -> Solid/UDisks object path
+    QHash<QString, QString> udiById; // volume id -> udisks object path
     QHash<QString, QString> uuidById; // volume id -> file system UUID
 };
 
@@ -99,40 +95,20 @@ void rememberAutomounted(const QString &uuid)
         f.write(uuid.toUtf8() + '\n');
 }
 
+// The drives as the kernel and udev see them right now. The worker process
+// lives on between listings; Solid's cache in it missed mounts and newly
+// plugged sticks (seen in the VM), lsblk never does (~10 ms).
 Gathered gatherVolumes()
 {
-    // The worker process lives on between listings, and Solid keeps its view
-    // of the drives current from udisks' D-Bus signals: deliver the ones that
-    // came in since the last request (a stick plugged in, a drive mounted).
-    QCoreApplication::processEvents();
     Gathered g;
-    const QList<Solid::Device> devices = Solid::Device::listFromType(Solid::DeviceInterface::StorageVolume);
-    for (const Solid::Device &dev : devices) {
-        const auto *sv = dev.as<Solid::StorageVolume>();
-        const auto *block = dev.as<Solid::Block>();
-        if (!sv || !block)
-            continue;
-        Volume v;
-        v.device = block->device();
-        v.id = QFileInfo(v.device).fileName();
-        v.label = sv->label();
-        v.fsType = sv->fsType();
-        v.size = sv->size();
-        v.ignored = sv->isIgnored();
-        v.fileSystem = sv->usage() == Solid::StorageVolume::FileSystem;
-        if (const auto *sa = dev.as<Solid::StorageAccess>(); sa && sa->isAccessible())
-            v.mountPoint = sa->filePath();
-        for (Solid::Device p = dev.parent(); p.isValid(); p = p.parent()) {
-            if (const auto *drive = p.as<Solid::StorageDrive>()) {
-                v.removable = drive->isRemovable() || drive->isHotpluggable() || drive->bus() == Solid::StorageDrive::Usb;
-                break;
-            }
-        }
-        if (v.id.isEmpty())
-            continue;
-        g.udiById.insert(v.id, dev.udi());
-        g.uuidById.insert(v.id, sv->uuid());
-        g.volumes << v;
+    QProcess lsblk;
+    lsblk.start(QStringLiteral("lsblk"), {QStringLiteral("-J"), QStringLiteral("-b"), QStringLiteral("-o"), QString::fromLatin1(LsblkColumns)});
+    if (!lsblk.waitForFinished(10000) || lsblk.exitCode() != 0)
+        return g;
+    g.volumes = parseLsblk(lsblk.readAllStandardOutput());
+    for (const Volume &v : std::as_const(g.volumes)) {
+        g.udiById.insert(v.id, udisksPath(v.id));
+        g.uuidById.insert(v.id, v.uuid);
     }
     return g;
 }
@@ -181,9 +157,11 @@ int countItems(const QString &path)
 Formatters formatters()
 {
     Formatters f;
+    // KFormat follows the user's unit setting (KiB/KB) like the rest of Files.
     f.bytes = [](quint64 b) {
-        return KFormat().formatByteSize(double(b), 1);
+        return KFormat().formatByteSize(double(b), bytePrecision(b));
     };
+    // "Today", "Yesterday", else the short date, as Files' Modified column.
     f.date = [](const QDateTime &t) {
         return KFormat().formatRelativeDate(t.date(), QLocale::ShortFormat);
     };
@@ -197,13 +175,14 @@ Formatters formatters()
 KIO::UDSEntry toUds(const Entry &e)
 {
     KIO::UDSEntry u;
-    u.reserve(14);
     u.fastInsert(KIO::UDSEntry::UDS_NAME, e.name);
     u.fastInsert(KIO::UDSEntry::UDS_DISPLAY_NAME, e.displayName);
     // Dolphin groups this page by "Type" (view properties seeded by
-    // design-defaults) and shows "Owner" as the grey line under the name.
+    // design-defaults) and shows "Owner" and "User Group" as the two grey
+    // lines under the name.
     u.fastInsert(KIO::UDSEntry::UDS_DISPLAY_TYPE, sectionKey(e.section));
     u.fastInsert(KIO::UDSEntry::UDS_USER, e.detail);
+    u.fastInsert(KIO::UDSEntry::UDS_GROUP, e.detail2);
     u.fastInsert(KIO::UDSEntry::UDS_ICON_NAME, e.icon.isEmpty() ? QMimeDatabase().mimeTypeForName(e.mimeType).iconName() : e.icon);
     if (!e.overlays.isEmpty())
         u.fastInsert(KIO::UDSEntry::UDS_ICON_OVERLAY_NAMES, e.overlays.join(QLatin1Char(',')));
@@ -225,7 +204,6 @@ KIO::UDSEntry toUds(const Entry &e)
 KIO::UDSEntry rootEntry()
 {
     KIO::UDSEntry u;
-    u.reserve(6);
     u.fastInsert(KIO::UDSEntry::UDS_NAME, QStringLiteral("."));
     u.fastInsert(KIO::UDSEntry::UDS_DISPLAY_NAME, Text::thisPc());
     u.fastInsert(KIO::UDSEntry::UDS_FILE_TYPE, S_IFDIR);
@@ -320,8 +298,7 @@ private:
                     mounted.insert(d.id, mp);
             }
             if (!mounted.isEmpty()) {
-                // Solid learns about the mount only from a D-Bus signal this
-                // worker can't process while it lists: use udisks' answer.
+                // udisks' answer, in case udev hasn't caught up yet
                 for (Volume &v : g.volumes)
                     if (v.mountPoint.isEmpty() && mounted.contains(v.id))
                         v.mountPoint = mounted.value(v.id);

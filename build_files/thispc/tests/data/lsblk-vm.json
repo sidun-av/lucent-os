@@ -1,0 +1,121 @@
+{
+   "blockdevices": [
+      {
+         "kname": "sda",
+         "path": "/dev/sda",
+         "type": "disk",
+         "fstype": "vfat",
+         "label": "KINGSTON",
+         "uuid": "E94B-19FA",
+         "size": 34359738368,
+         "rm": true,
+         "hotplug": false,
+         "tran": "usb",
+         "parttype": null,
+         "mountpoints": [
+             "/run/media/lucent/KINGSTON"
+         ]
+      },{
+         "kname": "zram0",
+         "path": "/dev/zram0",
+         "type": "disk",
+         "fstype": "swap",
+         "label": "zram0",
+         "uuid": "19443267-76c9-4ac2-9d19-f213a73cb95e",
+         "size": 6175064064,
+         "rm": false,
+         "hotplug": false,
+         "tran": null,
+         "parttype": null,
+         "mountpoints": [
+             "[SWAP]"
+         ]
+      },{
+         "kname": "vda",
+         "path": "/dev/vda",
+         "type": "disk",
+         "fstype": null,
+         "label": null,
+         "uuid": null,
+         "size": 44550848512,
+         "rm": false,
+         "hotplug": false,
+         "tran": "virtio",
+         "parttype": null,
+         "mountpoints": []
+      },{
+         "kname": "vda1",
+         "path": "/dev/vda1",
+         "type": "part",
+         "fstype": "vfat",
+         "label": "EFI-SYSTEM",
+         "uuid": "AF8F-885E",
+         "size": 525336576,
+         "rm": false,
+         "hotplug": false,
+         "tran": "virtio",
+         "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b",
+         "mountpoints": [
+             "/boot/efi"
+         ]
+      },{
+         "kname": "vda2",
+         "path": "/dev/vda2",
+         "type": "part",
+         "fstype": "ext4",
+         "label": "boot",
+         "uuid": "c92ec744-4ae0-4168-bf70-aeecee9d4ad5",
+         "size": 1073741824,
+         "rm": false,
+         "hotplug": false,
+         "tran": "virtio",
+         "parttype": "bc13c2ff-59e6-4262-a352-b275fd6f7172",
+         "mountpoints": [
+             "/boot"
+         ]
+      },{
+         "kname": "vda3",
+         "path": "/dev/vda3",
+         "type": "part",
+         "fstype": "btrfs",
+         "label": "root",
+         "uuid": "00ebd7b1-29ff-4b83-8428-da88c88036a3",
+         "size": 42949672960,
+         "rm": false,
+         "hotplug": false,
+         "tran": "virtio",
+         "parttype": "b921b045-1df0-41c3-af44-4c6f280d3fae",
+         "mountpoints": [
+             "/var", "/sysroot/ostree/deploy/default/var", "/sysroot", "/etc"
+         ]
+      },{
+         "kname": "vdb",
+         "path": "/dev/vdb",
+         "type": "disk",
+         "fstype": null,
+         "label": null,
+         "uuid": null,
+         "size": 4294967296,
+         "rm": false,
+         "hotplug": false,
+         "tran": "virtio",
+         "parttype": null,
+         "mountpoints": []
+      },{
+         "kname": "vdb1",
+         "path": "/dev/vdb1",
+         "type": "part",
+         "fstype": "ntfs",
+         "label": "Local Disk (C:)",
+         "uuid": "6667B4D92A2B20D5",
+         "size": 4292870144,
+         "rm": false,
+         "hotplug": false,
+         "tran": "virtio",
+         "parttype": "ebd0a0a2-b9e5-4433-87c0-68b6b72699c7",
+         "mountpoints": [
+             "/run/media/lucent/Local Disk (C:)"
+         ]
+      }
+   ]
+}

@@ -60,23 +60,28 @@ QString items(int count)
     return TRP("@info number of items in a folder", "%1 item", "%1 items", count);
 }
 
-QString freeOf(const QString &free, const QString &total)
+QString free(const QString &size)
 {
-    return TR2("@info free space, e.g. 410 GB free of 512 GB", "%1 free of %2", free, total);
+    return TR1("@info free space on a drive, e.g. 410 GB free", "%1 free", size);
 }
 
-QString readOnly(const QString &rest)
+QString ofTotal(const QString &size)
 {
-    return TR1("@info a drive whose files can't be changed; %1 is its size or free space", "Read-only · %1", rest);
+    return TR1("@info under the free space (410 GB free): the drive's size", "of %1", size);
 }
 
-QString usb(const QString &rest)
+QString readOnly()
 {
-    return TR1("@info %1 is the drive's size", "USB drive · %1", rest);
+    return TR("@info a drive whose files can't be changed", "Read-only");
 }
 
-QString recent(const QString &folder, const QString &when)
+QString readOnly(const QString &size)
 {
-    return TR2("@info folder of a recent file and when it changed, e.g. Documents · Today", "%1 · %2", folder, when);
+    return TR1("@info a drive whose files can't be changed; %1 is its size", "Read-only · %1", size);
+}
+
+QString usb(const QString &size)
+{
+    return TR1("@info %1 is the drive's size", "USB drive · %1", size);
 }
 } // namespace ThisPc::Text

@@ -51,6 +51,10 @@ int usedPercent(const Space &space);
 // Usage rounded to the nearest 5 % for the ring icon (0, 5, ... 100).
 int gaugeStep(const Space &space);
 
+// Decimals for a size in its unit (1024-based): 1 below 10 units ("4.0 GiB"),
+// else 0 ("21 GiB", "476 GiB"), so a drive's line fits under its icon.
+int bytePrecision(quint64 bytes);
+
 // --------------------------------------------------------------- drives
 
 // One file system as Solid/UDisks describe it.
@@ -62,9 +66,19 @@ struct Volume {
     quint64 size = 0; // bytes
     QString mountPoint; // empty when not mounted
     bool removable = false; // USB stick, SD card, external disk
-    bool ignored = false; // udisks HintIgnore (recovery, EFI, MS reserved)
-    bool fileSystem = true; // usage == FileSystem (not swap, raid, a locked container)
+    bool ignored = false; // recovery, EFI, MS reserved: never a user's drive
+    bool fileSystem = true; // has a file system (not swap, raid, a locked container)
+    QString uuid;
 };
+
+// Every block device from `lsblk -J -b -o KNAME,PATH,TYPE,FSTYPE,LABEL,UUID,
+// SIZE,RM,HOTPLUG,TRAN,PARTTYPE,MOUNTPOINTS` (flat or tree). The label is
+// udev's, so lucent-drive-letters' "Local Disk (C:)" is there.
+QList<Volume> parseLsblk(const QByteArray &json);
+inline const char *LsblkColumns = "KNAME,PATH,TYPE,FSTYPE,LABEL,UUID,SIZE,RM,HOTPLUG,TRAN,PARTTYPE,MOUNTPOINTS";
+
+// udisks' D-Bus object for a kernel device name ("dm-3" -> .../dm_2d3).
+QString udisksPath(const QString &kname);
 
 enum class DriveKind { System, Windows, Removable, Other };
 
@@ -138,7 +152,8 @@ struct Entry {
     QString name; // unique within thispc:/ (UDS_NAME)
     QString displayName;
     Section section = Section::Folders;
-    QString detail; // the grey line under the name
+    QString detail; // the grey lines under the name: "21 GiB free"
+    QString detail2; // "of 40 GiB" (Dolphin roles "owner", "group")
     QString icon;
     QStringList overlays;
     bool isDir = true;
@@ -176,10 +191,11 @@ QString home();
 QString localDisk();
 QString usbDrive();
 QString items(int count);
-QString freeOf(const QString &free, const QString &total);
-QString readOnly(const QString &rest);
-QString usb(const QString &rest);
-QString recent(const QString &folder, const QString &when);
+QString free(const QString &size);
+QString ofTotal(const QString &size);
+QString readOnly();
+QString readOnly(const QString &size);
+QString usb(const QString &size);
 }
 
 } // namespace ThisPc

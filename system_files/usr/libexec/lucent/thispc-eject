@@ -2,25 +2,43 @@
 """Eject a removable drive from Files' "This PC" page.
 
 Run by the "Eject" action (/usr/share/kio/servicemenus/lucent-thispc-eject.desktop)
-with the item's URL, thispc:/drive-<block device>. Unmounts every mounted
-file system on that drive, then powers the drive off, the way Plasma's own
-"Safely remove" does (udisks; polkit decides, a password is asked if needed).
-The page refreshes by itself (thispcnotifier, kded). docs/this-pc.md
+with the item: its mount point when the drive is mounted (Dolphin passes the
+item's target), else its URL, thispc:/drive-<block device>. Unmounts every
+mounted file system on that drive, then powers the drive off, the way
+Plasma's own "Safely remove" does (udisks; polkit decides, a password is
+asked if needed). Only removable drives are ever powered off. The page
+refreshes by itself (thispcnotifier, kded). docs/this-pc.md
 """
 import gettext
 import json
 import re
 import subprocess
 import sys
-from urllib.parse import unquote
+from collections.abc import Callable
+from urllib.parse import unquote, urlparse
 
 _ = gettext.translation("lucent-thispc", fallback=True).gettext
 
 
-def device_for(url: str) -> str | None:
-    """thispc:/drive-sdb1 -> /dev/sdb1 (nothing else is accepted)."""
-    m = re.fullmatch(r"thispc:/*drive-([A-Za-z0-9][A-Za-z0-9._-]*)/?", unquote(url))
-    return f"/dev/{m[1]}" if m else None
+def device_for(arg: str, mount_source: Callable[[str], str | None]) -> str | None:
+    """thispc:/drive-sdb1 -> /dev/sdb1; a mount point -> the device mounted there."""
+    m = re.fullmatch(r"thispc:/*drive-([A-Za-z0-9][A-Za-z0-9._-]*)/?", unquote(arg))
+    if m:
+        return f"/dev/{m[1]}"
+    if arg.startswith("thispc:"):
+        return None
+    path = unquote(urlparse(arg).path) if arg.startswith("file:") else arg
+    source = mount_source(path.rstrip("/") or "/") if path.startswith("/") else None
+    return source if source and source.startswith("/dev/") else None
+
+
+def removable(lsblk_json: str) -> bool:
+    """From `lsblk -J -d -o RM,HOTPLUG,TRAN <disk>`: a USB stick, SD card, external disk."""
+    try:
+        disks = json.loads(lsblk_json).get("blockdevices", [])
+    except ValueError:
+        return False
+    return bool(disks) and all(d.get("rm") or d.get("hotplug") or d.get("tran") in ("usb", "mmc") for d in disks)
 
 
 def mounted_partitions(lsblk_json: str) -> list[str]:
@@ -44,13 +62,22 @@ def notify(summary: str, body: str, icon: str) -> None:
                    capture_output=True, timeout=10)
 
 
+def run(*cmd: str) -> subprocess.CompletedProcess:
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+
+
 def main(argv: list[str]) -> int:
-    dev = device_for(argv[1]) if len(argv) > 1 else None
+    def mount_source(path: str) -> str | None:
+        out = run("findmnt", "-n", "-o", "SOURCE", "--mountpoint", path).stdout.strip()
+        return out or None
+
+    dev = device_for(argv[1], mount_source) if len(argv) > 1 else None
     if not dev:
         return 2
-    run = lambda *cmd: subprocess.run(cmd, capture_output=True, text=True, timeout=120)
     parent = run("lsblk", "-ndo", "PKNAME", dev).stdout.strip()
     disk = f"/dev/{parent}" if parent else dev
+    if not removable(run("lsblk", "-J", "-d", "-o", "RM,HOTPLUG,TRAN", disk).stdout):
+        return 2
     ok = True
     for part in mounted_partitions(run("lsblk", "-J", "-o", "PATH,MOUNTPOINTS", disk).stdout or "{}"):
         ok = ok and run("udisksctl", "unmount", "-b", part).returncode == 0
