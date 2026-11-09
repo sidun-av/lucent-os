@@ -1,0 +1,16 @@
+# TEST-ONLY derivative of the published Lucent OS image for the hardware-live
+# test (.github/workflows/hardware-live.yml). Built there, turned into a qcow2
+# and thrown away; never pushed. On top of the release image it adds only
+# what drives the test from outside: user `lucent` (bootc-image-builder,
+# config.toml.in) with autologin and password-less sudo, sshd, and a control
+# NIC that NetworkManager does not manage (so the taskbar only ever shows
+# the network hardware under test). The test's helpers (Wi-Fi access point,
+# virtual Bluetooth controllers, mac80211_hwsim) are copied in at run time,
+# into /var/tmp and a transient /usr overlay; this image has none of them.
+ARG IMAGE=ghcr.io/sidun-av/lucent-os:latest
+FROM ${IMAGE}
+COPY rootfs/ /
+RUN chmod 0440 /etc/sudoers.d/zz-lucent-hwtest && \
+    chmod 0755 /usr/libexec/lucent-hwtest/ctl-net && \
+    systemctl enable sshd.service lucent-hwtest-ctl.service && \
+    bootc container lint

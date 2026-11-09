@@ -1,0 +1,13 @@
+# TEST IMAGE ONLY (tests/hardware/image). Never part of the release image.
+[Unit]
+Description=Hardware test control link (CI)
+Before=sshd.service
+After=systemd-udevd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/libexec/lucent-hwtest/ctl-net
+
+[Install]
+WantedBy=multi-user.target

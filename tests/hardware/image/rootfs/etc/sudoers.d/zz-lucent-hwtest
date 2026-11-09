@@ -1,0 +1,2 @@
+# TEST IMAGE ONLY (tests/hardware/image). Never part of the release image.
+lucent ALL=(ALL) NOPASSWD: ALL

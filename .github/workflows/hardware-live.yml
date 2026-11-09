@@ -1,0 +1,159 @@
+name: hardware-live
+
+# "Plug it in and it works, and it shows up": the basics a Windows user
+# tries first, on an installed x86_64 Lucent system in QEMU/KVM with
+# EMULATED hardware and Secure Boot ON (OVMF with Microsoft's keys, as a
+# Windows PC ships): sound (Intel HDA + USB audio, the tone really comes out,
+# volume keys), USB sticks (FAT32/exFAT/NTFS: notification, This PC, read,
+# write, safe eject), Wi-Fi (mac80211_hwsim + a WPA2 access point, joined
+# from the taskbar), Bluetooth (virtual controllers over hci_vhci), Ethernet
+# (e1000e, igb, a USB dock NIC: online by themselves) and a network printer
+# (IPP Everywhere over DNS-SD). Emulated devices prove Lucent's drivers,
+# services and UI for those models; they are not real hardware.
+#
+# The installed system is a qcow2 of the published image plus a test-only
+# overlay (tests/hardware/image: autologin, sshd, password-less sudo, an
+# unmanaged control NIC); never pushed. Test code: tests/hardware/.
+# Separate from `acceptance` (ISO install) and changes nothing there.
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Image to test"
+        type: string
+        default: "ghcr.io/sidun-av/lucent-os:latest"
+      image_run_id:
+        description: "Reuse the hwtest-image artifact (qcow2) of this hardware-live run instead of building one"
+        type: string
+        default: ""
+  push:
+    branches: [main]
+    paths:
+      - tests/hardware/**
+      - .github/workflows/hardware-live.yml
+
+permissions:
+  contents: read
+  packages: read
+  actions: read
+
+env:
+  WORK: /mnt/lucent-hw
+  FEDORA: quay.io/fedora/fedora:45
+
+concurrency:
+  group: hardware-live-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  hardware-live:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests (WAV analysis, tray icons, read-only rule)
+        run: |
+          pip install -q pytest
+          PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -p no:cacheprovider tests/hardware tests/system
+
+      - name: Disk space and tools
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost || true
+          sudo mkdir -p "$WORK" && sudo chown "$USER" "$WORK"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 qemu-utils ovmf dosfstools exfatprogs ntfs-3g \
+            cups-ipp-utils avahi-daemon dnsmasq-base >/dev/null
+          command -v podman || sudo apt-get install -y -qq podman
+          ls -la /usr/share/OVMF/
+          df -h / /mnt
+
+      - name: Reuse a test image
+        if: inputs.image_run_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download "${{ inputs.image_run_id }}" -R "$GITHUB_REPOSITORY" -n hwtest-image -D "$WORK/image"
+      - name: Build the test image (derived container -> qcow2)
+        if: inputs.image_run_id == ''
+        env:
+          IMAGE: ${{ inputs.image || 'ghcr.io/sidun-av/lucent-os:latest' }}
+        run: |
+          mkdir -p "$WORK/image"
+          echo "${{ secrets.GITHUB_TOKEN }}" | sudo podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+          sudo podman build --pull=newer --build-arg IMAGE="$IMAGE" -t localhost/lucent-hwtest:latest tests/hardware/image
+          sudo podman image inspect "$IMAGE" --format '{{index .Labels "org.opencontainers.image.revision"}}' > "$WORK/image/revision.txt"
+          sudo podman run --rm --entrypoint /usr/bin/ls localhost/lucent-hwtest:latest /usr/lib/modules > "$WORK/image/kver.txt"
+          sudo podman run --rm --entrypoint /usr/bin/rpm localhost/lucent-hwtest:latest -qa --qf '%{NAME} %{VERSION}-%{RELEASE}\n' | sort > "$WORK/image/rpm-qa-x86_64.txt"
+          echo "$IMAGE @ $(cat "$WORK/image/revision.txt"), kernel $(cat "$WORK/image/kver.txt")" | tee -a "$GITHUB_STEP_SUMMARY"
+          ssh-keygen -q -t ed25519 -N '' -C hwtest -f "$WORK/image/hwtest_key"
+          sed "s|@SSH_KEY@|$(cat "$WORK/image/hwtest_key.pub")|" tests/hardware/image/config.toml.in > "$WORK/config.toml"
+          mkdir -p "$WORK/bib"
+          sudo podman run --rm --privileged --pull=newer \
+            --security-opt label=type:unconfined_t \
+            -v "$WORK/config.toml:/config.toml:ro" -v "$WORK/bib:/output" \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            quay.io/centos-bootc/bootc-image-builder:latest \
+            --type qcow2 --rootfs btrfs localhost/lucent-hwtest:latest
+          sudo qemu-img convert -c -O qcow2 -o compression_type=zstd "$WORK/bib/qcow2/disk.qcow2" "$WORK/image/lucent-hwtest.qcow2"
+          sudo rm -rf "$WORK/bib"
+          sudo podman rmi -a -f >/dev/null 2>&1 || true
+          sudo chown -R "$USER" "$WORK/image"
+          ls -la "$WORK/image"
+      - uses: actions/upload-artifact@v4
+        if: inputs.image_run_id == ''
+        with:
+          name: hwtest-image
+          path: ${{ env.WORK }}/image
+          compression-level: 0
+          retention-days: 5
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -r /dev/kvm && test -w /dev/kvm
+      - name: Test rig (helpers for the VM, USB sticks, Windows disk, LAN with a printer)
+        run: |
+          kver=$(head -n1 "$WORK/image/kver.txt")
+          sudo podman run --rm -v "$WORK/tools:/out" -v "$PWD/tests/hardware/runner:/r:ro" "$FEDORA" \
+            bash /r/fetch-tools.sh /out "$kver" 2>&1 | tail -n 40
+          sudo chown -R "$USER" "$WORK/tools"
+          mkdir -p "$WORK/sticks"
+          sudo bash tests/hardware/runner/sticks.sh make "$WORK/sticks"
+          sudo tools/vm/image/make-windows-disk.sh "$WORK/windows-disk.qcow2"
+          sudo chown "$USER" "$WORK/windows-disk.qcow2"
+          sudo bash tests/hardware/runner/lan.sh up "$USER" "$WORK/printer/spool"
+          chmod 600 "$WORK/image/hwtest_key"
+
+      - name: Boot and test (Secure Boot on)
+        run: |
+          python3 tests/hardware/hwlive.py --disk "$WORK/image/lucent-hwtest.qcow2" --key "$WORK/image/hwtest_key" \
+            --tools "$WORK/tools" --sticks "$WORK/sticks" --windows-disk "$WORK/windows-disk.qcow2" \
+            --spool "$WORK/printer/spool" --repo-rule system_files/usr/lib/udev/rules.d/99-lucent-windows-readonly.rules \
+            --out "$WORK/out" || echo "hwlive exit $?"
+      - name: Results
+        if: always()
+        run: |
+          sudo bash tests/hardware/runner/lan.sh down || true
+          mkdir -p "$WORK/out"
+          sudo bash tests/hardware/runner/sticks.sh check "$WORK/sticks" > "$WORK/out/sticks-after.tsv" || true
+          cat "$WORK/out/sticks-after.tsv"
+          cp "$WORK/image/"*.txt "$WORK/out/" 2>/dev/null || true
+          cp "$WORK/printer/ippeveprinter.log" /var/log/lucent-lan-dnsmasq.log "$WORK/out/" 2>/dev/null || true
+          ls -la "$WORK/printer/spool" > "$WORK/out/printer-spool.txt" 2>&1 || true
+          sudo chown -R "$USER" "$WORK/out"
+          # The sound card's recordings: kept when small enough to download.
+          find "$WORK/out" -name '*.wav' -size +60M -print -delete
+          rm -f "$WORK/out/"*.sock "$WORK/out/OVMF_VARS.fd"
+          rc=0
+          python3 tests/hardware/hwlive.py --out "$WORK/out" --sticks-verdict "$WORK/out/sticks-after.tsv" || rc=$?
+          cat "$WORK/out/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hardware-live-x86_64
+          path: ${{ env.WORK }}/out
+          if-no-files-found: ignore
+          retention-days: 14
