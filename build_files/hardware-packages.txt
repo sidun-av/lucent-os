@@ -1,0 +1,80 @@
+# Hardware support that must be in every Lucent OS image, so a PC that ran
+# Windows works after installation without downloading anything.
+# Read by build_files/hardware.sh (installs what the base image lacks) and by
+# tests/hardware/hw_audit.py (fails CI if any of it goes missing).
+# Format: <package> <any|x86_64|aarch64> <why, in plain words>
+# docs/hardware.md explains the device classes for users.
+
+# --- Firmware (the base image's linux-firmware set is checked file by file
+#     by the audit; these are the packages outside it) --------------------
+linux-firmware              any     firmware for most Wi-Fi, Bluetooth, Ethernet, GPU and audio chips
+wireless-regdb              any     Wi-Fi regulatory database (which channels are allowed where)
+alsa-sof-firmware           any     audio DSP firmware for most Intel (2019+) and many AMD laptops
+alsa-ucm                    any     audio profiles (speakers/headset/HDMI routing) for laptop sound cards
+intel-vsc-firmware          x86_64  Intel Visual Sensing Controller firmware: the MIPI webcam on many 2022+ laptops
+amd-ucode-firmware          x86_64  AMD CPU microcode (security and stability fixes)
+microcode_ctl               x86_64  Intel CPU microcode (security and stability fixes)
+
+# --- Network: Wi-Fi, Ethernet, mobile broadband, VPN --------------------
+NetworkManager-wifi         any     Wi-Fi in NetworkManager
+NetworkManager-bluetooth    any     internet through a phone over Bluetooth
+NetworkManager-wwan         any     4G/5G modems and USB sticks
+NetworkManager-ppp          any     PPPoE (DSL modems in bridge mode) and older 3G modems
+ModemManager                any     4G/5G modems
+usb_modeswitch              any     USB modems that first show up as a CD drive
+NetworkManager-openvpn      any     OpenVPN (common company VPN)
+plasma-nm-openvpn           any     OpenVPN in the network settings
+NetworkManager-openconnect  any     Cisco AnyConnect / GlobalProtect / Pulse / Fortinet compatible VPN
+plasma-nm-openconnect       any     OpenConnect in the network settings
+NetworkManager-vpnc         any     Cisco IPsec VPN
+plasma-nm-vpnc              any     Cisco IPsec VPN in the network settings
+wireguard-tools             any     WireGuard VPN (NetworkManager imports .conf files natively)
+
+# --- Bluetooth -------------------------------------------------------------
+bluez                       any     Bluetooth
+bluez-obexd                 any     send and receive files over Bluetooth
+
+# --- Sound -----------------------------------------------------------------
+pipewire-pulseaudio         any     sound server (PulseAudio-compatible)
+wireplumber                 any     picks the right speakers/headset/HDMI output automatically
+
+# --- Graphics and hardware video decode ------------------------------------
+mesa-dri-drivers            any     OpenGL for Intel, AMD and NVIDIA (nouveau)
+mesa-vulkan-drivers         any     Vulkan for Intel (ANV), AMD (RADV) and NVIDIA (NVK)
+mesa-va-drivers             any     VA-API video decode on AMD and NVIDIA (nouveau)
+libva-intel-media-driver    x86_64  VA-API video decode on Intel GPUs (Broadwell, 2014, and newer)
+switcheroo-control          any     laptops with two GPUs: "run on discrete GPU" in the app menu
+
+# --- Webcams ---------------------------------------------------------------
+libcamera                   any     MIPI webcams (Intel IPU6/IPU7 laptops) through the software ISP
+libcamera-ipa               any     image processing for libcamera webcams
+pipewire-plugin-libcamera   any     libcamera webcams in apps (through PipeWire)
+
+# --- USB, Thunderbolt, docks -----------------------------------------------
+bolt                        any     Thunderbolt / USB4 device authorisation (docks)
+fwupd                       any     firmware updates for docks, SSDs, laptops (LVFS)
+
+# --- Input, sensors, fingerprint, laptop controls ---------------------------
+libwacom                    any     pens and drawing tablets (Wacom and compatibles)
+iio-sensor-proxy            any     screen auto-rotation and ambient light sensor
+fprintd                     any     fingerprint readers (libfprint-supported)
+fprintd-pam                 any     log in and unlock with a fingerprint
+upower                      any     battery level, keyboard backlight
+thermald                    x86_64  Intel thermal management (avoids overheating/throttling on Intel laptops)
+game-devices-udev           any     game controllers (Xbox, PlayStation, Switch, 8BitDo) usable without root
+
+# --- Printers and scanners ---------------------------------------------------
+cups                        any     printing
+cups-filters                any     printing filters
+ipp-usb                     any     USB printers and scanners that speak IPP-over-USB (driverless)
+hplip                       any     HP printers
+gutenprint-cups             any     Canon, Epson and many other inkjets
+epson-inkjet-printer-escpr  any     Epson inkjets (ESC/P-R)
+epson-inkjet-printer-escpr2 any     newer Epson inkjets (ESC/P-R 2)
+foomatic                    any     printer driver database (older lasers and inkjets)
+foomatic-db-ppds            any     printer descriptions for foomatic
+splix                       any     Samsung and Xerox SPL lasers
+printer-driver-brlaser      any     Brother lasers
+ptouch-driver               any     Brother P-touch label printers
+sane-airscan                any     network and IPP-over-USB scanners (driverless)
+sane-backends-drivers-scanners any  USB scanners (Canon, Epson, HP and others)

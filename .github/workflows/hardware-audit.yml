@@ -1,0 +1,106 @@
+name: hardware-audit
+
+# Does the published image carry the drivers, firmware and packages that
+# typical Windows PCs and laptops need right after installation? Runs
+# tests/hardware/hw_audit.py inside the image, on both architectures.
+# The audit job FAILS when a core firmware file (Wi-Fi, Ethernet,
+# Bluetooth, audio, GPU) goes missing or a required hardware package is not
+# installed; tests/hardware/firmware-allowlist.txt lists the files no Fedora
+# package ships. Report: the job summary and the hardware-audit-* artifact.
+on:
+  workflow_run:            # every image published from main, incl. the weekly base update
+    workflows: [build]
+    types: [completed]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - tests/hardware/**
+      - build_files/hardware*
+      - .github/workflows/hardware-audit.yml
+  pull_request:
+    paths:
+      - tests/hardware/**
+      - build_files/hardware*
+      - .github/workflows/hardware-audit.yml
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Image tag without the -amd64/-arm64 suffix (latest or a commit SHA)
+        default: latest
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/lucent-os
+
+concurrency:
+  group: hardware-audit-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  unit:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: pip install pytest
+      - run: pytest -v -p no:cacheprovider tests/hardware
+
+  audit:
+    needs: unit
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Free disk space (the image is several GB unpacked)
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost || true
+          df -h /
+      - name: Pick the image
+        id: img
+        run: |
+          if [ "${{ github.event_name }}" = workflow_run ]; then
+            tag="${{ github.event.workflow_run.head_sha }}-${{ matrix.arch }}"
+          else
+            tag="${{ inputs.tag || 'latest' }}-${{ matrix.arch }}"
+          fi
+          echo "ref=$IMAGE:$tag" >> "$GITHUB_OUTPUT"
+          echo "Auditing $IMAGE:$tag"
+      - name: Pull
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker pull -q "${{ steps.img.outputs.ref }}"
+          docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "${{ steps.img.outputs.ref }}"
+      - name: Audit inside the image
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"
+          set +e
+          docker run --rm -v "$PWD:/src:ro" -v "$RUNNER_TEMP/out:/out" "${{ steps.img.outputs.ref }}" \
+            python3 -I /src/tests/hardware/hw_audit.py --repo /src --out /out > "$RUNNER_TEMP/log.txt" 2>&1
+          rc=$?
+          set -e
+          cat "$RUNNER_TEMP/log.txt"
+          [ -f "$RUNNER_TEMP/out/hardware-audit.md" ] && cat "$RUNNER_TEMP/out/hardware-audit.md" >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hardware-audit-${{ matrix.arch }}
+          path: ${{ runner.temp }}/out/
+          if-no-files-found: warn

@@ -1,0 +1,5 @@
+# Firmware files that kernel drivers of the core classes (Wi-Fi, Ethernet,
+# Bluetooth, audio, GPU) may request but that NO Fedora package ships.
+# The hardware audit (hw_audit.py) fails if a core firmware file is missing
+# and is not listed here, or if it is listed here but Fedora now ships it.
+# Format: <glob on the name modinfo prints> <reason>
