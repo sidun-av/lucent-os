@@ -17,7 +17,24 @@ if [ ! -f "$src/SHA256SUMS" ]; then
     echo "no offline app bundle on the install media; apps download after first boot"
     exit 0
 fi
-mkdir -p "$root/var/tmp/lucent-apps" "$root/var/lib/flatpak" "$root/var/log/lucent"
+# /mnt/sysroot is the new deployment, but its /var is not the /var the
+# booted system will use: that is the stateroot's, on the physical root
+# (/mnt/sysimage/ostree/deploy/<stateroot>/var). Write there, and show it to
+# the chroot at /var/lib/flatpak so SELinux labels are computed for the
+# right path.
+var=""
+if mountpoint -q "$root/var"; then
+    var=$root/var
+else
+    for d in /mnt/sysimage/ostree/deploy/*/var; do [ -d "$d" ] && var=$d && break; done
+fi
+if [ -z "$var" ]; then
+    echo "cannot find the new system's /var; apps download after first boot"
+    exit 0
+fi
+echo "unpacking into $var/lib/flatpak"
+mkdir -p "$var/lib/flatpak" "$var/log/lucent" "$root/var/lib/flatpak" "$root/var/tmp/lucent-apps"
+mount --bind "$var/lib/flatpak" "$root/var/lib/flatpak"
 mount --bind "$src" "$root/var/tmp/lucent-apps"
 start=$(date +%s)
 chroot "$root" /usr/bin/bash -euo pipefail -c '
@@ -28,16 +45,16 @@ chroot "$root" /usr/bin/bash -euo pipefail -c '
     setfiles -F "/etc/selinux/${policy:-targeted}/contexts/files/file_contexts" /var/lib/flatpak
 '
 rc=$?
-umount "$root/var/tmp/lucent-apps"
-rmdir "$root/var/tmp/lucent-apps"
+umount "$root/var/tmp/lucent-apps" "$root/var/lib/flatpak"
+rmdir "$root/var/tmp/lucent-apps" 2>/dev/null || true
 if [ "$rc" -ne 0 ]; then
     echo "offline app bundle failed (exit $rc); apps download after first boot instead"
-    rm -rf "$root/var/lib/flatpak"
-    mkdir -p "$root/var/lib/flatpak"
+    rm -rf "$var/lib/flatpak"
+    mkdir -p "$var/lib/flatpak"
 else
     echo "default apps installed from the install media in $(( $(date +%s) - start )) s:"
-    ls "$root/var/lib/flatpak/app"
+    ls "$var/lib/flatpak/app"
 fi
-cp /tmp/lucent-apps.log "$root/var/log/lucent/apps-install.log" 2>/dev/null || true
+cp /tmp/lucent-apps.log "$var/log/lucent/apps-install.log" 2>/dev/null || true
 exit 0
 %end
