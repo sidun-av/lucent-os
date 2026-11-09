@@ -181,6 +181,7 @@ def _heading(page) -> None:
     for tree in page.findChildren(QTreeWidget):
         # Sizes arrive after the first layout: let the name column take the
         # rest of the width instead of truncating "1.2 GB" to "1...".
+        tree.setRootIsDecorated(False)  # a flat list: no tree-branch stubs
         header = tree.header()
         header.setStretchLastSection(False)
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)

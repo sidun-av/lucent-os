@@ -1,4 +1,7 @@
 [General]
+# Dolphin treats Version < 200 as a first run and hides the menu bar then,
+# overriding MenuBar=Enabled below. 202 = Dolphin 26's config version.
+Version=202
 # Explorer habits: no surprise restore of old tabs. The status bar stays
 # Dolphin's small label: the full-width bar always shows free space, and on
 # an image-based system Dolphin measures the read-only root ("0 B free").
