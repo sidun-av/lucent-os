@@ -374,6 +374,11 @@ iso/                          installer ISO: offline app bundle, kickstart, conf
   which is never set, and falls back to the file-system label.
 - Bookmarks are exported as HTML for a one-click manual import, not injected
   into a Firefox profile.
+- Settings: Wi-Fi scanning/joining and Bluetooth pairing are covered by
+  tests against the tools' documented output only: the test VM has neither
+  (the wired NIC, display, sound, theme, users and update paths were run in
+  the VM). A custom accent is kept across light/dark switches by a user
+  path unit; Plasma itself drops it on a global-theme change.
 - Look: where the real desktop still differs from `docs/mockups/` (menus are
   Breeze, Dolphin has no "This PC" page yet, the lock screen's password view
   is stock, ...) is listed in `docs/screenshots/real/v2/README.md`.

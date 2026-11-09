@@ -94,7 +94,6 @@ Page {
                         required property var modelData
                         required property int index
                         separator: index >= 2
-                        minHeight: 50
                         label: modelData.action
                         Row {
                             spacing: 0
@@ -104,7 +103,7 @@ Page {
                                     required property string modelData
                                     required property int index
                                     spacing: 0
-                                    LText { visible: index > 0; text: "+"; px: Theme.fontBody; weight: Theme.weightStrong; color: Theme.text3; width: 24; horizontalAlignment: Text.AlignHCenter; height: 28 }
+                                    LText { visible: index > 0; text: "+"; px: Theme.fontBody; weight: Theme.weightStrong; color: Theme.text3; width: 34; horizontalAlignment: Text.AlignHCenter; height: 28 }
                                     Keycap { text: modelData === "Win" ? "⊞ Win" : modelData }
                                 }
                             }

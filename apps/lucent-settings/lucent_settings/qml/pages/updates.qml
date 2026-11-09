@@ -97,20 +97,34 @@ Page {
     Card {
         Repeater {
             model: page.st.versions || []
+            // .ver .row: dot, name and pill on one line, the details under it
             SettingRow {
                 required property var modelData
-                leading: Rectangle {
-                    Layout.alignment: Qt.AlignTop
-                    Layout.topMargin: 6
-                    width: Theme.dot; height: Theme.dot; radius: Theme.dot / 2
-                    color: modelData.role === "current" ? Theme.ok : (modelData.role === "previous" ? Theme.text3 : Theme.accent)
-                }
-                label: modelData.title
-                sub: modelData.sub
-                Pill {
-                    visible: modelData.pill !== ""
-                    text: modelData.pill
-                    kind: modelData.role === "current" ? "ok" : "accent"
+                leading: ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 3
+                    RowLayout {
+                        spacing: 12
+                        Rectangle {
+                            width: Theme.dot; height: Theme.dot; radius: Theme.dot / 2
+                            color: modelData.role === "current" ? Theme.ok : (modelData.role === "previous" ? Theme.text3 : Theme.accent)
+                        }
+                        LText { text: modelData.title; px: Theme.fontLabel; weight: Theme.weightLabel }
+                        Pill {
+                            visible: modelData.pill !== ""
+                            text: modelData.pill
+                            kind: modelData.role === "current" ? "ok" : "accent"
+                        }
+                    }
+                    LText {
+                        Layout.leftMargin: Theme.dot + 12
+                        Layout.fillWidth: true
+                        text: modelData.sub
+                        px: Theme.fontSub
+                        color: Theme.text2
+                        wrapMode: Text.WordWrap
+                        elide: Text.ElideNone
+                    }
                 }
                 LButton {
                     visible: modelData.role === "previous" && page.st.canRollBack

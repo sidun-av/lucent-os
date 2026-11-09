@@ -46,8 +46,12 @@ Item {
             id: lead
             spacing: 14
             visible: children.length > 0
+            // a row without label/sub gives its leading content the room
+            Layout.fillWidth: !texts.visible
         }
         ColumnLayout {
+            id: texts
+            visible: row.label !== "" || row.sub !== ""
             spacing: 3
             Layout.fillWidth: true
             Layout.minimumWidth: 120
