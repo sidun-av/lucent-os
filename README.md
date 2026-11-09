@@ -235,7 +235,8 @@ login screens, login splash); the older "Lucent Flow" stays as a choice.
 | About | Lucent version, model, CPU, memory, storage, links to KDE System Settings and Info Center | os-release, `lscpu`, sysfs |
 
 Never runs as root; each change goes through the service's own polkit
-check. English UI with a Russian gettext catalog (`apps/lucent-settings/po/`).
+check. Real screenshots from a fresh boot of the CI image, and what was proven
+there: `docs/screenshots/real/v4-settings/`. English UI with a Russian gettext catalog (`apps/lucent-settings/po/`).
 
 ```sh
 cd apps/lucent-settings
