@@ -714,10 +714,17 @@ if [ -n "$prefix" ]; then
     win=$(grep -a -m1 -o '^"Window"="[0-9 ]*"' "$prefix/user.reg")
     dlg=$(grep -a -m1 -o '^"MS Shell Dlg"="[^"]*"' "$prefix/system.reg")
     dpi=$(grep -a -m1 -o '^"LogPixels"=dword:[0-9a-f]*' "$prefix/user.reg")
-    if [ "$win" = '"Window"="253 253 255"' ] && [ -n "$ui_font" ] && [ "$dlg" = "\"MS Shell Dlg\"=\"$ui_font\"" ]; then
-        record prefix.appearance PASS "$win $dlg (desktop font: $ui_font) $dpi"
+    # Characters the UI font lacks (Figtree: Cyrillic) fall back to Inter,
+    # as on the desktop, then Tahoma (font link; lucent-bridge >= 0.2.1).
+    links=$(grep -a -m1 -o "^\"$ui_font\"=str(7):\"[^\"]*\"" "$prefix/system.reg")
+    links_ok=1
+    if [ "$ui_font" != Inter ] && ! lucent-bridge --version | grep -q ' 0\.2\.0$'; then
+        [[ "$links" == *'Inter\0tahoma.ttf,Tahoma'* ]] || links_ok=0
+    fi
+    if [ "$win" = '"Window"="253 253 255"' ] && [ -n "$ui_font" ] && [ "$dlg" = "\"MS Shell Dlg\"=\"$ui_font\"" ] && ((links_ok)); then
+        record prefix.appearance PASS "$win $dlg (desktop font: $ui_font; fallbacks ${links#*=}) $dpi"
     else
-        record prefix.appearance FAIL "${win:-no Window colour} ${dlg:-no MS Shell Dlg} (desktop font: ${ui_font:-unknown}) ${dpi:-no LogPixels}"
+        record prefix.appearance FAIL "${win:-no Window colour} ${dlg:-no MS Shell Dlg} (desktop font: ${ui_font:-unknown}; fallbacks ${links:-none}) ${dpi:-no LogPixels}"
     fi
     dxvk=$(grep -a -o -m1 'dxvk [0-9][0-9.]*\|DXVK v[0-9.]*\|v[0-9]\.[0-9.]*' "$prefix/drive_c/windows/system32/d3d11.dll" 2>/dev/null | head -n1)
     if cmp -s "$prefix/drive_c/windows/system32/d3d11.dll" /usr/share/lucent-bridge/dxvk/x64/d3d11.dll; then
