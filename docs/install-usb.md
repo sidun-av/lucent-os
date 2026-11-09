@@ -1,11 +1,11 @@
 # Make a Lucent OS USB stick on Windows
 
-You need: a Windows 10 or 11 PC, a USB stick of **16 GB or more** (everything
+You need: a Windows 10 or 11 PC, a USB stick of **8 GB or more** (everything
 on it will be erased), and about 20 minutes.
 
 ## 1. Download and join the ISO
 
-The installer is about 8 GB (the default apps are on it, so they install
+The installer is about 6.7 GB (the default apps are on it, so they install
 without internet), and GitHub serves it in parts of under 2 GB.
 
 1. Open the release page (<https://github.com/sidun-av/lucent-os/releases>)

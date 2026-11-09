@@ -13,7 +13,7 @@ fi
 cat <<EOF
 ## Install Lucent OS $version
 
-The installer is too big for a single GitHub download (8+ GB, because the
+The installer is too big for a single GitHub download (6.5+ GB, because the
 ten default apps are on it and install without internet), so each ISO comes
 in parts of under 2 GB. Download **all the parts** of your ISO (\`amd64\` for
 almost every PC, \`arm64\` for ARM laptops), \`SHA256SUMS\` and the join
@@ -23,7 +23,7 @@ script for your system into one folder:
   double-click \`join-lucent-iso.cmd\`. It checks every part and joins them.
 - **macOS, Linux:** \`join-lucent-iso.sh\`, then run \`sh join-lucent-iso.sh\`.
 
-Then write the ISO to a USB stick of 16 GB or more:
+Then write the ISO to a USB stick of 8 GB or more:
 $server/$repo/blob/main/docs/install-usb.md
 
 | ISO | parts | size |
