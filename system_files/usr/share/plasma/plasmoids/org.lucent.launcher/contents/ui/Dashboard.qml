@@ -522,6 +522,62 @@ Kicker.DashboardWindow {
                     shadowVerticalOffset: 8
                     autoPaddingEnabled: true
                 }
+                // Windows program (a launcher entry lucent-bridge wrote after
+                // an installer): the mockup's badge, bottom-right on the tile
+                // (.badge: 36 px, -6 px out, radius 11, #2a303c, 3 px ring).
+                Rectangle {
+                    readonly property real u: root.iconSize / 128      // mockup px
+                    readonly property real tile: root.iconSize * 0.8
+                    visible: /(^|[:\/])lucent-bridge-[^\/]*\.desktop$/.test(cell.modelData.id)
+                    width: Math.round(42 * u)
+                    height: width
+                    x: (cell.width + tile) / 2 + 9 * u - width
+                    y: 6 + root.iconSize * 0.1 + tile + 9 * u - height
+                    radius: 14 * u
+                    color: root.dark ? "#1b1f27" : Qt.rgba(1, 1, 1, 0.95)
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: parent.width - 6 * parent.u
+                        height: width
+                        radius: 11 * parent.u
+                        color: "#2a303c"
+                        Item {  // lucent.js "winapp": 24-unit glyph drawn at 20 px
+                            readonly property real v: 20 * parent.parent.u / 24
+                            anchors.centerIn: parent
+                            width: 24 * v
+                            height: 24 * v
+                            Rectangle {
+                                x: 3.5 * parent.v - border.width / 2
+                                y: 4.5 * parent.v - border.width / 2
+                                width: 17 * parent.v + border.width
+                                height: 15 * parent.v + border.width
+                                radius: 2.5 * parent.v
+                                color: "transparent"
+                                border.color: "white"
+                                border.width: Math.max(1, 1.7 * parent.v)
+                            }
+                            Rectangle {
+                                x: 3.5 * parent.v
+                                y: 9 * parent.v - height / 2
+                                width: 17 * parent.v
+                                height: Math.max(1, 1.7 * parent.v)
+                                color: "white"
+                            }
+                            Repeater {
+                                model: [6.6, 8.8]
+                                Rectangle {
+                                    required property real modelData
+                                    x: (modelData - 0.75) * parent.v
+                                    y: (6.8 - 0.75) * parent.v
+                                    width: 1.5 * parent.v
+                                    height: width
+                                    radius: width / 2
+                                    color: "white"
+                                }
+                            }
+                        }
+                    }
+                }
                 Text {
                     y: 6 + root.iconSize * 0.9 + 16
                     anchors.horizontalCenter: parent.horizontalCenter
