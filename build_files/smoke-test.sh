@@ -94,10 +94,11 @@ for p in tuned tuned-ppd; do if rpm -q "$p"; then exit 1; fi; done
 # KDE Connect: the daemon starts at login only after pairing (user unit).
 grep -q '^Hidden=true' /etc/xdg/autostart/org.kde.kdeconnect.daemon.desktop
 test "$(systemctl --global is-enabled lucent-kdeconnect.service)" = enabled
-# Initramfs without nouveau and its 105 MB of NVIDIA firmware.
+# Initramfs without nouveau and its NVIDIA GSP firmware (105 MB on x86_64);
+# Tegra SoC firmware (USB, video) on aarch64 is not nouveau's and stays.
 initramfs=$(ls /usr/lib/modules/*/initramfs.img | head -n1)
 lsinitrd "$initramfs" > /tmp/initramfs.list
-if grep -E 'drm/nouveau/|firmware/nvidia/' /tmp/initramfs.list; then echo "nouveau is in the initramfs"; exit 1; fi
+if grep -E 'drm/nouveau/|firmware/nvidia/[^/]+/gsp/' /tmp/initramfs.list; then echo "nouveau is in the initramfs"; exit 1; fi
 if [ "$(uname -m)" = x86_64 ]; then   # the other GPU drivers stay
     grep -q 'drm/amd/amdgpu/amdgpu.ko' /tmp/initramfs.list
     grep -q 'drm/i915/i915.ko' /tmp/initramfs.list

@@ -103,6 +103,19 @@ their own settings always win.
 
 ## Performance tweaks (each justified in the file that sets it)
 
+Measured before and after in CI, with the reasoning for each change and for
+what was left alone: [`docs/performance.md`](docs/performance.md)
+([`build_files/performance.sh`](build_files/performance.sh) applies them).
+
+- No failed unit and no SELinux denial at boot (the acceptance test fails
+  otherwise): `systemd-remount-fs` no longer trips over the installer's
+  fstab line for the read-only composefs `/`, and power profiles come from
+  power-profiles-daemon instead of TuneD, whose bootloader plugin ran
+  `bootc` at boot in a domain that may not.
+- Not started with every session: Xwayland Video Bridge, and KDE Connect's
+  daemon until a phone is paired; man-db and AppStream cache rebuilds run 5
+  minutes after boot instead of during it.
+- The initramfs leaves out nouveau and its NVIDIA firmware: 233 → 132 MB.
 - Fedora already provides zram swap and systemd-oomd — Lucent does **not**
   duplicate them.
 - Baloo indexes file **names only** — content indexing of a freshly migrated
@@ -403,7 +416,14 @@ manual) on a GitHub `ubuntu-24.04` runner with KVM:
    asks to download anything;
 4. records `systemd-analyze`, RAM 2 min after login, running services and
    disk usage, takes QMP screenshots, uploads them with `summary.md`/`.json`,
-   and fails on any failed check (`tests/acceptance/summarize.py`).
+   and fails on any failed check (`tests/acceptance/summarize.py`);
+5. reboots and measures an ordinary boot: boot time, the reboot by wall
+   clock, idle memory per process (PSS), no failed unit and no SELinux
+   denial (both gates), that power profiles, Wi-Fi support, Bluetooth,
+   printing, updates and file search are still there, and how quickly the
+   launcher and five apps open. All of it runs twice in parallel, on
+   4 vCPU/8 GB and on a low-spec 2 vCPU/4 GB machine
+   ([`docs/performance.md`](docs/performance.md)).
 
 Latest run: [42657634944](https://github.com/sidun-av/lucent-os/actions/runs/42657634944); screenshots and numbers in
 [`docs/screenshots/real/x86-acceptance/`](docs/screenshots/real/x86-acceptance/README.md).
