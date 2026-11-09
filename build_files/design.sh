@@ -17,6 +17,20 @@ FEDORA=$(rpm -E %fedora)
 # toolbars get dark glyphs).
 "$DNF" "${DNF_OPTS[@]}" install papirus-icon-theme papirus-icon-theme-light papirus-icon-theme-dark
 
+# Papirus's folders (the ones Lucent doesn't draw, and every folder below
+# 32 px) in Pebble Drift's indigo: build_files/papirus-indigo.sh, tested
+# first on a fake tree. Then prove it took on the real one.
+/ctx/build_files/papirus-indigo-test.sh /ctx/build_files/papirus-indigo.sh
+/ctx/build_files/papirus-indigo.sh /usr/share/icons
+for icon in 16x16/places/folder 22x22/places/folder 64x64/places/folder 64x64/places/folder-templates; do
+    f=$(readlink -f "/usr/share/icons/Papirus/$icon.svg")
+    echo "Papirus $icon -> ${f##*/}"
+    [[ "$f" == *-indigo* ]] && grep -q -e '#4a5fe0' -e '#8496f5' "$f" || { echo "Papirus $icon is not Drift indigo"; exit 1; }
+done
+for theme in Papirus Papirus-Light Papirus-Dark; do
+    gtk-update-icon-cache -f -q "/usr/share/icons/$theme"
+done
+
 # Rounded window corners + hairline outline: KDE-Rounded-Corners (GPL-3.0)
 # from its author's COPR. Its builds are tied to one KWin release (the RPM
 # release is the KWin version). If no build for this image's KWin exists yet,

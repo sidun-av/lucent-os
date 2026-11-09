@@ -92,8 +92,8 @@ WIRED = ("M8.5 3.5h7a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-4a1 1 0 0 1
 CROSS = "M16 15.5l4 4M20 15.5l-4 4"
 BELL = ("M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z", "M10 20.5a2.2 2.2 0 0 0 4 0")
 UPDATE = ("M12 4v10.5", "M7.5 10l4.5 4.5 4.5-4.5", "M5 19.5h14")
-ACCENT = "#3b6ef5"
-ACCENT_DARK = "#5b8bff"
+ACCENT = "#4257e8"        # --accent (pebble-drift.css)
+ACCENT_DARK = "#7088ff"   # --accent, dark
 
 
 def with_dot(svg, color=ACCENT, cx=18.5, cy=5.5):

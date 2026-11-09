@@ -1,0 +1,48 @@
+#!/usr/bin/bash
+# Papirus folders in Pebble Drift's indigo (called by design.sh; argument: the
+# icons root, /usr/share/icons by default).
+#
+# Lucent draws its own main folders (Documents, Downloads, ... at 32 px and
+# up, in /usr/share/icons/Lucent*). Everything else that looks like a folder
+# comes from Papirus: Templates, Public, Git, network folders, and every
+# folder below 32 px (Dolphin's details view, file dialogs). Papirus ships
+# each folder in many colours and points the generic names at blue:
+#   folder-templates.svg -> folder-blue-templates.svg
+# 1. Point those generic names at the indigo variant instead (what upstream's
+#    papirus-folders tool does). Colour-named aliases and links into other
+#    directories are left alone.
+# 2. Recolour the indigo set to the Drift folder tokens of
+#    docs/mockups/concepts-2026/pebble-drift/pebble-drift.css (back
+#    --folder-back, front --folder-front-bottom (Papirus draws it flat; it is
+#    also the whole 16 px folder), glyph --folder-glyph), so a folder has
+#    the same colours at every size.
+# Papirus is GPL-3.0; the recoloured files stay GPL-3.0 (THIRD_PARTY.md).
+# Running it twice changes nothing.
+set -euo pipefail
+icons=${1:-/usr/share/icons}
+
+retargeted=0
+recoloured=0
+for dir in "$icons"/Papirus*/*/places; do
+    [ -d "$dir" ] && [ ! -L "$dir" ] || continue
+    for link in "$dir"/*.svg; do
+        [ -L "$link" ] || continue
+        case "${link##*/}" in *-blue*|*-indigo*) continue ;; esac
+        target=$(readlink "$link")
+        case "$target" in */*) continue ;; *-blue*) ;; *) continue ;; esac
+        indigo=${target/-blue/-indigo}
+        if [ -f "$dir/$indigo" ]; then
+            ln -sfn "$indigo" "$link"
+            retargeted=$((retargeted + 1))
+        fi
+    done
+    for f in "$dir"/*-indigo*.svg; do
+        [ -f "$f" ] && [ ! -L "$f" ] || continue
+        grep -qi -e '#3f51b5' -e '#5c6bc0' -e '#202543' "$f" || continue
+        sed -e 's/#3[fF]51[bB]5/#4a5fe0/g' -e 's/#5[cC]6[bB][cC]0/#8496f5/g' -e 's/#202543/#2b3aa6/g' "$f" > "$f.lucent"
+        cat "$f.lucent" > "$f"     # keep the file's owner and mode
+        rm "$f.lucent"
+        recoloured=$((recoloured + 1))
+    done
+done
+echo "papirus-indigo: $retargeted names pointed at indigo, $recoloured indigo icons recoloured"
