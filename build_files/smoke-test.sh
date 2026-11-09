@@ -62,6 +62,25 @@ if systemctl cat mcelog.service >/dev/null 2>&1; then
     systemctl cat mcelog.service | grep -q 'ExecCondition=.*GenuineIntel'
 fi
 
+step "boot and idle (docs/performance.md)"
+# systemd-remount-fs: skipped for a composefs / listed in fstab, run otherwise.
+systemctl cat systemd-remount-fs.service | grep -q '^ExecCondition=/usr/libexec/lucent/remount-fs-needed$'
+printf 'UUID=x / btrfs subvol=root,compress=zstd:1,ro 0 0\nUUID=y /boot ext4 defaults 1 2\n' > /tmp/fstab.test
+if LUCENT_ROOT_FSTYPE=overlay /usr/libexec/lucent/remount-fs-needed /tmp/fstab.test; then
+    echo "remount-fs-needed should skip a composefs / line"; exit 1
+fi
+/usr/libexec/lucent/fstab-drop-root /tmp/fstab.test
+LUCENT_ROOT_FSTYPE=overlay /usr/libexec/lucent/remount-fs-needed /tmp/fstab.test
+grep -q '^#UUID=x / btrfs' /tmp/fstab.test && grep -q '^UUID=y /boot' /tmp/fstab.test
+rm /tmp/fstab.test
+# Power profiles from power-profiles-daemon; no TuneD.
+rpm -q power-profiles-daemon
+systemctl is-enabled power-profiles-daemon.service
+for p in tuned tuned-ppd; do if rpm -q "$p"; then exit 1; fi; done
+# KDE Connect: the daemon starts at login only after pairing (user unit).
+grep -q '^Hidden=true' /etc/xdg/autostart/org.kde.kdeconnect.daemon.desktop
+test "$(systemctl --global is-enabled lucent-kdeconnect.service)" = enabled
+
 step "udev and polkit rules"
 udevadm verify /usr/lib/udev/rules.d/99-lucent-windows-readonly.rules
 test -r /usr/share/polkit-1/rules.d/50-lucent-windows-disks.rules

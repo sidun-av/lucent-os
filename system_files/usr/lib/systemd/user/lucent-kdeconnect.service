@@ -1,0 +1,25 @@
+# KDE Connect's daemon, started at login only once a phone has been paired.
+#
+# Fedora starts kdeconnectd in every session (/etc/xdg/autostart), where it
+# costs memory and announces the computer on the local network even when no
+# phone will ever connect. Lucent hides that entry (build_files/performance.sh)
+# and starts the daemon here when kdeconnect's list of paired devices exists.
+# Before the first pairing, opening KDE Connect starts the daemon on demand
+# (D-Bus activation, org.kde.kdeconnect), so pairing works as before.
+[Unit]
+Description=KDE Connect (paired phones)
+Documentation=https://kdeconnect.kde.org/
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionPathExists=%E/kdeconnect/trusted_devices
+
+[Service]
+Type=exec
+ExitType=cgroup
+ExecStart=/usr/bin/kdeconnectd
+Restart=no
+TimeoutStopSec=5s
+Slice=app.slice
+
+[Install]
+WantedBy=xdg-desktop-autostart.target
