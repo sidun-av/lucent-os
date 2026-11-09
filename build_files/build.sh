@@ -192,6 +192,13 @@ ls -la /etc/selinux/targeted/policy/
 # Lucent's own UI is written in English; translations (po/*.po) are compiled
 # to /usr/share/locale/<lang>/LC_MESSAGES/lucent.mo and picked by locale.
 PYTHONPATH=/usr/lib/lucent python3 -P -m lucent_migrate.i18n /ctx/migration-wizard/po /usr/share/locale
+# The computer's name until its owner picks one (Settings > About this PC >
+# Rename this PC): systemd's fallback when /etc/hostname is unset, which the
+# installer leaves unset (its Network spoke is off). Fedora's is "fedora".
+# Before design.sh: the hostname is set in the initramfs, from its copy of
+# os-release, and kept after switch-root.
+sed -i '/^DEFAULT_HOSTNAME=/d' /usr/lib/os-release
+echo 'DEFAULT_HOSTNAME="lucent-pc"' >> /usr/lib/os-release
 # Look: Papirus, rounded corners, icon caches (build_files/design.sh).
 /ctx/build_files/design.sh
 gtk-update-icon-cache -f /usr/share/icons/hicolor 2>/dev/null || true
@@ -245,11 +252,6 @@ sed -i \
     -e 's/^VARIANT_ID=.*/VARIANT_ID=lucent/' \
     /usr/lib/os-release
 grep -q '^VARIANT_ID=' /usr/lib/os-release || echo 'VARIANT_ID=lucent' >> /usr/lib/os-release
-# The computer's name until its owner picks one (Settings > About this PC >
-# Rename this PC): systemd's fallback when /etc/hostname is unset, which the
-# installer leaves unset (its Network spoke is off). Fedora's is "fedora".
-sed -i '/^DEFAULT_HOSTNAME=/d' /usr/lib/os-release
-echo 'DEFAULT_HOSTNAME="lucent-pc"' >> /usr/lib/os-release
 
 # ---------------------------------------------------------------------------
 # 5. Clean up (bootc wants an empty /var and /tmp in the image)
