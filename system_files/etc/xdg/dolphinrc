@@ -1,6 +1,8 @@
 [General]
 # Explorer habits: status bar with free space, no surprise restore of old tabs.
-ShowStatusBar=true
+# A full-width status bar with free space, as in docs/mockups (Dolphin's
+# default is a small floating label).
+ShowStatusBar=FullWidth
 ShowSpaceInfo=true
 RememberOpenedTabs=false
 ShowFullPath=false
