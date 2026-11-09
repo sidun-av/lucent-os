@@ -6,8 +6,8 @@ first boot without a network. Measured in CI (November 2026):
 
 | | amd64 | arm64 |
 |---|---|---|
-| ISO before this work | 8.29 GB | 8.4 GB |
-| ISO now (zstd system image and app bundle, see [below](#making-the-iso-smaller)) | see the [iso run](#making-the-iso-smaller) | see the [iso run](#making-the-iso-smaller) |
+| ISO before | 8.29 GB | 8.45 GB |
+| ISO now ([below](#making-the-iso-smaller)) | **6.69 GB** | **6.54 GB** |
 
 GitHub release assets must each be [under 2 GiB](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)
 ("Each file included in a release must be under 2 GiB. There is no limit on
@@ -51,15 +51,15 @@ mirror), and self-hosting (home or small-server bandwidth can't carry
 | **Internet Archive** | yes | free | archive.org account | [1 TB per item, at most 1000 files / 500 GB recommended](https://help.archive.org/help/uploading-tips/); [torrents made automatically, Archive servers as web seeds](https://help.archive.org/help/archive-bittorrents/); download speed is not guaranteed |
 | **SourceForge** | yes | free | SourceForge account, project | download pages carry ads; [Files docs](https://sourceforge.net/p/forge/documentation/Files/) give no size limit and recommend rsync over 100 MB; an undated [support reply](https://sourceforge.net/p/forge/feature-requests/844/) mentions 2.8 GB for rsync |
 | **Cloudflare R2** | yes | [$0.015/GB-month, egress free; free tier 10 GB-month, 1M Class A, 10M Class B operations](https://developers.cloudflare.com/r2/pricing/) | Cloudflare account; a domain added to it | the free `r2.dev` URL is ["rate-limited and should only be used for development"](https://developers.cloudflare.com/r2/buckets/public-buckets/); production needs a custom domain (CDN cache). Third-party setup guides report a payment method is requested before the first bucket; Cloudflare's pricing page doesn't say |
-| **Backblaze B2** | yes | [$6.95/TB-month, first 10 GB free; free egress up to 3x the stored data, then $0.01/GB](https://www.backblaze.com/cloud-storage/pricing) | Backblaze account | cheaper storage than R2, but downloads beyond 3x storage are billed: 1000 ISO downloads (8.4 TB) would be about $84 |
+| **Backblaze B2** | yes | [$6.95/TB-month, first 10 GB free; free egress up to 3x the stored data, then $0.01/GB](https://www.backblaze.com/cloud-storage/pricing) | Backblaze account | cheaper storage than R2, but downloads beyond 3x storage are billed: 1000 ISO downloads (6.7 TB) would be about $66 |
 
-### Rough monthly cost, two releases online (both ISOs, ~33 GB)
+### Rough monthly cost, two releases online (both ISOs, ~26.5 GB)
 
-| | storage | 1000 ISO downloads a month (~8.4 TB) |
+| | storage | 1000 ISO downloads a month (~6.7 TB) |
 |---|---|---|
 | GitHub release | $0 | $0 |
-| Cloudflare R2 | (33 − 10 free) GB x $0.015 = ~$0.35 | $0 egress; ~1000 GET requests, inside the free 10M Class B |
-| Backblaze B2 | ~$0.16 | ~100 GB free (3x storage), the rest ~$83 |
+| Cloudflare R2 | (26.5 − 10 free) GB x $0.015 = ~$0.25 | $0 egress; ~1000 GET requests, inside the free 10M Class B |
+| Backblaze B2 | ~$0.11 | ~80 GB free (3x storage), the rest ~$66 |
 | Internet Archive | $0 | $0 |
 
 (Download managers split one download into many ranged requests; each is a
@@ -92,6 +92,21 @@ Where the bytes are (amd64, before; from the `iso` run logs): the ISO from
 bootc-image-builder is 5.81 GB, of which the system image (`/container`, 261
 gzip layers) is about 4.6 GB and the installer environment
 (`images/install.img`, squashfs zstd) 0.98 GB; the app bundle adds 2.48 GB.
+
+Measured (`iso` runs on the same day; the apps' installed size is the same
+before and after, so the bundles hold the same content):
+
+| | amd64 before | amd64 after | arm64 before | arm64 after |
+|---|---|---|---|---|
+| | [42653778609](https://github.com/sidun-av/lucent-os/actions/runs/42653778609) | [42669977172](https://github.com/sidun-av/lucent-os/actions/runs/42669977172) | [42610567424](https://github.com/sidun-av/lucent-os/actions/runs/42610567424) | [42669983457](https://github.com/sidun-av/lucent-os/actions/runs/42669983457) |
+| system image on the ISO | 4.60 GB (gzip) | 3.40 GB (zstd -19), −26% | 4.73 GB (gzip) | 3.46 GB, −27% |
+| app bundle (8.34 / 8.57 GB installed) | 2.48 GB (zstd -12) | 2.07 GB, −17% | 2.63 GB | 1.97 GB, −25% |
+| **ISO** | **8.29 GB** | **6.69 GB**, −1.60 GB | **8.45 GB** | **6.54 GB**, −1.91 GB |
+| offline install test (amd64, QEMU/KVM, no network) | 6.7 min, apps unpacked in 77 s | 6.9 min (416 s), apps unpacked in 83 s, all 10 apps, SELinux `var_lib_t` | | |
+| `iso` job time | 23 min | 73 min, install test included (bundle 27 min, recompression 20 min) | | 46 min (bundle 16.5 min, recompression 14.5 min) |
+
+The extra build time is CI time, once per ISO; a download is 1.6–1.9 GB
+shorter for every user.
 
 Changed (safe: no content removed, every layer checked):
 

@@ -337,9 +337,12 @@ network and nothing to wait for:
   network** and checks the apps on the installed disk. Measured (amd64,
   Nov 2026): all 10 apps and their runtimes present and labelled
   (`var_lib_t`), unpacking took 77 s of a 6.7 min install.
-- Size: the ISO grows from 5.8 GB to **8.3 GB** (amd64; arm64 5.8 → 8.4 GB);
-  the bundle is 2.5–2.6 GB for 8.3–8.6 GB installed. The image and its
-  updates don't grow at all.
+- Size: the ISO is **6.7 GB** (amd64; arm64 6.5 GB): the bundle is
+  2.0–2.1 GB for 8.3–8.6 GB installed (zstd -19, files of two runtime
+  versions side by side), and the system image on the ISO is recompressed
+  from gzip to zstd -19 (4.6 → 3.4 GB), down from 8.3/8.45 GB
+  ([docs/distribution.md](docs/distribution.md#making-the-iso-smaller)).
+  The image and its updates don't grow at all.
 
 Why not the alternatives: bootc-image-builder has no Flatpak support for
 `anaconda-iso` (upstream only demos a `%post` that downloads from Flathub),

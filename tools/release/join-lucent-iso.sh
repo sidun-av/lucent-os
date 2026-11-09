@@ -168,5 +168,5 @@ for iso in $todo; do
     say ""
 done
 
-say "Next: write the ISO to a USB stick (16 GB or larger), see"
+say "Next: write the ISO to a USB stick (8 GB or larger), see"
 say "  $GUIDE"

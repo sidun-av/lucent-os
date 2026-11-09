@@ -249,7 +249,7 @@ try {
         Write-Host ""
     }
 
-    Write-Host "Next: write the ISO to a USB stick (16 GB or larger), see"
+    Write-Host "Next: write the ISO to a USB stick (8 GB or larger), see"
     Write-Host "  $Guide"
     Close-Window 0
 } catch {
