@@ -70,7 +70,7 @@ QtObject {
     readonly property int iconGlyph: 20
     readonly property int heroIcon: 64
     readonly property int swatch: 34          // accent colour circles
-    readonly property int swatchGap: 14
+    readonly property int swatchGap: 10     // .row .val gap wins over .accents in the mockup
     readonly property int radio: 22
     readonly property int sliderTrack: 6
     readonly property int sliderKnob: 22

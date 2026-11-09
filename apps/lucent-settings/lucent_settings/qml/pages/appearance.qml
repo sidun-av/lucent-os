@@ -82,6 +82,11 @@ Page {
             }
             LButton { text: System.tr("Choose…"); busy: AppearancePage.busy === "wallpaper"; onClicked: walls.open() }
         }
+        SettingRow {
+            label: System.tr("Transparency and blur")
+            sub: System.tr("Taskbar, menus and pop-ups")
+            LSwitch { checked: page.st.transparency !== false; onToggled: (on) => AppearancePage.setTransparency(on) }
+        }
     }
 
     GroupHeader { text: System.tr("Text and motion") }

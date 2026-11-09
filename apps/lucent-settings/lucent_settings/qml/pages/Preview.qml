@@ -21,10 +21,18 @@ Item {
             PathRectangle { x: 0; y: 0; width: p.width; height: p.height }
         }
     }
-    Rectangle {  // window shadow: 0 6px 16px rgba(0,0,0,.18)
-        x: w.x - 2; y: w.y + 3; width: w.width + 4; height: w.height + 4
-        radius: 10
-        color: Theme.shadow
+    // box-shadow: 0 6px 16px rgba(0,0,0,.18), drawn as soft rings (this
+    // picture is itself a layer, where a nested blur effect doesn't render)
+    Repeater {
+        model: 6
+        Rectangle {
+            required property int index
+            readonly property real spread: 1 + index * 1.6
+            x: w.x - spread; y: w.y + 5 - spread
+            width: w.width + 2 * spread; height: w.height + 2 * spread
+            radius: w.radius + spread
+            color: Qt.rgba(0, 0, 0, (p.dark ? 0.06 : 0.035) * (6 - index) / 6)
+        }
     }
     Rectangle {
         id: w

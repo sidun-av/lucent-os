@@ -321,7 +321,7 @@ class SoundSection(Section):
             return
 
         def dev(d):
-            label = _("No sound device (nothing will be heard)") if d.virtual else d.label
+            label = _("No sound device") if d.virtual else d.label
             return {"name": d.name, "label": label, "volume": d.volume, "muted": d.muted, "default": d.default}
         out = dev(st.output) if st.output else {}
         inp = dev(st.input) if st.input else {}
@@ -362,13 +362,14 @@ class AppearanceSection(Section):
         super().__init__(runner, parent)
         self.b = appearance.Appearance(runner)
         self.set(mode="light", accent=appearance.ACCENTS[0], accents=appearance.ACCENTS, wallpaper="",
-                 wallpaperThumb="", wallpaperName="", wallpapers=[], animations="fast", textSize=11,
+                 wallpaperThumb="", wallpaperName="", wallpapers=[], animations="fast", transparency=True, textSize=11,
                  textSizes=appearance.TEXT_SIZES, loaded=False)
 
     def _load(self):
         walls = self.b.wallpapers()
         current = self.b.current_wallpaper()
         return dict(mode=self.b.mode(), accent=self.b.accent(), animations=self.b.animations(),
+                    transparency=self.b.transparency(),
                     textSize=self.b.text_size(), walls=walls, current=current)
 
     def _apply(self, d):
@@ -408,6 +409,11 @@ class AppearanceSection(Section):
         path = local_path(path)
         self.task("wallpaper", lambda: self.b.set_wallpaper(path), lambda _r: self.refresh(),
                   _("Couldn't change the wallpaper."))
+
+    @Slot(bool)
+    def setTransparency(self, on):
+        self.set(transparency=on)
+        tasks.run(lambda: self.b.set_transparency(on))
 
     @Slot(str)
     def setAnimations(self, speed):

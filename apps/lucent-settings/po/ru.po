@@ -421,8 +421,8 @@ msgstr "Микрофон не найден."
 msgid "No networks found"
 msgstr "Сети не найдены"
 
-msgid "No sound device (nothing will be heard)"
-msgstr "Нет звукового устройства (звука не будет)"
+msgid "No sound device"
+msgstr "Нет звукового устройства"
 
 msgid "No speakers or headphones found. Connect some, or check that the sound card is enabled in the firmware."
 msgstr "Колонки и наушники не найдены. Подключите их или проверьте, что звуковая карта включена в прошивке (BIOS)."
@@ -613,6 +613,9 @@ msgstr "Работает, когда раскладок две или больш
 msgid "Task Manager"
 msgstr "Диспетчер задач"
 
+msgid "Taskbar, menus and pop-ups"
+msgstr "Панель задач, меню и всплывающие окна"
+
 msgid "TB"
 msgstr "ТБ"
 
@@ -678,6 +681,9 @@ msgstr "сегодня, {time}"
 
 msgid "Translated for this ARM processor"
 msgstr "Переводятся для процессора ARM"
+
+msgid "Transparency and blur"
+msgstr "Прозрачность и размытие"
 
 msgid "Type the new password."
 msgstr "Введите новый пароль."
