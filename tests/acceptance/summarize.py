@@ -8,6 +8,7 @@ exits 1 unless every required check passed and no check failed. A check that
 never reported counts as failed, so a guest that dies half-way can't pass.
 """
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -57,6 +58,8 @@ METRICS = [
     ("boot2_avc_at_boot", "SELinux denial records, second boot"),
     ("reboot_to_session_s", "reboot, wall clock: reboot command to desktop session (s)"),
     ("reboot_before_kernel_s", "of which shutdown, firmware and GRUB loading kernel + initramfs (s)"),
+    ("shutdown_s", "of which the first boot's shutdown (s)"),
+    ("firmware_grub_s", "of which firmware and GRUB, kernel and initramfs loaded (s)"),
     ("launcher_cold_first_ms", "launcher opens, first time: first change (ms)"),
     ("launcher_cold_settled_ms", "launcher opens, first time: animation done (ms)"),
     ("launcher_warm_first_ms", "launcher opens, warm: first change (ms)"),
@@ -145,6 +148,23 @@ def reboot_times(harness_log):
     return t_session - t_reboot, t_session - t_reboot - up
 
 
+def shutdown_time(guest_log, serial_log):
+    """Seconds the first boot took to shut down: from the reboot command
+    (guest's acceptance.log, uptime) to the kernel's "reboot: Restarting
+    system" on the serial console (uptime), or None."""
+    t_cmd = t_restart = None
+    for line in guest_log.splitlines():
+        if "ctl: LOG first boot done" in line and "rebooting" in line:
+            t_cmd = float(line.split("]", 1)[0].lstrip("[ "))
+    for line in serial_log.splitlines():
+        m = re.search(r"\[\s*(\d+\.\d+)\] reboot: Restarting system", line)
+        if m:
+            t_restart = float(m.group(1))
+    if t_cmd is None or t_restart is None:
+        return None
+    return t_restart - t_cmd
+
+
 def perf_sections(logs):
     """The second boot's (else the first's) memory table and critical chain."""
     md = []
@@ -185,6 +205,13 @@ def main():
         if reboot is not None:
             metrics["reboot_to_session_s"] = f"{reboot:.1f}"
             metrics["reboot_before_kernel_s"] = f"{before_kernel:.1f}"
+    guest_log, serial = res / "logs" / "acceptance.log", out / "serial-boot.log"
+    if guest_log.exists() and serial.exists():
+        down = shutdown_time(guest_log.read_text(errors="replace"), serial.read_text(errors="replace"))
+        if down is not None:
+            metrics["shutdown_s"] = f"{down:.1f}"
+            if "reboot_before_kernel_s" in metrics:
+                metrics["firmware_grub_s"] = f"{float(metrics['reboot_before_kernel_s']) - down:.1f}"
     ok, checks, failures = evaluate(results, harness)
     shots = sorted(p.name for p in (out / "screens").glob("*.png")) if (out / "screens").exists() else []
     summary = {"passed": ok, "failures": failures, "checks": checks, "metrics": metrics,

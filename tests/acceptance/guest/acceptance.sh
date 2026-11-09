@@ -365,6 +365,8 @@ keep_checks() {
 
 sleep 25
 if ((BOOT == 2)); then
+    # The first boot's shutdown, as its journal saw it (what kept it waiting).
+    journalctl -b -1 --no-pager -o short-monotonic 2>&1 | tail -n 1000 > "$LOGS/journal-boot1-shutdown.txt"
     shot 07-desktop-second-boot
     boot_numbers boot2_ boot2
     keep_checks

@@ -117,3 +117,15 @@ def test_reboot_times_from_the_harness_log():
     assert abs(reboot - 32.5) < 0.01          # wall clock: reboot command to the desktop session
     assert abs(before_kernel - 17.7) < 0.01   # of which shutdown, firmware and GRUB (kernel+initramfs load)
     assert summarize.reboot_times("[ 1.0] metric: os x\n") == (None, None)
+
+
+def test_shutdown_time_from_guest_log_and_serial_console():
+    guest = ("[  287.70] collecting system logs (boot 1)\n"
+             "[  287.86] ctl: LOG first boot done (failed=0); rebooting for the second boot -> OK\n")
+    serial = ("\x1b[0m[  OK  ] Reached target reboot.target - System Reboot.\n"
+              "[  319.721244] watchdog: watchdog0: watchdog did not stop!\n"
+              "\x1b[=3h[  319.763877] reboot: Restarting system\n"
+              "[    0.000000] Linux version 7.2.15\n")
+    assert abs(summarize.shutdown_time(guest, serial) - 31.9) < 0.01
+    assert summarize.shutdown_time("", serial) is None
+    assert summarize.shutdown_time(guest, "no reboot here\n") is None
