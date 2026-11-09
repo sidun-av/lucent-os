@@ -8,6 +8,7 @@
         "Id": "Drift",
         "License": "Apache-2.0",
         "Name": "Drift",
-        "Description": "Indigo ribbons of light: the Lucent default (day and night)"
+        "Description": "Indigo ribbons of light: the Lucent default (day and night)",
+        "Description[ru]": "Индиговые ленты света: обои Lucent по умолчанию (день и ночь)"
     }
 }

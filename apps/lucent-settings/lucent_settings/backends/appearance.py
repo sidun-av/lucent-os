@@ -24,6 +24,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 from .. import dbus, kconfig
+from ..i18n import language
 from ..run import Result, Runner
 
 LIGHT = "org.lucent.desktop"
@@ -223,8 +224,8 @@ class Appearance:
             thumb = thumbnail(str(meta.parent))
             if thumb:
                 night = thumbnail(str(meta.parent), dark=True)
-                packages.append(Wallpaper(str(meta.parent), name, thumb, True, night if night != thumb else "",
-                                          plugin.get("Description", "")))
+                about = plugin.get(f"Description[{language()}]") or plugin.get("Description", "")
+                packages.append(Wallpaper(str(meta.parent), name, thumb, True, night if night != thumb else "", about))
         packages.sort(key=lambda w: (w.name not in LUCENT_WALLPAPERS,
                                      LUCENT_WALLPAPERS.index(w.name) if w.name in LUCENT_WALLPAPERS else 0,
                                      w.name.lower()))

@@ -8,6 +8,7 @@
         "Id": "Aurora",
         "License": "Apache-2.0",
         "Name": "Aurora",
-        "Description": "Soft curtains of light"
+        "Description": "Soft curtains of light",
+        "Description[ru]": "Мягкие занавеси света"
     }
 }

@@ -8,6 +8,7 @@
         "Id": "Tide",
         "License": "Apache-2.0",
         "Name": "Tide",
-        "Description": "Paper swells under a pale sun or moon"
+        "Description": "Paper swells under a pale sun or moon",
+        "Description[ru]": "Бумажные волны под бледным солнцем или луной"
     }
 }
