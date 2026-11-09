@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls.Basic as C
 import QtQuick.Dialogs
 import QtQuick.Layouts
 import Lucent
@@ -125,11 +126,19 @@ Page {
         rejectText: System.tr("Add a picture…")
         onAccepted: close()
         onRejected: pick.open()
-        Flow {
+        Flickable {
             Layout.fillWidth: true
-            Layout.preferredHeight: Math.min(implicitHeight, 460)
-            spacing: 12
+            Layout.preferredHeight: Math.min(grid.implicitHeight, 470)
+            contentHeight: grid.implicitHeight
             clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            C.ScrollBar.vertical: C.ScrollBar {
+                contentItem: Rectangle { implicitWidth: 6; radius: 3; color: Theme.lineStrong }
+            }
+            Flow {
+            id: grid
+            width: parent.width
+            spacing: 12
             Repeater {
                 model: page.st.wallpapers || []
                 Rectangle {
@@ -152,6 +161,7 @@ Page {
                     LText { x: 6; y: 103; width: 164; text: modelData.name; px: Theme.fontSmall; color: Theme.text2 }
                     MouseArea { id: m; anchors.fill: parent; hoverEnabled: true; onClicked: AppearancePage.setWallpaper(modelData.path) }
                 }
+            }
             }
         }
     }
