@@ -15,6 +15,8 @@ Captured on the Lucent OS test VM (aarch64, Fedora 45 base, image from CI
   the launcher entry it wrote, `lucent-bridge plan --json --assume-tools <exe>`) after a real
   silent install of Notepad++ 8.8.9 through lucent-bridge in the VM.
 - `lscpu.json`, `meminfo.txt`, `os-release.txt`.
+- `hostnamed.txt` (`busctl --json=short get-property org.freedesktop.hostname1 ... Hostname
+  StaticHostname PrettyHostname DefaultHostname`): no name set, Fedora's fallback (CI `vm` run 42668937173).
 
 Constructed (a VM can't produce them), in the tools' documented formats:
 

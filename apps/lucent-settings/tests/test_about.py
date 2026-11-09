@@ -43,3 +43,60 @@ def test_cpu_model_on_x86():
 def test_advanced_settings_opens_kde_system_settings(runner):
     about.About(runner).open_advanced()
     assert runner.spawned == [["systemsettings"]]
+
+
+HOSTNAMED = ("busctl", "--system", "--json=short", "get-property", "org.freedesktop.hostname1")
+
+
+def test_computer_name_from_hostnamed():
+    r = FakeRunner().on(*HOSTNAMED, out=fixture("hostnamed.txt"))
+    assert about.About(r).computer_name() == about.ComputerName(shown="fedora", static="", pretty="")
+    pretty = '{"type":"s","data":"lucent-pc"}\n{"type":"s","data":"lucent-pc"}\n{"type":"s","data":"Anna\'s laptop"}\n'
+    r = FakeRunner().on(*HOSTNAMED, out=pretty)
+    assert about.About(r).computer_name().shown == "Anna's laptop"
+
+
+def test_host_name_from_a_display_name():
+    assert about.host_name("Anna's Laptop") == "annas-laptop"
+    assert about.host_name("  Kitchen PC 2 ") == "kitchen-pc-2"
+    assert about.host_name("Ноутбук Анны") == "noutbuk-anny"     # transliterated, not dropped
+    assert about.host_name("---") == ""
+    assert len(about.host_name("x" * 100)) == 63
+
+
+class FakeHostnamed:
+    def __init__(self, fail: str = ""):
+        self.calls, self.fail = [], fail
+
+    def __call__(self, method, *args):
+        self.calls.append((method, *args))
+        return (False, self.fail) if self.fail else (True, "")
+
+
+def test_rename_sets_pretty_and_static_name_through_hostnamed(runner):
+    hn = FakeHostnamed()
+    res = about.About(runner, hn).rename("Ноутбук Анны")
+    assert res.ok
+    # one process asks polkit for both, so the password is typed once
+    assert hn.calls == [("SetStaticHostname", "noutbuk-anny", True), ("SetPrettyHostname", "Ноутбук Анны", True)]
+
+
+def test_rename_to_a_plain_host_name_clears_the_pretty_name(runner):
+    hn = FakeHostnamed()
+    assert about.About(runner, hn).rename("kitchen").ok
+    assert hn.calls == [("SetStaticHostname", "kitchen", True), ("SetPrettyHostname", "", True)]
+
+
+def test_rename_refuses_an_empty_name(runner):
+    hn = FakeHostnamed()
+    res = about.About(runner, hn).rename("  ")
+    assert not res.ok
+    assert hn.calls == []
+
+
+def test_rename_reports_a_refused_permission(runner):
+    hn = FakeHostnamed(fail="Interactive authentication required.")
+    res = about.About(runner, hn).rename("kitchen")
+    assert not res.ok
+    assert "authentication" in res.message
+    assert len(hn.calls) == 1

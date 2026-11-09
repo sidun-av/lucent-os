@@ -957,3 +957,30 @@ msgid_plural "{n} apps can be updated: {names}"
 msgstr[0] "Можно обновить {n} программу: {names}"
 msgstr[1] "Можно обновить {n} программы: {names}"
 msgstr[2] "Можно обновить {n} программ: {names}"
+
+msgid "Rename this PC"
+msgstr "Переименовать компьютер"
+
+msgid "Renaming…"
+msgstr "Переименование…"
+
+msgid "Rename"
+msgstr "Переименовать"
+
+msgid "The name you see in Lucent and other computers see on your network."
+msgstr "Под этим именем компьютер виден вам в Lucent и другим компьютерам в сети."
+
+msgid "On the network: {name}"
+msgstr "В сети: {name}"
+
+msgid "Use at least one letter or digit."
+msgstr "Нужна хотя бы одна буква или цифра."
+
+msgid "Use at most 64 characters."
+msgstr "Не больше 64 символов."
+
+msgid "This PC is now called {name}."
+msgstr "Теперь этот компьютер называется «{name}»."
+
+msgid "The PC wasn't renamed."
+msgstr "Компьютер не переименован."

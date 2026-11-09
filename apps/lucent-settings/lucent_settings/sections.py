@@ -757,6 +757,23 @@ class AboutSection(Section):
     def refresh(self):
         tasks.run(self._load, self._apply)
 
+    @Slot(str, result=str)
+    def networkName(self, name):
+        return about.host_name(name)
+
+    @Slot(str)
+    def rename(self, name):
+        """Rename this PC (hostnamed; polkit asks an administrator)."""
+        name = " ".join(name.split())
+        if not name or name == self._s.get("hostname"):
+            return
+
+        def done(res):
+            if isinstance(res, Result) and res.ok:
+                self.toast.emit(_("This PC is now called {name}.").format(name=name))
+            self.refresh()
+        self.task("rename", lambda: self.b.rename(name), done, _("The PC wasn't renamed."))
+
     @Slot()
     def openAdvanced(self):
         self.b.open_advanced()

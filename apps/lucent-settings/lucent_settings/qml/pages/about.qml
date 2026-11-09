@@ -9,6 +9,8 @@ Page {
     lead: ""
     Component.onCompleted: AboutPage.refresh()
 
+    Banner { text: AboutPage.error; onDismissed: AboutPage.clearError() }
+
     Card {
         SettingRow {
             minHeight: 112
@@ -26,7 +28,16 @@ Page {
         SettingRow { label: System.tr("Processor"); minHeight: 56; LText { text: page.st.cpu || ""; color: Theme.text2; px: Theme.fontBody } }
         SettingRow { label: System.tr("Memory"); minHeight: 56; LText { text: page.st.memory || ""; color: Theme.text2; px: Theme.fontBody } }
         SettingRow { label: System.tr("Storage"); minHeight: 56; LText { text: page.st.storage || ""; color: Theme.text2; px: Theme.fontBody } }
-        SettingRow { label: System.tr("Computer name"); minHeight: 56; LText { text: page.st.hostname || ""; color: Theme.text2; px: Theme.fontBody } }
+        SettingRow {
+            label: System.tr("Computer name")
+            minHeight: 56
+            LText { text: page.st.hostname || ""; color: Theme.text2; px: Theme.fontBody }
+            LButton {
+                text: AboutPage.busy === "rename" ? System.tr("Renaming…") : System.tr("Rename this PC")
+                enabled: AboutPage.busy === "" && page.st.loaded === true
+                onClicked: { nameField.text = page.st.hostname || ""; renameDialog.open(); nameField.forceActiveFocus(); nameField.selectAll() }
+            }
+        }
         SettingRow {
             label: System.tr("System build")
             minHeight: 56
@@ -50,6 +61,26 @@ Page {
             clickable: true
             onClicked: AboutPage.openHardware()
             Sym { name: "right"; size: 18; color: Theme.text3 }
+        }
+    }
+
+    LDialog {
+        id: renameDialog
+        title: System.tr("Rename this PC")
+        acceptText: System.tr("Rename")
+        acceptEnabled: AboutPage.networkName(nameField.text) !== "" && nameField.text.trim() !== (page.st.hostname || "")
+        onAccepted: { AboutPage.rename(nameField.text); close() }
+        LText {
+            text: System.tr("The name you see in Lucent and other computers see on your network.")
+            px: Theme.fontSub; color: Theme.text2; wrapMode: Text.WordWrap; elide: Text.ElideNone; Layout.fillWidth: true
+        }
+        LTextField { id: nameField; Layout.fillWidth: true; maximumLength: 64; placeholderText: System.tr("Computer name"); onAccepted: if (renameDialog.acceptEnabled) renameDialog.accepted() }
+        LText {
+            readonly property string net: AboutPage.networkName(nameField.text)
+            text: net === "" ? System.tr("Use at least one letter or digit.")
+                             : System.tr("On the network: {name}").replace("{name}", net)
+            color: net === "" ? Theme.danger : Theme.text3
+            px: Theme.fontSub; Layout.fillWidth: true; elide: Text.ElideRight
         }
     }
 }
