@@ -36,7 +36,7 @@ if ((windisk)) && [ -f "$WINBASE" ]; then
 fi
 rm -f "$QMP"
 qemu-system-aarch64 \
-    -name lucent -M virt,highmem=on -accel hvf -cpu host -smp 4 -m 6G \
+    -name "lucent-$(basename "$LUCENT_VM_DIR")" -M virt,highmem=on -accel hvf -cpu host -smp "$LUCENT_VM_CPUS" -m "$LUCENT_VM_MEM" \
     -drive "if=pflash,format=raw,readonly=on,file=$share/edk2-aarch64-code.fd" \
     -drive "if=pflash,format=raw,file=$vars" \
     "${drives[@]}" \

@@ -34,3 +34,12 @@ virtio-gpu, no virgl → KWin renders in software). VNC: `127.0.0.1:5901`
 overlay (`run-arm64.qcow2`) on top of the pristine CI image, so `--fresh`
 always gives a true first boot. Settings live in `lib.sh` and can be
 overridden with `LUCENT_VM_*` environment variables.
+
+**Second slot.** Two VMs can run side by side on a 16 GB Mac. Give the second one
+its own directory, ports and a smaller RAM size. It has its own lock
+(`$LUCENT_VM_DIR/.vm-lock`) and its own image, fetched once:
+
+```sh
+export LUCENT_VM_DIR=~/VMs/lucent-b LUCENT_VM_SSH_PORT=2223 LUCENT_VM_VNC_DISPLAY=2 LUCENT_VM_MEM=4G
+tools/vm/fetch.sh && tools/vm/run.sh --fresh    # VNC 127.0.0.1:5902, ssh :2223
+```
