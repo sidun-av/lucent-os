@@ -83,6 +83,19 @@ def test_iwlwifi_older_api_satisfied_by_any_version(tmp_path):
     assert A.satisfied(str(tmp_path), "iwlwifi-ty-a0-gf-a0-89.ucode") is None
 
 
+def test_iwlmld_core_api_names(tmp_path):
+    touch(tmp_path, "iwlwifi-bz-b0-fm-c0-c101.ucode.xz")
+    assert A.satisfied(str(tmp_path), "iwlwifi-bz-b0-fm-c0-c106.ucode") == "iwlwifi-bz-b0-fm-c0-c101.ucode.xz"
+
+
+def test_ath10k_api_and_board_alternatives(tmp_path):
+    touch(tmp_path, "ath10k/QCA6174/hw3.0/firmware-6.bin.xz")
+    touch(tmp_path, "ath10k/QCA988X/hw2.0/board.bin.xz")
+    assert A.satisfied(str(tmp_path), "ath10k/QCA6174/hw3.0/firmware-5.bin")
+    assert A.satisfied(str(tmp_path), "ath10k/QCA988X/hw2.0/board-2.bin")
+    assert A.satisfied(str(tmp_path), "ath10k/QCA6174/hw2.1/firmware-4.bin") is None
+
+
 def test_versioned_rule_does_not_merge_chip_revisions(tmp_path):
     # rtl8168e-2 and -3 are different chip revisions, not API versions.
     touch(tmp_path, "rtl_nic/rtl8168e-2.fw")
@@ -94,18 +107,22 @@ def test_versioned_rule_does_not_merge_chip_revisions(tmp_path):
 def test_parse_allowlist():
     text = """
 # comment
-b43/*            Broadcom b43 needs firmware cut from the proprietary wl driver (b43-fwcutter)
-isci/isci_firmware.bin   never released for redistribution
+b43/*            absent    Broadcom b43 needs firmware cut from the proprietary wl driver (b43-fwcutter)
+isci/isci_firmware.bin   absent   never released for redistribution
+netronome/*      excluded  data-centre SmartNICs
 """
     al = A.parse_allowlist(text)
     assert al.match("b43/ucode5.fw").startswith("Broadcom")
-    assert al.match("isci/isci_firmware.bin") == "never released for redistribution"
-    assert al.match("iwlwifi-x.ucode") is None
+    assert al.lookup("isci/isci_firmware.bin") == ("absent", "never released for redistribution")
+    assert al.lookup("netronome/nic_x.nffw") == ("excluded", "data-centre SmartNICs")
+    assert al.lookup("iwlwifi-x.ucode") == (None, None)
+    assert al.unused() == []
 
 
-def test_allowlist_requires_reason():
+@pytest.mark.parametrize("line", ["b43/*\n", "b43/* absent\n", "b43/* maybe no idea\n"])
+def test_allowlist_requires_kind_and_reason(line):
     with pytest.raises(ValueError):
-        A.parse_allowlist("b43/*\n")
+        A.parse_allowlist(line)
 
 
 # --- repoquery output --------------------------------------------------------
@@ -134,13 +151,21 @@ def test_fedora_provider_glob_and_version():
 
 # --- gate --------------------------------------------------------------------
 
-def rec(fw, cls="wifi", core=True, provider=None, allow=None):
-    return A.Missing(fw=fw, modules=["m"], cls=cls, core=core, provider=provider, allow_reason=allow)
+def rec(fw, cls="wifi", core=True, provider=None, allow=None, kind=None):
+    return A.Missing(fw=fw, modules=["m"], cls=cls, core=core, provider=provider,
+                     allow_reason=allow, allow_kind=kind or ("absent" if allow else None))
 
 
 def test_gate_fails_on_core_missing_that_fedora_ships():
+    # listed as "absent" but Fedora ships it now: must be added
     fails = A.gate([rec("a.bin", provider="linux-firmware", allow="x")], online=True)
     assert [f.fw for f in fails] == ["a.bin"]
+
+
+def test_gate_accepts_deliberately_excluded():
+    recs = [rec("netronome/x.nffw", cls="ethernet", provider="netronome-firmware",
+                allow="data-centre SmartNICs", kind="excluded")]
+    assert A.gate(recs, online=True) == []
 
 
 def test_gate_fails_on_core_missing_not_allowlisted():

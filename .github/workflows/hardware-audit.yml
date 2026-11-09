@@ -28,6 +28,9 @@ on:
       tag:
         description: Image tag without the -amd64/-arm64 suffix (latest or a commit SHA)
         default: latest
+      probe:
+        description: Investigate instead of auditing (hw_audit.py --probe), e.g. "NetworkManager-* /usr/lib64/dri/*"
+        default: ""
 
 permissions:
   contents: read
@@ -92,11 +95,14 @@ jobs:
           sudo podman pull -q "${{ steps.img.outputs.ref }}"
           sudo podman inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "${{ steps.img.outputs.ref }}"
       - name: Audit inside the image
+        env:
+          PROBE: ${{ inputs.probe }}
         run: |
           mkdir -p "$RUNNER_TEMP/out"
-          set +e
+          set +e -f   # -f: probe globs are for the image, not this shell
           sudo podman run --rm -v "$PWD:/src:ro" -v "$RUNNER_TEMP/out:/out" "${{ steps.img.outputs.ref }}" \
-            python3 -I /src/tests/hardware/hw_audit.py --repo /src --out /out > "$RUNNER_TEMP/log.txt" 2>&1
+            python3 -I /src/tests/hardware/hw_audit.py --repo /src --out /out \
+            ${PROBE:+--probe $PROBE} > "$RUNNER_TEMP/log.txt" 2>&1
           rc=$?
           set -e
           cat "$RUNNER_TEMP/log.txt"

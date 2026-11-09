@@ -66,7 +66,12 @@ CLASSES = [
 # firmware package ships one or two. (regex on the file name, glob for "any
 # version of the same file").
 ALTERNATIVES = [
-    (re.compile(r"^(iwlwifi-.+)-\d+\.ucode$"), r"\1-*.ucode"),
+    # iwlwifi: iwlwifi-<chip>-<API>.ucode, API "89" or "c106" (iwlmld)
+    (re.compile(r"^(iwlwifi-.+)-c?\d+\.ucode$"), r"\1-*.ucode"),
+    # ath10k: firmware-<API>.bin, newest first
+    (re.compile(r"^(ath10k/.+/)firmware-\d+\.bin$"), r"\1firmware-*.bin"),
+    # ath10k/ath11k: board-2.bin (many boards in one file), else board.bin
+    (re.compile(r"^(ath1[01]k/.+/)board-2\.bin$"), r"\1board*.bin"),
 ]
 
 # Fedora comps groups compared with the image (report only).
@@ -129,30 +134,42 @@ def satisfied(root, fw):
 
 class Allowlist:
     def __init__(self, entries):
-        self.entries = entries  # [(pattern, reason)]
+        self.entries = entries  # [(pattern, kind, reason)]
         self.used = set()
 
-    def match(self, fw):
-        for pat, reason in self.entries:
+    def lookup(self, fw):
+        """(kind, reason) of the first matching entry, or (None, None)."""
+        for pat, kind, reason in self.entries:
             if fnmatch.fnmatchcase(fw, pat):
                 self.used.add(pat)
-                return reason
-        return None
+                return kind, reason
+        return None, None
+
+    def match(self, fw):
+        return self.lookup(fw)[1]
 
     def unused(self):
-        return [p for p, _ in self.entries if p not in self.used]
+        return [p for p, _, _ in self.entries if p not in self.used]
+
+
+ALLOW_KINDS = ("absent", "excluded")
 
 
 def parse_allowlist(text):
+    """Lines '<glob> absent|excluded <reason>'.
+
+    absent:   no Fedora package ships the file (if one starts to, the gate fails);
+    excluded: Fedora ships it but Lucent deliberately leaves it out (server hardware).
+    """
     entries = []
     for n, line in enumerate(text.splitlines(), 1):
         line = line.strip()
         if not line or line.startswith("#"):
             continue
-        parts = line.split(None, 1)
-        if len(parts) < 2 or not parts[1].strip():
-            raise ValueError(f"allowlist line {n}: '{line}' has no reason")
-        entries.append((parts[0], parts[1].strip()))
+        parts = line.split(None, 2)
+        if len(parts) < 3 or parts[1] not in ALLOW_KINDS or not parts[2].strip():
+            raise ValueError(f"allowlist line {n}: want '<glob> absent|excluded <reason>': {line}")
+        entries.append((parts[0], parts[1], parts[2].strip()))
     return Allowlist(entries)
 
 
@@ -193,6 +210,7 @@ class Missing:
     core: bool
     provider: str = None       # Fedora package that ships it (None: none does / not checked)
     allow_reason: str = None   # why it is acceptable (firmware-allowlist.txt)
+    allow_kind: str = None     # "absent" or "excluded"
 
 
 def gate(missing, online):
@@ -201,9 +219,9 @@ def gate(missing, online):
     for m in missing:
         if not m.core:
             continue
-        if online and m.provider:
+        if online and m.provider and m.allow_kind != "excluded":
             fails.append(m)          # Fedora ships it: it belongs in the image
-        elif not m.allow_reason:
+        elif not m.allow_kind:
             fails.append(m)          # nobody has looked at it yet
     return fails
 
@@ -373,8 +391,9 @@ def audit(args):
             alt_used[fw] = got
         else:
             s["missing"] += 1
+            kind, reason = allow.lookup(fw)
             missing.append(Missing(fw=fw, modules=sorted(rels), cls=cls, core=core,
-                                   allow_reason=allow.match(fw)))
+                                   allow_reason=reason, allow_kind=kind))
 
     online = not args.offline
     if online:
@@ -442,7 +461,7 @@ def render(r):
         L += ["## GATE FAILED: core firmware missing", ""]
         for m in miss:
             if m["fw"] in r["gate_failures"]:
-                why = f"Fedora package `{m['provider']}` ships it" if m["provider"] else "not on the allowlist"
+                why = (f"Fedora package `{m['provider']}` ships it" if m["provider"] else "not on the allowlist")
                 L.append(f"- `{m['fw']}` ({m['cls']}; {', '.join(x.rsplit('/', 1)[-1] for x in m['modules'])}): {why}")
         L.append("")
     if add:
@@ -455,7 +474,7 @@ def render(r):
     for m in miss:
         mods = ", ".join(x.rsplit("/", 1)[-1] for x in m["modules"][:4]) + (" ..." if len(m["modules"]) > 4 else "")
         L.append(f"| `{m['fw']}` | {m['cls']}{'' if m['core'] else ' (non-core)'} | {mods} | "
-                 f"{m['provider'] or '-'} | {m['allow_reason'] or '-'} |")
+                 f"{m['provider'] or '-'} | {(m['allow_kind'] + ': ' + m['allow_reason']) if m['allow_kind'] else '-'} |")
     L += ["", "</details>", "", "## Required hardware packages (build_files/hardware-packages.txt)", ""]
     for p in r["packages"]:
         if p["installed"]:
@@ -489,7 +508,30 @@ def main():
     ap.add_argument("--repo", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "../.."))
     ap.add_argument("--out", default="/tmp/hardware-audit")
     ap.add_argument("--offline", action="store_true", help="don't query the Fedora repositories")
-    sys.exit(audit(ap.parse_args()))
+    ap.add_argument("--probe", nargs="+", metavar="WHAT",
+                    help="investigate instead of auditing: package name globs (Fedora repos + installed) "
+                         "and /path globs (in the image, with owning package)")
+    args = ap.parse_args()
+    if args.probe:
+        sys.exit(probe(args.probe))
+    sys.exit(audit(args))
+
+
+def probe(items):
+    pkgs = [i for i in items if not i.startswith("/")]
+    for path in (i for i in items if i.startswith("/")):
+        hits = sorted(glob.glob(path, recursive=True))
+        print(f"== {path}: {len(hits)} match(es)")
+        for h in hits[:40]:
+            owner = run(["rpm", "-qf", "--qf", "%{NAME}\n", h], check=False).strip() or "(no package)"
+            print(f"   {h}  [{owner}]")
+    if pkgs:
+        print("== Fedora repositories: name arch installsize repo")
+        print(run(DNF + ["repoquery", "--available", "--latest-limit=1", "--queryformat",
+                         "%{name} %{arch} %{installsize} %{repoid}\n", *pkgs], check=False))
+        print("== installed in the image")
+        print(run(["rpm", "-q", *[p for p in pkgs if not _is_glob(p)]], check=False))
+    return 0
 
 
 if __name__ == "__main__":
