@@ -287,6 +287,33 @@ Nothing to install or download first:
   installed; in an image build there is none and DXVK silently loses to
   wined3d. The build switches the alternatives to DXVK
   (`build_files/enable-dxvk.sh`, from lucent-bridge) and fails if it didn't.
+  On x86_64 lucent-bridge (0.2+) goes further: Fedora 45 only has DXVK
+  2.7.1, which crashes every Direct3D 10/11 program on a display that
+  reports 0 Hz, so the bridge RPM bundles upstream DXVK 3.1.1 (zlib
+  licence) and puts it into each Windows environment, 64- and 32-bit.
+- **A calm sheet, not a silent wait.** On a program's first launch,
+  lucent-bridge shows "Preparing Windows program" (icon, name, file and
+  size, "x86-64 · direct execution" or "x86-64 → ARM · instruction
+  translation", progress, Cancel) and closes it once the program starts.
+  The same sheet explains what can't work, kindly: kernel-mode anti-cheat,
+  a program on the disk of a hibernated Windows (with "Run anyway"), a file
+  that isn't a Windows program. It is `apps/lucent-bridge-sheet/` (PySide6,
+  Pebble Drift tokens, light/dark, English + Russian); lucent-bridge finds it
+  as `lucent-bridge-sheet` and writes its progress to it as JSON lines (the
+  same protocol `lucent-bridge run --progress-fd N` offers any other UI).
+  "<App> is installed" still arrives as a notification.
+- **Windows programs look at home.** At each launch lucent-bridge gives the
+  program's Windows environment the desktop's light or dark mode (Pebble
+  Drift colours; Windows' own "apps use light theme" switch), Inter for
+  dialogs, menus and message boxes, the DPI of the Plasma scale factor and
+  ClearType-smooth text tuned per mode so it stays dark on light and bright
+  on dark. Before/after screenshots (Wine's classic look | light | dark) of
+  Notepad++, 7-Zip and KeePass: `docs/screenshots/real/bridge-0.2/`.
+- **Not "[Administrator]".** Wine gives every program an administrator
+  token; on Windows an administrator's programs run with a filtered token
+  unless they ask for more. lucent-bridge starts installed programs the
+  Windows way, so Notepad++ no longer says "[Administrator]"; installers,
+  and programs whose manifest asks for administrator rights, keep them.
 - **Double-click and `./setup.exe`**: `.exe`/`.msi` MIME types default to
   lucent-bridge (merged into `/usr/share/applications/mimeapps.list`); its
   binfmt entry handles executable `.exe` files.
@@ -434,6 +461,7 @@ system_files/                 copied to / : /etc/xdg defaults, look-and-feel,
 migration-wizard/             "Move from Windows" wizard (lucent_migrate, po/, tests)
 apps/lucent-store/            the Store (lucent_store, catalog.toml, po/, tests)
 apps/lucent-settings/         Settings (lucent_settings: backends/, qml/, po/, tests)
+apps/lucent-bridge-sheet/     "Preparing Windows program" sheet for lucent-bridge (po/, tests)
 tools/vm/                     boot the real image in QEMU (test-only VM images from CI)
 iso/                          installer ISO: offline app bundle, kickstart, config
 tests/acceptance/             CI: install the ISO, double-click a Windows installer
@@ -449,8 +477,6 @@ tests/acceptance/             CI: install the ISO, double-click a Windows instal
   progress UI; the installer ISO doesn't have this gap.
 - Firefox's own telemetry settings are Mozilla's defaults (no enterprise
   policy shipped yet for the Flatpak).
-- Fedora's `wine-dxvk` has no 32-bit build on x86_64, so 32-bit Direct3D
-  9–11 programs use wined3d there (64-bit ones, and all on aarch64, use DXVK).
 - Plasma's Devices list can't show udisks' `HintName` ("Local Disk (C:)"):
   per Solid's source, its udisks2 backend reads it with `QObject::property("HintName")`,
   which is never set, and falls back to the file-system label.
@@ -479,7 +505,10 @@ tests/acceptance/             CI: install the ISO, double-click a Windows instal
 PDF Arranger (вместо Acrobat), GIMP 3, Krita, Inkscape, darktable, Kdenlive,
 Scribus, Firefox. При установке с ISO они ставятся с самого носителя, без сети,
 и есть уже при первом входе. Программы Windows (.exe, .msi) запускаются двойным
-щелчком через **Lucent Bridge** — ничего доустанавливать не нужно. Новые программы — в
+щелчком через **Lucent Bridge** — ничего доустанавливать не нужно. При первом запуске
+спокойное окно «Подготовка Windows-программы» показывает прогресс (и объясняет, если
+программа работать не сможет); программы Windows выглядят как дома — светлая или
+тёмная тема, шрифт Inter, масштаб Plasma — и не запускаются «от администратора». Новые программы — в
 **Магазине**: подборка «вместо Word, Photoshop, Acrobat…» и поиск по всему Flathub,
 без рекомендаций, рекламы и слежки. При первом
 входе помощник **«Переезд с Windows»** переносит документы, фото, закладки
