@@ -2,8 +2,10 @@
 # CI test of the signature policy for updates, run as root inside the freshly
 # built image (not part of it), with a throw-away registry on the host:
 #   podman run --rm --network host -v ./build_files:/t:ro IMAGE /t/test-sigpolicy.sh localhost:5000
-# The registry holds REGISTRY/lucent-sigtest:one and REGISTRY/other:one (tiny,
-# unsigned). With an ephemeral key, this checks with the image's own
+# The registry holds tiny unsigned images with different content (signatures
+# belong to a manifest digest, not a tag): REGISTRY/lucent-sigtest:signme,
+# :unsigned, :wrongkey and REGISTRY/other:one. With an ephemeral key, this
+# checks with the image's own
 # containers/image and ostree-ext what installed systems will do once the
 # image carries Lucent's key (build_files/container-policy.py):
 #   - an update signed with the key is accepted;
@@ -28,9 +30,9 @@ printf 'test\n' > pass
 skopeo generate-sigstore-key --output-prefix lucent --passphrase-file pass
 skopeo generate-sigstore-key --output-prefix other --passphrase-file pass
 skopeo copy --sign-by-sigstore-private-key lucent.private --sign-passphrase-file pass \
-    "docker://$repo:one" "docker://$repo:signed"
+    "docker://$repo:signme" "docker://$repo:signed"
 skopeo copy --sign-by-sigstore-private-key other.private --sign-passphrase-file pass \
-    "docker://$repo:one" "docker://$repo:wrongkey"
+    "docker://$repo:wrongkey" "docker://$repo:wrongkey"
 
 step "the policy, from this image's own policy.json"
 base=/etc/containers/policy.json
@@ -46,7 +48,7 @@ step "signed with the key: accepted"
 pull "$repo:signed" || fail "a correctly signed image was refused"
 
 step "unsigned: refused"
-if out=$(pull "$repo:one"); then fail "an unsigned image was accepted"; fi
+if out=$(pull "$repo:unsigned"); then fail "an unsigned image was accepted"; fi
 echo "$out" | tail -n 1
 grep -qi 'signature' <<<"$out" || fail "refused, but not for its signature: $out"
 
@@ -61,7 +63,7 @@ step "ostree-ext (the update path of bootc and rpm-ostree)"
 if ostree container --help >/dev/null 2>&1; then
     ostree --repo=/tmp/repo init --mode=bare-user
     # Unsigned: must be refused for its signature.
-    if out=$(ostree container image pull /tmp/repo "ostree-image-signed:docker://$repo:one" 2>&1); then
+    if out=$(ostree container image pull /tmp/repo "ostree-image-signed:docker://$repo:unsigned" 2>&1); then
         fail "ostree-ext pulled an unsigned image"
     fi
     echo "$out" | tail -n 2

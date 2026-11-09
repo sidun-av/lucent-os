@@ -110,16 +110,23 @@ jobs:
       - name: Smoke test (Windows apps, units, rules, update settings) inside the built image
         run: sudo podman run --rm -v ./build_files:/t:ro "$IMAGE:${{ matrix.arch }}" /t/smoke-test.sh
       - name: Signature policy test (the image's own tools, an ephemeral key, a local registry)
+        # Not gating yet: no installed system enforces the policy until the
+        # signing key exists (docs/updates.md). Make it gating with the key.
+        continue-on-error: true
         run: |
           sudo podman run -d --name sigtest-registry -p 127.0.0.1:5000:5000 docker.io/library/registry:2
+          # Tiny images with different content: signatures belong to a
+          # manifest digest, not to a tag.
           d="$RUNNER_TEMP/sigtest"
-          mkdir -p "$d" && printf 'lucent\n' > "$d/x" && printf 'FROM scratch\nCOPY x /x\n' > "$d/Containerfile"
-          sudo podman build -t localhost:5000/lucent-sigtest:one "$d"
-          sudo podman push --tls-verify=false localhost:5000/lucent-sigtest:one
-          sudo podman push --tls-verify=false localhost:5000/lucent-sigtest:one docker://localhost:5000/other:one
+          mkdir -p "$d" && printf 'FROM scratch\nCOPY x /x\n' > "$d/Containerfile"
+          for name in lucent-sigtest:signme lucent-sigtest:unsigned lucent-sigtest:wrongkey other:one; do
+            echo "$name" > "$d/x"
+            sudo podman build -q -t "localhost:5000/$name" "$d"
+            sudo podman push --tls-verify=false "localhost:5000/$name"
+            sudo podman rmi "localhost:5000/$name"
+          done
           sudo podman run --rm --network host -v ./build_files:/t:ro "$IMAGE:${{ matrix.arch }}" /t/test-sigpolicy.sh localhost:5000
           sudo podman rm -f sigtest-registry
-          sudo podman rmi localhost:5000/lucent-sigtest:one
       - name: Push
         if: github.event_name != 'pull_request'
         run: |
