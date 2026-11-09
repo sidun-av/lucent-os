@@ -5,7 +5,7 @@ import Lucent
 Page {
     id: page
     readonly property var st: AboutPage.s
-    title: System.tr("About")
+    title: System.tr("About this PC")
     lead: ""
     Component.onCompleted: AboutPage.refresh()
 

@@ -25,6 +25,7 @@ Page {
             Repeater {
                 model: (page.st.wallTiles || []).filter(t => ["Drift", "Tide", "Aurora", "Lucent"].indexOf(t.name) >= 0)
                 WallTile { required property var modelData; tile: modelData; current: page.st.wallpaper || ""
+                           Layout.fillWidth: false; Layout.preferredWidth: (parent.width - 48) / 4
                            onPicked: (p) => AppearancePage.setWallpaper(p) }
             }
         }
@@ -42,9 +43,10 @@ Page {
             Repeater {
                 model: (page.st.wallTiles || []).filter(t => t.variant === "picture")
                 WallTile { required property var modelData; tile: modelData; current: page.st.wallpaper || ""
+                           Layout.fillWidth: false; Layout.preferredWidth: (parent.width - 48) / 4
                            onPicked: (p) => AppearancePage.setWallpaper(p) }
             }
-            AddPictureTile { onClicked: pick.open() }
+            AddPictureTile { onClicked: pick.open(); Layout.fillWidth: false; Layout.preferredWidth: (parent.width - 48) / 4 }
         }
     }
     Card {
@@ -60,6 +62,7 @@ Page {
             Repeater {
                 model: (page.st.wallTiles || []).filter(t => t.variant === "" && ["Drift", "Tide", "Aurora", "Lucent"].indexOf(t.name) < 0)
                 WallTile { required property var modelData; tile: modelData; current: page.st.wallpaper || ""
+                           Layout.fillWidth: false; Layout.preferredWidth: (parent.width - 48) / 4
                            onPicked: (p) => AppearancePage.setWallpaper(p) }
             }
         }

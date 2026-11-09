@@ -7,7 +7,7 @@ Page {
     readonly property var st: NetworkPage.s
     readonly property string busy: NetworkPage.busy
     property string asking: ""          // network whose password field is open
-    title: System.tr("Wi-Fi & Network")
+    title: System.tr("Network & internet")
     lead: System.tr("Connect to Wi-Fi or a network cable. Networks you have joined are remembered.")
     Component.onCompleted: { NetworkPage.refresh(); scanTimer.start() }
     Timer { interval: 4000; repeat: true; running: true; onTriggered: NetworkPage.refresh() }

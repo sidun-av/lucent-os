@@ -96,6 +96,8 @@ Page {
                         required property var modelData
                         required property int index
                         separator: index >= 2
+                        padLeft: index % 2 === 1 ? 24 : 0
+                        padRight: index % 2 === 0 ? 24 : 0
                         label: modelData.action
                         Row {
                             spacing: 0

@@ -7,7 +7,7 @@ Page {
     readonly property var st: WinappsPage.s
     readonly property string busy: WinappsPage.busy
     property var removing: ({})
-    title: System.tr("Windows Programs")
+    title: System.tr("Windows apps")
     lead: System.tr("Programs for Windows that you installed by double-clicking their installer. They run in Lucent Bridge, each in its own folder.")
     Component.onCompleted: WinappsPage.refresh()
 

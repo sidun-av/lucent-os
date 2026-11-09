@@ -14,6 +14,8 @@ Item {
     property bool clickable: false
     property real labelWeight: Theme.weightLabel
     property int labelPx: Theme.fontLabel
+    property int padLeft: Theme.rowPadH
+    property int padRight: Theme.rowPadH
     signal clicked()
     Layout.fillWidth: true
     implicitHeight: Math.max(minHeight, content.implicitHeight + 2 * Theme.rowPadV)
@@ -43,7 +45,7 @@ Item {
     RowLayout {
         id: content
         anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter
-                  leftMargin: Theme.rowPadH; rightMargin: Theme.rowPadH }
+                  leftMargin: row.padLeft; rightMargin: row.padRight }
         spacing: Theme.rowGap
         RowLayout {
             id: lead

@@ -31,9 +31,6 @@ msgstr "Одиночный щелчок только выделяет"
 msgid "A single click opens files and folders"
 msgstr "Файлы и папки открываются одиночным щелчком"
 
-msgid "About"
-msgstr "О системе"
-
 msgid "About this PC"
 msgstr "Об этом компьютере"
 
@@ -877,9 +874,6 @@ msgstr "Куда выводится звук и какой микрофон ис
 msgid "Wi-Fi"
 msgstr "Wi-Fi"
 
-msgid "Wi-Fi & Network"
-msgstr "Wi-Fi и сеть"
-
 msgid "Wi-Fi password"
 msgstr "Пароль Wi-Fi"
 
@@ -903,9 +897,6 @@ msgstr "Программы Windows"
 
 msgid "Windows open and close without animation"
 msgstr "Окна открываются и закрываются без анимации"
-
-msgid "Windows Programs"
-msgstr "Windows-программы"
 
 msgid "Windows programs need an Intel/AMD or ARM processor."
 msgstr "Программам Windows нужен процессор Intel/AMD или ARM."

@@ -6,7 +6,7 @@ Page {
     id: page
     readonly property var st: BluetoothPage.s
     readonly property string busy: BluetoothPage.busy
-    title: System.tr("Bluetooth")
+    title: System.tr("Bluetooth & devices")
     lead: System.tr("Headphones, speakers, mice and keyboards. Put a new device in pairing mode, then choose it below.")
     Component.onCompleted: BluetoothPage.refresh()
     Component.onDestruction: BluetoothPage.setDiscovering(false)
