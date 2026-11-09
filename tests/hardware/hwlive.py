@@ -460,6 +460,10 @@ class Test:
     def bluetooth(self):
         tools = Path(self.a.tools)
         self.scp(tools / "bin" / "btvirt", dest=f"{GUEST_T}/btvirt")
+        # Disks & Devices opened its popup when the sticks were plugged in
+        # and keeps its icon in the tray while that is open: close it.
+        self.keys("esc")
+        time.sleep(3)
         before = [round(x) for x, _ in self.tray_icons()]
         rc, out = self.ssh(f"modprobe hci_vhci && modinfo -F signer hci_vhci; chmod +x {GUEST_T}/btvirt; "
                            f"setsid -f {GUEST_T}/btvirt -l2 > {GUEST_T}/btvirt.log 2>&1 < /dev/null; sleep 5; "
@@ -502,6 +506,8 @@ class Test:
                     self.shot(f"32-bluetooth-switch-{i}")
                 self.check("bluetooth.power-switch", states == ["Powered: no", "Powered: yes"],
                            f"clicked the popup's switch twice: {states}")
+            else:
+                self.record("bluetooth.power-switch", "FAIL", "no tray popup window after clicking the Bluetooth icon")
             self.keys("esc")
             time.sleep(1)
         # Pair the computer's adapter with the second controller as a nearby device.
@@ -631,22 +637,32 @@ class Test:
                 self.record(f"ethernet.{model}-drivers", "INFO", diag)
             self.save(f"eth-{model}.txt", info)
             online = ok and ok2 and re.search(r"curl: (200|30\d)", info) is not None
-            if kind == "usb" and not online and "driver cdc_subset" in info:
-                # QEMU's only USB NIC reports the Linux USB gadget's IDs
-                # (0525:a4a2), which the legacy cdc_subset driver also claims:
-                # it grabs the data interface before cdc_ether can bind the
-                # CDC-ECM function, and no DHCP gets through. Real USB/dock
-                # NICs have their own IDs (r8152, ax88179_178a, cdc_ncm,
-                # cdc_ether). Bind it the way such a CDC-ECM adapter is bound
-                # and check the rest of the path: NetworkManager, DHCP, internet.
+            if kind == "usb" and not online:
+                # QEMU's only USB NIC carries the Linux USB gadget's IDs
+                # (0525:a4a2). systemd's hwdb (82-net-auto-link-local.hwdb)
+                # marks exactly those as ID_NET_AUTO_LINK_LOCAL_ONLY=1 (a
+                # Raspberry Pi or phone in gadget mode), so NetworkManager
+                # gives it a link-local address and no DHCP, and the legacy
+                # cdc_subset driver also claims the IDs before cdc_ether.
+                # Real USB and dock NICs have their own IDs (r8152,
+                # ax88179_178a, cdc_ncm, cdc_ether). Make it look like one:
+                # lift the gadget policy for it (runtime rule, test VM only),
+                # bind it as a CDC-ECM adapter, and check NetworkManager,
+                # DHCP and the internet on it.
+                _, prop = self.ssh(f"udevadm info -q property /sys/class/net/{ifname} | "
+                                   "grep -E '^(ID_NET_AUTO_LINK_LOCAL_ONLY|ID_VENDOR_ID|ID_MODEL_ID|ID_NET_DRIVER)='")
                 self.record(f"ethernet.{model}-as-plugged", "INFO",
-                            "emulator artifact, not a Lucent defect: QEMU's usb-net carries the Linux gadget IDs "
-                            f"0525:a4a2, cdc_subset took its data interface, no DHCP: {ifname}: {info}")
-                _, rb = self.ssh("d=$(grep -l '^0525$' /sys/bus/usb/devices/*/idVendor | head -n1); d=${d%/idVendor}; "
-                                 "n=${d##*/}; echo -n \"$n:1.1\" > /sys/bus/usb/drivers/cdc_subset/unbind; "
-                                 "echo -n \"$n:1.0\" > /sys/bus/usb/drivers/cdc_ether/bind; sleep 2; "
-                                 "for i in $d/*:*; do echo \"${i##*/} $(basename $(readlink -f $i/driver) 2>/dev/null)\"; done",
-                                 root=True)
+                            "emulator artifact, not a Lucent defect: QEMU's usb-net has the Linux USB gadget IDs, "
+                            f"which systemd's hwdb marks link-local only: {' '.join(prop.split())}; {ifname}: {info}")
+                _, rb = self.ssh(
+                    "echo 'SUBSYSTEM==\"net\", ACTION!=\"remove\", ENV{ID_VENDOR_ID}==\"0525\", "
+                    "ENV{ID_NET_AUTO_LINK_LOCAL_ONLY}=\"0\"' > /run/udev/rules.d/83-hwtest-usb-nic.rules; "
+                    "udevadm control --reload; "
+                    "d=$(grep -l '^0525$' /sys/bus/usb/devices/*/idVendor | head -n1); d=${d%/idVendor}; "
+                    "n=${d##*/}; for i in $d/*:*; do [ -e $i/driver ] && echo -n ${i##*/} > $i/driver/unbind; done; "
+                    "echo -n \"$n:1.0\" > /sys/bus/usb/drivers/cdc_ether/bind; sleep 2; "
+                    "for i in $d/*:*; do echo \"${i##*/} $(basename $(readlink -f $i/driver) 2>/dev/null)\"; done",
+                    root=True)
                 ok, ifname = self.wait(30, f"i=$({find}); test -n \"$i\" && echo $i")
                 ifname = ifname.strip()
                 ok2, _ = self.wait(60, f"nmcli -t -f GENERAL.STATE dev show {ifname} | grep -q '100 '")
@@ -654,9 +670,9 @@ class Test:
                                    f"nmcli -f GENERAL.CONNECTION,IP4.ADDRESS,IP4.GATEWAY dev show {ifname}; "
                                    f"curl -sS -o /dev/null -w 'curl: %{{http_code}} via %{{local_ip}}' --interface {ifname} "
                                    f"--max-time 20 https://fedoraproject.org/")
-                self.save(f"eth-{model}-cdc-ether.txt", rb + "\n" + info)
-                self.check(f"ethernet.{model}-cdc-ether", ok and ok2 and re.search(r"curl: (200|30\d)", info) is not None,
-                           f"bound to cdc_ether ({' '.join(rb.split())}): {ifname}: {info}")
+                self.save(f"eth-{model}-as-dock-nic.txt", rb + "\n" + info)
+                self.check(f"ethernet.{model}-as-dock-nic", ok and ok2 and re.search(r"curl: (200|30\d)", info) is not None,
+                           f"gadget policy lifted, bound to cdc_ether ({' '.join(rb.split())}): {ifname}: {info}")
             else:
                 self.check(f"ethernet.{model}", online, f"{ifname}: {info}")
             time.sleep(2)
