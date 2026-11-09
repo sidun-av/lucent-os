@@ -1,0 +1,8 @@
+#!/usr/bin/python3 -P
+"""Lucent: switch light/dark/auto and the accent colour (docs/theming.md)."""
+import sys
+
+sys.path.insert(0, "/usr/lib/lucent")
+from lucent_theme.cli import main  # noqa: E402
+
+raise SystemExit(main())

@@ -1,5 +1,5 @@
 [Unit]
-Description=Lucent: keep Flatpak Qt apps on the desktop's light/dark Kvantum theme
+Description=Lucent: re-sync the look (accent, Kvantum, Flatpak apps) when kdeglobals changes
 
 [Path]
 # Plasma writes kdeglobals when the look (light/dark) changes.

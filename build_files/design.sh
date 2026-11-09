@@ -90,6 +90,14 @@ systemctl enable --force sddm.service
 # Flatpak Qt apps follow the light/dark Kvantum theme (per-user path unit).
 systemctl --global enable lucent-kvantum-sync.path
 
+# Accents (lucent-theme): every swatch has its Kvantum theme, light and dark.
+for t in $(PYTHONPATH=/usr/lib/lucent python3 -P -c \
+        'from lucent_theme import accents, theme; print(*(theme.kvantum_theme(a.id) for a in accents.ACCENTS))'); do
+    test -f "/usr/share/Kvantum/$t/$t.svg" && test -f "/usr/share/Kvantum/$t/${t}Dark.kvconfig"
+done
+HOME=/tmp XDG_CONFIG_HOME=/tmp/lucent-theme-check /usr/bin/lucent-theme accents >/dev/null
+rm -rf /tmp/lucent-theme-check
+
 # Lock screen: Plasma 6.8 draws it from the desktop shell package; Lucent's
 # LockScreenUi.qml replaces the stock one (same authenticator contract). If a
 # Plasma update reshapes that package, the stock lock screen stays.

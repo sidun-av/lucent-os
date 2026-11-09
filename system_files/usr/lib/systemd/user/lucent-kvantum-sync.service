@@ -1,7 +1,10 @@
 [Unit]
-Description=Lucent: sync the Kvantum theme into Flatpak apps
+Description=Lucent: keep the chosen accent and Flatpak Qt apps in step with the desktop's look
 
 [Service]
 Type=oneshot
-ExecStart=/usr/libexec/lucent/kvantum-flatpak-sync
+# Puts the accent chosen with lucent-theme back after Plasma switched the
+# global theme (automatic light/dark), points Kvantum at the matching theme
+# and syncs it into Flatpak Qt apps (kvantum-flatpak-sync).
+ExecStart=/usr/bin/lucent-theme sync
 Nice=10

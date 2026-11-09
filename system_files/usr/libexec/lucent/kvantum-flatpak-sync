@@ -6,24 +6,28 @@ app can't see /usr or /etc of the host and reads Kvantum's configuration
 from its own config dir (~/.var/app/<id>/config). For every installed app
 on a KDE runtime this keeps there:
 
-  Kvantum/kvantum.kvconfig      theme=Lucent or LucentDark (follows the
-                                desktop's light/dark look)
-  Kvantum/Lucent/               copy of /usr/share/Kvantum/Lucent
+  Kvantum/kvantum.kvconfig      theme=<active theme>[Dark]: the desktop's
+                                Lucent theme for the chosen accent (Lucent,
+                                LucentAzure, ... see lucent-theme), in the
+                                light or dark variant of the desktop
+  Kvantum/<active theme>/       copy of /usr/share/Kvantum/<active theme>
 
 The Kvantum plugin itself comes from Flathub's org.kde.KStyle.Kvantum
 extension, installed with QT_STYLE_OVERRIDE=kvantum per app by
 /usr/libexec/lucent/flatpak-setup. Runs at login (design-defaults) and when
-kdeglobals changes (lucent-kvantum-sync.path). A kvantum.kvconfig the user
-wrote (without Lucent's marker line) is left alone.
+kdeglobals changes (lucent-kvantum-sync.path, through `lucent-theme sync`).
+A kvantum.kvconfig the user wrote (without Lucent's marker line) is left
+alone.
 """
 import filecmp
 import shutil
 import subprocess
 from pathlib import Path
 
-THEME_SRC = Path("/usr/share/Kvantum/Lucent")
+THEMES = Path("/usr/share/Kvantum")
 MARK = "# Managed by Lucent (/usr/libexec/lucent/kvantum-flatpak-sync)"
 HOME = Path.home()
+CONFIG = HOME / ".config"
 
 
 def desktop_is_dark() -> bool:
@@ -35,6 +39,21 @@ def desktop_is_dark() -> bool:
     except OSError:
         return False
     return style.endswith("-dark") or "dark" in scheme
+
+
+def active_theme() -> str:
+    """The desktop's Kvantum theme folder if it is one of Lucent's, else Lucent."""
+    try:
+        for line in (CONFIG / "Kvantum/kvantum.kvconfig").read_text(errors="replace").splitlines():
+            if line.strip().startswith("theme="):
+                name = line.split("=", 1)[1].strip()
+                if name.endswith("Dark"):
+                    name = name[:-4]
+                if name.startswith("Lucent") and (THEMES / name).is_dir():
+                    return name
+    except OSError:
+        pass
+    return "Lucent"
 
 
 def kde_apps() -> list[str]:
@@ -51,25 +70,29 @@ def kde_apps() -> list[str]:
     return sorted(set(apps))
 
 
-def sync_theme(dest: Path) -> None:
+def sync_theme(src: Path, dest: Path) -> None:
     dest.mkdir(parents=True, exist_ok=True)
-    for src in THEME_SRC.iterdir():
-        out = dest / src.name
-        if not out.exists() or not filecmp.cmp(src, out, shallow=False):
-            shutil.copyfile(src, out)
+    for f in src.iterdir():
+        out = dest / f.name
+        if not out.exists() or not filecmp.cmp(f, out, shallow=False):
+            shutil.copyfile(f, out)
 
 
 def main() -> int:
-    if not THEME_SRC.is_dir():
+    name = active_theme()
+    if not (THEMES / name).is_dir():
         return 0
-    theme = "LucentDark" if desktop_is_dark() else "Lucent"
-    wanted = f"{MARK}\n[General]\ntheme={theme}\n"
+    variant = name + ("Dark" if desktop_is_dark() else "")
+    wanted = f"{MARK}\n[General]\ntheme={variant}\n"
     for app in kde_apps():
         kv = HOME / ".var/app" / app / "config/Kvantum"
         conf = kv / "kvantum.kvconfig"
         if conf.exists() and not conf.read_text(errors="replace").startswith(MARK):
             continue  # the user's own choice
-        sync_theme(kv / "Lucent")
+        sync_theme(THEMES / name, kv / name)
+        for old in kv.glob("Lucent*"):     # an accent chosen before
+            if old.is_dir() and old.name != name:
+                shutil.rmtree(old, ignore_errors=True)
         if not conf.exists() or conf.read_text(errors="replace") != wanted:
             conf.write_text(wanted)
     return 0
