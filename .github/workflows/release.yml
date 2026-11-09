@@ -1,0 +1,201 @@
+name: release
+
+# A Lucent OS release, always as a DRAFT GitHub release (drafts are visible
+# only to people with write access; a maintainer publishes it by hand):
+#
+#   tag vX.Y.Z pushed -> build the image (:X.Y.Z, :stable, signed), both
+#   installer ISOs from :stable (the installed systems follow :stable), the
+#   amd64 offline install test, then the draft: each ISO in parts under
+#   GitHub's 2 GiB asset limit, SHA256SUMS, its Sigstore signature
+#   (SHA256SUMS.sigstore.json) and the join scripts for Windows, macOS and
+#   Linux (tools/release/).
+#
+#   Run manually (dry run): the same from an existing image tag (default
+#   `latest`), without building or tagging an image. The draft is titled
+#   "dry run"; its tag is not created unless someone publishes it.
+#
+# How users join and check the parts: docs/install-usb.md. Why parts on
+# GitHub, and what else could carry the ISOs: docs/distribution.md.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for the dry-run draft, e.g. 0.1.0-dryrun.1 (its tag is not created)"
+        type: string
+        required: true
+      image_tag:
+        description: "Existing image tag to put on the ISOs (the installed systems follow it)"
+        type: string
+        default: latest
+      install_test:
+        description: "Offline install test of the amd64 ISO"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write   # the draft release
+  packages: write   # the image, on a tag
+  id-token: write   # Sigstore keyless signing
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  meta:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.m.outputs.version }}
+      image_tag: ${{ steps.m.outputs.image_tag }}
+      dry_run: ${{ steps.m.outputs.dry_run }}
+    steps:
+      - id: m
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_IMAGE_TAG: ${{ inputs.image_tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            version=${GITHUB_REF_NAME#v}; image_tag=stable; dry_run=false
+          else
+            version=${INPUT_VERSION#v}; image_tag=$INPUT_IMAGE_TAG; dry_run=true
+          fi
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'; then
+            echo "::error::not a version: $version (want X.Y.Z or X.Y.Z-suffix)"; exit 1
+          fi
+          if [ "$dry_run" = true ] && gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$version" >/dev/null 2>&1; then
+            echo "::error::tag v$version exists; a dry run needs a version that was never released"; exit 1
+          fi
+          { echo "version=$version"; echo "image_tag=$image_tag"; echo "dry_run=$dry_run"; } | tee -a "$GITHUB_OUTPUT"
+
+  tools:
+    # The join scripts on Windows PowerShell 5.1, PowerShell 7, cmd, sh.
+    uses: ./.github/workflows/release-tools.yml
+
+  image:
+    needs: [meta, tools]
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ needs.meta.outputs.version }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    secrets: inherit
+
+  iso:
+    needs: [meta, tools, image]
+    if: ${{ !cancelled() && needs.meta.result == 'success' && needs.tools.result == 'success' && (needs.image.result == 'success' || needs.image.result == 'skipped') }}
+    strategy:
+      fail-fast: true
+      matrix:
+        arch: [amd64, arm64]
+    uses: ./.github/workflows/iso.yml
+    with:
+      arch: ${{ matrix.arch }}
+      image_tag: ${{ needs.meta.outputs.image_tag }}
+      expect_revision: ${{ github.event_name == 'push' && github.sha || '' }}
+      install_test: ${{ github.event_name == 'push' || inputs.install_test }}
+    permissions:
+      contents: read
+      packages: read
+
+  publish:
+    needs: [meta, iso]
+    if: ${{ !cancelled() && needs.iso.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      VERSION: ${{ needs.meta.outputs.version }}
+      DRY_RUN: ${{ needs.meta.outputs.dry_run }}
+      IMAGE_TAG: ${{ needs.meta.outputs.image_tag }}
+      OUT: /mnt/release
+      GH_TOKEN: ${{ github.token }}
+      # Who signs SHA256SUMS: this workflow, at a v* tag or (dry runs) on main.
+      # The join scripts check the same identity.
+      IDENTITY_RE: '^https://github\.com/sidun-av/lucent-os/\.github/workflows/release\.yml@refs/(tags/v.+|heads/main)$'
+      ISSUER: https://token.actions.githubusercontent.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Disk space for two ISOs and their parts
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost || true
+          sudo mkdir -p "$OUT" && sudo chown "$USER" "$OUT"
+          df -h / /mnt
+      - name: Download the ISOs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: lucent-os-*-iso
+          path: ${{ env.OUT }}/iso
+      - name: Split into parts (under 2 GiB each) and write SHA256SUMS
+        run: |
+          python3 tools/release/make-release-assets.py "$VERSION" "$OUT/iso" "$OUT/assets"
+          cat "$OUT/assets/SHA256SUMS"
+          ls -la "$OUT/assets"
+          # GitHub's limit is per file: "under 2 GiB".
+          if find "$OUT/assets" -type f -size +2097151k | grep .; then
+            echo "::error::an asset is 2 GiB or larger"; exit 1
+          fi
+
+      - uses: sigstore/cosign-installer@v4.1.2
+        with:
+          cosign-release: v3.1.4
+      - name: Sign SHA256SUMS (Sigstore, keyless, with this workflow's identity)
+        working-directory: ${{ env.OUT }}/assets
+        run: |
+          cosign sign-blob --yes --bundle SHA256SUMS.sigstore.json SHA256SUMS
+          cosign verify-blob --bundle SHA256SUMS.sigstore.json \
+            --certificate-identity-regexp "$IDENTITY_RE" --certificate-oidc-issuer "$ISSUER" SHA256SUMS
+
+      - name: Join and check the parts the way a user does (join-lucent-iso.sh, with cosign)
+        working-directory: ${{ env.OUT }}/assets
+        run: |
+          # One ISO at a time (hard links to its parts in a folder of its
+          # own), so the disk never holds both joined ISOs at once.
+          for iso in $(awk '$2 ~ /\.iso$/ { print $2 }' SHA256SUMS); do
+            rm -rf "$OUT/try" && mkdir "$OUT/try"
+            ln "$iso".[0-9][0-9][0-9] SHA256SUMS SHA256SUMS.sigstore.json join-lucent-iso.sh "$OUT/try/"
+            start=$(date +%s)
+            LUCENT_NO_PAUSE=1 sh "$OUT/try/join-lucent-iso.sh" | tee "$OUT/join.log"
+            grep -q 'Signature verified' "$OUT/join.log"
+            grep -q "Ready: .*$iso" "$OUT/join.log"
+            echo "joined and checked $iso in $(( $(date +%s) - start )) s" | tee -a "$GITHUB_STEP_SUMMARY"
+            rm -rf "$OUT/try" "$OUT/join.log"
+          done
+
+      - name: Draft release
+        working-directory: ${{ env.OUT }}/assets
+        run: |
+          tag="v$VERSION"
+          title="Lucent OS $VERSION"
+          [ "$DRY_RUN" = true ] && title="$title (dry run, do not publish)"
+          ref="ghcr.io/${GITHUB_REPOSITORY_OWNER}/lucent-os:$IMAGE_TAG"
+          digest=$(skopeo inspect --raw "docker://$ref" | sha256sum | cut -c1-64)
+          sh "$GITHUB_WORKSPACE/tools/release/release-notes.sh" "$VERSION" "$ref" "$digest" "$DRY_RUN" \
+            "$IDENTITY_RE" "$ISSUER" > "$OUT/notes.md"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            [ "$(gh release view "$tag" --json isDraft -q .isDraft)" = true ] || { echo "::error::$tag is already published"; exit 1; }
+            gh release edit "$tag" --draft --title "$title" --notes-file "$OUT/notes.md"
+          else
+            pre=()
+            [ "$DRY_RUN" = true ] && pre=(--prerelease)
+            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "$title" --notes-file "$OUT/notes.md" "${pre[@]}"
+          fi
+          rm "$OUT/notes.md"
+          for f in SHA256SUMS SHA256SUMS.sigstore.json join-lucent-iso.*  lucent-os-*.iso.0*; do
+            for attempt in 1 2 3; do
+              gh release upload "$tag" "$f" --clobber && break
+              echo "upload of $f failed (attempt $attempt)"; sleep 30
+              [ "$attempt" = 3 ] && exit 1
+            done
+          done
+          url=$(gh release view "$tag" --json url -q .url)
+          { echo "### Draft release"; echo "$url"; echo; echo '```'; cat SHA256SUMS; echo '```'; } | tee -a "$GITHUB_STEP_SUMMARY"
+          # Drafts don't create their tag: nothing is public until someone publishes.
+          gh api "repos/$GITHUB_REPOSITORY/releases" -q ".[] | select(.tag_name == \"$tag\") | \"draft=\(.draft) tag=\(.tag_name)\""
+          if [ "$DRY_RUN" = true ] && gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" >/dev/null 2>&1; then
+            echo "::error::the dry run's tag $tag exists"; exit 1
+          fi

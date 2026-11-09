@@ -1,0 +1,2 @@
+# Windows double-click wrapper: cmd.exe needs CRLF line endings.
+tools/release/*.cmd text eol=crlf
