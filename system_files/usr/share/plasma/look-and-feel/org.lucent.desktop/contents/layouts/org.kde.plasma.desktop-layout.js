@@ -57,7 +57,7 @@ tasks.writeConfig("showToolTips", true);           // hover = live thumbnail
 tasks.writeConfig("highlightWindows", true);
 tasks.writeConfig("minimizeActiveTaskOnClick", true);
 tasks.writeConfig("indicateAudioStreams", true);
-tasks.writeConfig("iconSpacing", 1);
+tasks.writeConfig("iconSpacing", 0);           // 50 px tiles, 4 px apart
 tasks.writeConfig("maxStripes", 1);
 
 bar.addWidget("org.lucent.separator");

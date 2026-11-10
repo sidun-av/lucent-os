@@ -1,5 +1,5 @@
 /*
-    Lucent dock search button (glass.css .dk with the search glyph): a 56 px
+    Lucent dock search button (glass.css .dk with the search glyph): a 50 px
     tile, --state-hover on hover. Clicking it opens KRunner (Spotlight, the
     same as Win+Space); typing while it has focus does the same.
 
@@ -34,9 +34,9 @@ PlasmoidItem {
 
     fullRepresentation: MouseArea {
         id: field
-        Layout.minimumWidth: 56
-        Layout.preferredWidth: 56
-        Layout.maximumWidth: 56
+        Layout.minimumWidth: 50
+        Layout.preferredWidth: 50
+        Layout.maximumWidth: 50
         Layout.fillHeight: true
         hoverEnabled: true
         activeFocusOnTab: true
@@ -47,9 +47,9 @@ PlasmoidItem {
 
         Rectangle {     // .dk.hover: --state-hover, radius 14, no shadow
             anchors.centerIn: parent
-            width: 56
-            height: 56
-            radius: 14
+            width: 50
+            height: 50
+            radius: 13
             color: root.dark ? Qt.rgba(220 / 255, 228 / 255, 1, field.pressed ? 0.11 : 0.07)
                              : Qt.rgba(48 / 255, 58 / 255, 120 / 255, field.pressed ? 0.10 : 0.06)
             opacity: field.containsMouse || field.activeFocus ? 1 : 0

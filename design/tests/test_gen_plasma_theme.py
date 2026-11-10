@@ -55,7 +55,9 @@ def test_dock_is_a_floating_glass_card():
         # rounded and masked (KWin clips the blur to it), a floating gap, a drop shadow
         assert 'id="mask-center"' in text and 'id="floating-hint-bottom-margin"' in text
         assert 'id="shadow-top"' in text
-    assert g.PANEL_H == 72 and g.TASK_H == g.PANEL_H and g.DOCK_R == 24
+    assert g.PANEL_H == 72 and g.DOCK_R == 24
+    # applets get < 52 px, so the tray keeps one row; a task cell is that height
+    assert g.TASK_H == g.PANEL_H - g.PANEL_PAD[1] - g.PANEL_PAD[3] < 52
     assert tokens.color(t["dock"])[3] < 1 and tokens.color(t["dock_solid"])[3] == 1
 
 

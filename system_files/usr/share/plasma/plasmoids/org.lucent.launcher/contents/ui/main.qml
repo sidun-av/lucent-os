@@ -35,9 +35,9 @@ PlasmoidItem {
         id: button
         MouseArea {
             id: area
-            Layout.minimumWidth: 56
-            Layout.preferredWidth: 56
-            Layout.maximumWidth: 56
+            Layout.minimumWidth: 50
+            Layout.preferredWidth: 50
+            Layout.maximumWidth: 50
             Layout.fillHeight: true
             hoverEnabled: true
             activeFocusOnTab: true
@@ -47,13 +47,13 @@ PlasmoidItem {
             Keys.onSpacePressed: dash.toggle()
             onClicked: dash.toggle()
 
-            // .dk (glass.css): a 56 px tile, radius 14; hover = --state-hover,
+            // .dk (glass.css): a 50 px tile, radius 13; hover = --state-hover,
             // open = --accent-soft. Flat tints only, nothing is raised.
             Rectangle {
                 anchors.centerIn: parent
-                width: 56
-                height: 56
-                radius: 14
+                width: 50
+                height: 50
+                radius: 13
                 color: dash.visible || area.pressed
                        ? (kicker.dark ? Qt.rgba(112 / 255, 136 / 255, 1, 0.17) : Qt.rgba(66 / 255, 87 / 255, 232 / 255, 0.11))
                        : (kicker.dark ? Qt.rgba(220 / 255, 228 / 255, 1, 0.07) : Qt.rgba(48 / 255, 58 / 255, 120 / 255, 0.06))
@@ -62,8 +62,8 @@ PlasmoidItem {
             }
             Kirigami.Icon {
                 anchors.centerIn: parent
-                width: 38
-                height: 38
+                width: 42
+                height: 42
                 roundToIconSize: false
                 source: Plasmoid.icon
             }

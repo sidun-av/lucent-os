@@ -39,18 +39,19 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "system_files/usr/share/plasma/desktoptheme"
 
 # Dock geometry (glass.css .dock, .dk): a floating, centred, fit-width card,
-# 72 px tall, radius 24 (--r-xl), --glass-dock + KWin blur, --elev-3. The task
-# manager fills the full 72 px (CanFillArea): each cell is 72 x 72 with the
-# 56 px .dk tile (radius 14) centred; hover = --state-hover, the focused app
-# = a 14 x 5 accent dash under the icon, running = a 5 px dot.
+# 72 px tall, radius 24 (--r-xl), --glass-dock + KWin blur, --elev-3. Applets
+# get 72 - 2 x 11 = 50 px: under 52 px the system tray keeps one row of
+# icons (it stacks two rows from 2 x (22 + 4) px). Each task cell is that
+# 50 px tile (radius 13); hover = --state-hover, the focused app = a 14 x 5
+# accent dash under the 42 px icon, running = a 5 px dot.
 PANEL_H = 72
 DOCK_R = 24
-PANEL_PAD = (10, 8, 10, 8)
+PANEL_PAD = (10, 11, 10, 11)
 FLOAT_GAP = (12, 12, 12, 12)
-TASK_W = TASK_H = 72
-TASK_TILE = (8, 8, 56, 56)
-TASK_R = 14
-TASK_ICON_PAD = (14, 14, 14, 14)
+TASK_W = TASK_H = 50
+TASK_TILE = (0, 0, 50, 50)
+TASK_R = 13
+TASK_ICON_PAD = (4, 2, 4, 6)
 BAR_W, BAR_H, BAR_BOTTOM = 14, 5, 1        # .dk.active .run i
 DOT, DOT_BOTTOM = 5, 1                     # .dk .run i
 POPUP_R = 16
